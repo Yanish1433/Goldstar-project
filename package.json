@@ -1,0 +1,16 @@
+{
+  "name": "goldstar-3d",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "workspaces": ["server", "client"],
+  "scripts": {
+    "dev": "concurrently -k -n server,client -c yellow,cyan \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "start": "npm run start -w server",
+    "seed": "npm run seed -w server --",
+    "test": "npm run test -w server && npm run test -w client",
+    "model": "npm run model -w client"
+  },
+  "devDependencies": { "concurrently": "^9" }
+}

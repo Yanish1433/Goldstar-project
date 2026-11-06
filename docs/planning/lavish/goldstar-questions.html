@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-lavish-annotate="off">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Goldstar 3D site — decisions before we build</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Mukta:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#0A1230;--navy2:#121C42;--ink:#F4F2EC;--blue:#2A27E9;--gold:#E9C46A;--muted:#AEB3C7}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--navy);color:var(--ink);font-family:Archivo,system-ui,sans-serif;font-size:17px;line-height:1.5}
+  main{max-width:960px;margin:0 auto;padding:48px 20px 120px}
+  h1{font-stretch:125%;font-weight:900;font-size:clamp(32px,6vw,56px);line-height:1.05;margin:0 0 12px}
+  h1 .dev{font-family:Mukta,sans-serif;color:var(--gold);display:block;font-size:.6em;font-stretch:100%}
+  .lede{color:var(--muted);max-width:640px;margin:0 0 40px}
+  form.q{background:var(--navy2);padding:28px;margin:0 0 20px;min-width:0}
+  form.q h2{font-stretch:110%;font-weight:800;font-size:22px;margin:0 0 6px}
+  form.q .why{color:var(--muted);margin:0 0 18px;font-size:15px}
+  .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+  .opt{display:block;border:2px solid #2A3360;padding:16px;cursor:pointer;min-width:0}
+  .opt:has(input:checked){border-color:var(--gold);background:#18234f}
+  .opt input{accent-color:var(--gold);margin-right:8px}
+  .opt b{font-weight:700}
+  .opt small{display:block;color:var(--muted);margin-top:6px;font-size:14px}
+  .rec{display:inline-block;background:var(--gold);color:var(--navy);font-size:13px;font-weight:700;padding:1px 8px;margin-left:6px}
+  .sw{display:flex;gap:4px;margin-top:10px}.sw i{width:28px;height:28px;display:block;border:1px solid #ffffff33}
+  textarea,input[type=text]{width:100%;margin-top:14px;background:var(--navy);color:var(--ink);border:2px solid #2A3360;padding:10px;font:inherit;font-size:15px}
+  .row{display:flex;gap:14px;align-items:center;margin-top:16px;flex-wrap:wrap}
+  button{font:inherit;font-weight:700;border:0;padding:12px 20px;cursor:pointer;border-radius:0}
+  .queue{background:var(--blue);color:#fff}
+  .status{color:var(--gold);font-size:14px}
+  .send{position:sticky;bottom:0;background:var(--navy);border-top:2px solid var(--blue);padding:16px 20px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:center}
+  .send .go{background:var(--gold);color:var(--navy)}
+  .send .copy{background:transparent;color:var(--ink);border:2px solid var(--ink)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Before we build the Goldstar 3D site <span class="dev">गोल्डस्टार</span></h1>
+  <p class="lede">Eight decisions from the design report. Pick an option on each, press <b>Queue answer</b>, then <b>Send all to first mate</b> at the bottom. The recommended options are already selected, so you only need to change the ones you disagree with.</p>
+
+  <form class="q" data-lavish-question="direction">
+    <h2>1. Which design direction?</h2>
+    <p class="why">Sets the colours, fonts and how the animation moves.</p>
+    <div class="opts">
+      <label class="opt"><input type="radio" name="direction" value="A Night Shift" checked><b>A · Night Shift</b><span class="rec">Recommended</span>
+        <small>Dark navy, like the factory at night. Precise 3D shoe that comes apart into its parts. Fonts: Archivo + Mukta.</small>
+        <span class="sw"><i style="background:#0A1230"></i><i style="background:#121C42"></i><i style="background:#2A27E9"></i><i style="background:#E9C46A"></i><i style="background:#F4F2EC"></i></span></label>
+      <label class="opt"><input type="radio" name="direction" value="B Blue Print 032"><b>B · Blue Print 032</b>
+        <small>Bright white lab, like a technical drawing. Based on the 032's blue and white. Less futuristic.</small>
+        <span class="sw"><i style="background:#FFFFFF"></i><i style="background:#EEF0F7"></i><i style="background:#0B1A48"></i><i style="background:#2A27E9"></i><i style="background:#E23B2E"></i></span></label>
+      <label class="opt"><input type="radio" name="direction" value="C Ringroad"><b>C · Ringroad</b>
+        <small>Loud Kathmandu street style, blue and taxi yellow. Needs a new street photo shoot.</small>
+        <span class="sw"><i style="background:#F2EEE6"></i><i style="background:#111111"></i><i style="background:#2A27E9"></i><i style="background:#F2C230"></i></span></label>
+    </div>
+    <div class="row"><button class="queue" type="submit">Queue answer</button><span class="status" role="status"></span></div>
+  </form>
+
+  <form class="q" data-lavish-question="hero-shoe">
+    <h2>2. Which shoe is the 3D hero?</h2>
+    <p class="why">This is the shoe that rotates and comes apart as you scroll.</p>
+    <div class="opts">
+      <label class="opt"><input type="radio" name="hero" value="G10-401" checked><b>G10-401</b><span class="rec">Recommended</span><small>NPR 3,400. Its product page already lists 7 real materials to use for the callouts.</small></label>
+      <label class="opt"><input type="radio" name="hero" value="ARC"><b>ARC ("Balen shoes")</b><small>Popular in 2026, but there's no product data online yet.</small></label>
+      <label class="opt"><input type="radio" name="hero" value="032 classic"><b>032 classic</b><small>The classic blue-and-white trainer from 1993.</small></label>
+    </div>
+    <div class="row"><button class="queue" type="submit">Queue answer</button><span class="status" role="status"></span></div>
+  </form>
+
+  <form class="q" data-lavish-question="commerce">
+    <h2>3. Sell on the new site, or link to the shop?</h2>
+    <p class="why">Decides whether we need a cart and checkout.</p>
+    <div class="opts">
+      <label class="opt"><input type="radio" name="commerce" value="Link to existing WooCommerce" checked><b>Link to the current shop</b><span class="rec">Recommended</span><small>Buy buttons open the existing WooCommerce product pages. Fastest option.</small></label>
+      <label class="opt"><input type="radio" name="commerce" value="Live prices from WooCommerce API"><b>Show live prices</b><small>Pulls prices and stock from WooCommerce; checkout still happens there. Needs API access.</small></label>
+      <label class="opt"><input type="radio" name="commerce" value="Showcase only"><b>Showcase only</b><small>No buying. Points people to stores.</small></label>
+    </div>
+    <div class="row"><button class="queue" type="submit">Queue answer</button><span class="status" role="status"></span></div>
+  </form>
+
+  <form class="q" data-lavish-question="language">
+    <h2>4. Language</h2>
+    <div class="opts">
+      <label class="opt"><input type="radio" name="lang" value="English with Nepali accents" checked><b>English + Nepali touches</b><span class="rec">Recommended</span><small>English copy, with the गोल्डस्टार name and key lines in Nepali.</small></label>
+      <label class="opt"><input type="radio" name="lang" value="Full bilingual"><b>Fully bilingual</b><small>A Nepali / English toggle on every page. Twice the copywriting.</small></label>
+      <label class="opt"><input type="radio" name="lang" value="English only"><b>English only</b></label>
+    </div>
+    <div class="row"><button class="queue" type="submit">Queue answer</button><span class="status" role="status"></span></div>
+  </form>
+
+  <form class="q" data-lavish-question="client-status">
+    <h2>5. Is Goldstar an active client, or is this a pitch or demo?</h2>
+    <p class="why">A real launch needs their logo files, real shoes and fact sign-off. A demo can use placeholders, but it must never go public.</p>
+    <div class="opts">
+      <label class="opt"><input type="radio" name="client" value="Spec prototype / pitch" checked><b>Pitch / demo prototype</b><span class="rec">Start here</span><small>Built with a placeholder shoe and public info, and clearly marked as a demo.</small></label>
+      <label class="opt"><input type="radio" name="client" value="Real client, assets coming"><b>Real client</b><small>Goldstar will send the logo, samples and specs.</small></label>
+    </div>
+    <div class="row"><button class="queue" type="submit">Queue answer</button><span class="status" role="status"></span></div>
+  </form>
+
+  <form class="q" data-lavish-question="3d-model">
+    <h2>6. Where does the 3D shoe model come from?</h2>
+    <p class="why">We can build the animation now with a stand-in model and swap in the real one later without changing code.</p>
+    <div class="opts">
+      <label class="opt"><input type="radio" name="model" value="Placeholder now, modeler later" checked><b>Stand-in now, real model later</b><span class="rec">Recommended</span><small>Build with a free stand-in model, then hire a modeler (US$80 to 2,000).</small></label>
+      <label class="opt"><input type="radio" name="model" value="I will scan a real shoe"><b>I'll scan a real shoe</b><small>With a phone app such as Polycam or KIRI. Still needs cleanup before it can come apart into parts.</small></label>
+      <label class="opt"><input type="radio" name="model" value="I already have a model"><b>I already have a model</b><small>Tell me the file path in the box below.</small></label>
+    </div>
+    <input type="text" name="model-notes" placeholder="Optional: budget, file path, local modeler…">
+    <div class="row"><button class="queue" type="submit">Queue answer</button><span class="status" role="status"></span></div>
+  </form>
+
+  <form class="q" data-lavish-question="history">
+    <h2>7. Sensitive history</h2>
+    <p class="why">The Maoist-era association and the 2026 "Balen shoes" moment.</p>
+    <div class="opts">
+      <label class="opt"><input type="radio" name="history" value="Craft and heritage only" checked><b>Craft and heritage only</b><span class="rec">Safest</span><small>Leave out politics; focus on the factory, the 032 and 75,000 pairs a day.</small></label>
+      <label class="opt"><input type="radio" name="history" value="Mention Balen moment lightly"><b>Mention the Balen moment</b><small>One line about ARC selling out, nothing about the war era.</small></label>
+      <label class="opt"><input type="radio" name="history" value="Include both"><b>Include both</b></label>
+    </div>
+    <div class="row"><button class="queue" type="submit">Queue answer</button><span class="status" role="status"></span></div>
+  </form>
+
+  <form class="q" data-lavish-question="where-and-stack">
+    <h2>8. Where do we build it, and with what?</h2>
+    <p class="why">The current folder is your barber project, so the Goldstar site should get its own folder.</p>
+    <div class="opts">
+      <label class="opt"><input type="radio" name="stack" value="Astro + React Three Fiber + GSAP" checked><b>Astro + React Three Fiber + GSAP</b><span class="rec">Recommended</span><small>Mostly static pages with a small 3D section, so it loads fast on Nepali mid-range phones. Hosted free on Cloudflare Pages.</small></label>
+      <label class="opt"><input type="radio" name="stack" value="Vite + React + React Three Fiber + GSAP"><b>Vite + React</b><small>One React app throughout. Simpler, but a bigger first load. The barber project already uses this setup.</small></label>
+    </div>
+    <input type="text" name="folder" value="C:\goldstar-3d" aria-label="Project folder">
+    <div class="row"><button class="queue" type="submit">Queue answer</button><span class="status" role="status"></span></div>
+  </form>
+
+  <form class="q" data-lavish-question="anything-else">
+    <h2>Anything else?</h2>
+    <textarea name="notes" rows="3" placeholder="Deadline, must-have sections, things you hate…"></textarea>
+    <div class="row"><button class="queue" type="submit">Queue answer</button><span class="status" role="status"></span></div>
+  </form>
+</main>
+
+<div class="send">
+  <button type="button" class="go" data-lavish-action onclick="queueAll(); window.lavish && window.lavish.sendQueuedPrompts();">Send all to first mate</button>
+  <button type="button" class="copy" onclick="copyAll(this)">Copy all answers</button>
+  <span class="status" data-copy-status role="status"></span>
+</div>
+
+<script>
+  function summarize(form){
+    const fd = new FormData(form); const parts = [];
+    for (const [k,v] of fd.entries()) if (String(v).trim()) parts.push(k + ': ' + String(v).trim());
+    return parts;
+  }
+  function queueForm(form){
+    const key = form.dataset.lavishQuestion; const parts = summarize(form);
+    if (!parts.length) return false;
+    const title = form.querySelector('h2').textContent;
+    if (window.lavish) window.lavish.queuePrompt(title + ' → ' + parts.join('; '), {
+      tag:'choice', text: key + ': ' + parts.join('; '), element: form, queueKey: key,
+      data:{question:key, answer:Object.fromEntries(new FormData(form))}
+    });
+    form.querySelector('.status').textContent = window.lavish ? 'Queued ✓' : 'Lavish is not running; use Copy all answers';
+    return true;
+  }
+  document.querySelectorAll('form.q').forEach(f => f.addEventListener('submit', e => { e.preventDefault(); queueForm(f); }));
+  function queueAll(){ document.querySelectorAll('form.q').forEach(f => { if (!f.querySelector('.status').textContent.startsWith('Queued')) queueForm(f); }); }
+  async function copyAll(btn){
+    const text = [...document.querySelectorAll('form.q')].map(f => f.dataset.lavishQuestion + ': ' + summarize(f).join('; ')).filter(l => !l.endsWith(': ')).join('\n');
+    const st = document.querySelector('[data-copy-status]');
+    try { await navigator.clipboard.writeText(text); st.textContent = 'Answers copied — paste them in chat.'; }
+    catch { st.textContent = 'Copy failed; select the answers manually.'; }
+  }
+</script>
+</body>
+</html>
