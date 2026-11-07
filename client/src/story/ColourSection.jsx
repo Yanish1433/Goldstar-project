@@ -65,7 +65,7 @@ export default function ColourSection({ product }) {
   if (!product || !colour) {
     return (
       <Section id="story-colour">
-        <Box sx={{ position: 'sticky', top: 0, height: '100svh', pt: 'var(--appbar-h, 96px)', boxSizing: 'border-box' }}>
+        <Box sx={{ position: 'sticky', top: 0, height: '100svh', pt: 'var(--appbar-h, 64px)', boxSizing: 'border-box' }}>
           <Box sx={{ ...frameWide, display: 'flex', alignItems: 'center' }}>
             <Typography variant="h2" component="h2" id="story-colour-h" sx={{ fontSize: { xs: 'clamp(30px, 8.4vw, 76px)', sm: 'clamp(34px, 4.6vw, 76px)' } }}>Pick your colour</Typography>
           </Box>
@@ -135,7 +135,7 @@ export default function ColourSection({ product }) {
 
   return (
     <Section id="story-colour">
-      <Box sx={{ position: 'sticky', top: 0, height: '100svh', pt: 'var(--appbar-h, 96px)', boxSizing: 'border-box', overflow: 'hidden' }}>
+      <Box sx={{ position: 'sticky', top: 0, height: '100svh', pt: 'var(--appbar-h, 64px)', boxSizing: 'border-box', overflow: 'hidden' }}>
         <Box sx={{ ...frameWide, display: 'flex', gap: 3, alignItems: phone ? 'flex-end' : 'center', pb: phone ? 2 : 0 }}>
           {!phone ? <PhotoRail images={images} alt={`${product.name} ${colour.name}`} onOpen={setOpen} vertical /> : null}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flex: 1, minWidth: 0 }}>

@@ -57,7 +57,7 @@ function ScrollStory({ product }) {
 
   return (
     <StoryCtx.Provider value={ctx}>
-      <Box id="story" ref={storyRef} sx={{ position: 'relative', mt: 'calc(var(--appbar-h, 96px) * -1)' }}>
+      <Box id="story" ref={storyRef} sx={{ position: 'relative', mt: 'calc(var(--appbar-h, 64px) * -1)' }}>
         {mountCanvas ? (
           <Suspense fallback={null}>
             <StoryCanvas progress={progress} storyRef={storyRef} />

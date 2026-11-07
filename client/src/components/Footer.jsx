@@ -19,6 +19,7 @@ export default function Footer() {
             <Link component={RouterLink} to="/#story-callouts" sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>Technology</Link>
             <ExternalLink href="https://goldstarshoes.com/about/">About Goldstar</ExternalLink>
             <ExternalLink href="https://goldstarshoes.com/stores/">Stores</ExternalLink>
+            <Link href="#credits" onClick={(e) => { e.preventDefault(); document.getElementById('credits')?.scrollIntoView({ block: 'start' }); }} sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center', color: 'text.secondary' }}>Credits</Link>
           </Reveal>
           <Reveal id="credits" delay={0.14} sx={{ scrollMarginTop: 160, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: '62ch' }}>
             <Typography variant="body1" color="text.primary">

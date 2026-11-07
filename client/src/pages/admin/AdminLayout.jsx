@@ -16,7 +16,7 @@ export default function AdminLayout() {
   useTitle('Admin');
   return (
     <PageBox sx={{ py: { xs: 3, md: 6 }, display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', md: '232px minmax(0,1fr)' }, gap: { xs: 3, md: 6 }, alignItems: 'start' }}>
-      <Box component="nav" aria-label="Admin" sx={{ display: 'flex', flexDirection: { xs: 'row', md: 'column' }, flexWrap: 'wrap', gap: 0.5, alignItems: { xs: 'center', md: 'stretch' }, position: { md: 'sticky' }, top: { md: 'calc(var(--appbar-h, 96px) + 24px)' } }}>
+      <Box component="nav" aria-label="Admin" sx={{ display: 'flex', flexDirection: { xs: 'row', md: 'column' }, flexWrap: 'wrap', gap: 0.5, alignItems: { xs: 'center', md: 'stretch' }, position: { md: 'sticky' }, top: { md: 'calc(var(--appbar-h, 64px) + 24px)' } }}>
         {links.map((l) => (
           <Button key={l.to} component={NavLink} to={l.to} sx={{ color: 'text.primary', justifyContent: 'flex-start', '&.active': { color: 'primary.main', backgroundColor: 'background.paper' } }}>
             {l.label}

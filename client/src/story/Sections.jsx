@@ -19,7 +19,7 @@ import { useSFade, useStepIndex, useStoryCtx } from './StoryContext.jsx';
 
 const sec = (id) => SECTIONS.find((s) => s.id === id);
 const GRID = { display: 'grid', gridTemplateColumns: 'repeat(12, minmax(0, 1fr))', columnGap: { xs: 2, md: 3 } };
-const FRAME_BASE = { position: 'sticky', top: 0, height: '100svh', boxSizing: 'border-box', pt: 'var(--appbar-h, 96px)', overflow: 'hidden' };
+const FRAME_BASE = { position: 'sticky', top: 0, height: '100svh', boxSizing: 'border-box', pt: 'var(--appbar-h, 64px)', overflow: 'hidden' };
 
 export function Section({ id, children, sx }) {
   const s = sec(id);

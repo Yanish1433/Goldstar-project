@@ -8,36 +8,19 @@ import IconButton from '@mui/material/IconButton';
 import Badge from '@mui/material/Badge';
 const Drawer = lazy(() => import('@mui/material/Drawer'));
 import Typography from '@mui/material/Typography';
-import Link from '@mui/material/Link';
 import { useReducedMotion } from 'motion/react';
 import { ShoppingBag, Menu, X } from 'lucide-react';
 import { tokens } from '../theme/tokens.js';
-import { CONCEPT_NOTE } from '../theme/tokens.js';
 import { PAGE_PX } from './Page.jsx';
 import { useMe } from '../api/hooks.js';
 import { useCart, cartCount, cartVisibleCount } from '../store/cart.js';
 import { useUi } from '../store/ui.js';
-import { apiState } from '../api/client.js';
 
 export function Star({ size = 20 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z" fill={tokens.gold} />
     </svg>
-  );
-}
-
-export function ConceptNote() {
-  return (
-    <Box sx={{ backgroundColor: tokens.surface2, minHeight: 32, display: 'flex', alignItems: 'center', px: PAGE_PX, py: { xs: 0.5, sm: 0 } }} data-concept-note>
-      <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.45 }}>
-        {CONCEPT_NOTE}{' '}
-        <Link component={RouterLink} to="/#credits" sx={{ whiteSpace: 'nowrap' }}>
-          Credits
-        </Link>
-        {import.meta.env.DEV && apiState.mockFallback ? <span> Mock data: API not reachable</span> : null}
-      </Typography>
-    </Box>
   );
 }
 
@@ -121,7 +104,6 @@ export default function AppBar() {
 
   return (
     <MuiAppBar component="header" sx={{ zIndex: 1200 }}>
-      <ConceptNote />
       <Toolbar sx={{ px: PAGE_PX, maxWidth: 1440, width: '100%', mx: 'auto', boxSizing: 'border-box', gap: 1 }} disableGutters>
         <Box component={RouterLink} to="/" aria-label="Goldstar, home" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.primary', textDecoration: 'none', minHeight: 44 }}>
           <Star />

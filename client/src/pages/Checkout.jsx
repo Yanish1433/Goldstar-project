@@ -174,7 +174,7 @@ export default function Checkout() {
           </FormControl>
         </Box>
 
-        <Paper sx={{ p: { xs: 2.5, md: 4 }, position: { md: 'sticky' }, top: { md: 'calc(var(--appbar-h, 96px) + 24px)' }, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Paper sx={{ p: { xs: 2.5, md: 4 }, position: { md: 'sticky' }, top: { md: 'calc(var(--appbar-h, 64px) + 24px)' }, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Typography variant="h4" component="h2">Order summary</Typography>
           {problems.length ? (
             <Alert severity="error" role="alert">
