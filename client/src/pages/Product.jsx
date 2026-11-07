@@ -28,7 +28,7 @@ import QtyStepper from '../components/QtyStepper.jsx';
 import ExternalLink from '../components/ExternalLink.jsx';
 import NotFound from './NotFound.jsx';
 import { useProduct } from '../api/hooks.js';
-import { makeLine, addToCartNow } from '../lib/addToCart.js';
+import { makeLine, addToCartAnimated, pickSourceRect, warmCartBox } from '../lib/addToCart.js';
 import { ApiError } from '../api/client.js';
 import { tokens } from '../theme/tokens.js';
 
@@ -55,6 +55,8 @@ export default function Product() {
   const [imgIndex, setImgIndex] = useState(0);
   const [zoom, setZoom] = useState(false);
   const sizeRef = useRef(null);
+  const galleryRef = useRef(null);
+  const addRef = useRef(null);
   const [view, setView] = useState('photos');
   const [showParts, setShowParts] = useState(true);
   const [pop, setPop] = useState(null); // { spot, el }
@@ -65,6 +67,11 @@ export default function Product() {
 
   const key = params.get('colour') || product?.colourways?.[0]?.key;
   const colour = product?.colourways?.find((c) => c.key === key) || product?.colourways?.[0];
+
+  useEffect(() => {
+    const id = setTimeout(warmCartBox, 1200);
+    return () => clearTimeout(id);
+  }, []);
 
   useEffect(() => {
     setSize(null);
@@ -87,7 +94,7 @@ export default function Product() {
       sizeRef.current?.focus();
       return;
     }
-    addToCartNow(makeLine(product, colour, size, qty));
+    addToCartAnimated(makeLine(product, colour, size, qty), { sourceRect: pickSourceRect(galleryRef.current, addRef.current) });
   };
 
   return (
@@ -120,7 +127,7 @@ export default function Product() {
             </Box>
           ))}
         </Box>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Box ref={galleryRef} sx={{ flex: 1, minWidth: 0 }}>
           {can3d ? (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 1.5 }}>
               <ToggleButtonGroup exclusive value={view} onChange={(_, v) => v && setView(v)} aria-label="Gallery view" size="small">
@@ -170,7 +177,7 @@ export default function Product() {
           <QtyStepper value={qty} onChange={setQty} />
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'stretch' }}>
-          <Button variant="contained" size="large" fullWidth onClick={add}>Add to cart</Button>
+          <Button ref={addRef} variant="contained" size="large" fullWidth onClick={add}>Add to cart</Button>
           <ExternalLink href={colour.productUrl} sx={{ alignSelf: 'flex-start' }}>View on goldstarshoes.com</ExternalLink>
           {slug === 'g10-401' ? <Link component={RouterLink} to="/#story-explode" sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center', alignSelf: 'flex-start' }}>See it come apart</Link> : null}
         </Box>

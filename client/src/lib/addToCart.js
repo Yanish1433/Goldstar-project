@@ -1,5 +1,6 @@
 import { useCart } from '../store/cart.js';
 import { useUi } from '../store/ui.js';
+import { detectTier } from '../three/tier.js';
 
 export const makeLine = (product, colourway, size, qty = 1) => ({
   productId: product.id,
@@ -32,5 +33,52 @@ export function addToCartNow(line) {
   }
   useUi.getState().bump();
   notifyAdded(line);
+  return res;
+}
+
+const reducedMotion = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+// Preload the overlay chunk (call on idle / hover of an Add button).
+export function warmCartBox() {
+  import('../three/BoxIntoCart.jsx').catch(() => {});
+}
+
+// Pick the first element whose rect is meaningfully inside the viewport (shoe photo, else the button).
+export function pickSourceRect(...els) {
+  const vh = window.innerHeight;
+  for (const el of els) {
+    const r = el?.getBoundingClientRect?.();
+    if (r && r.width > 0 && r.bottom > 40 && r.top < vh - 40) return { left: r.left, top: r.top, width: r.width, height: r.height };
+  }
+  const r = els.find(Boolean)?.getBoundingClientRect?.();
+  return r ? { left: r.left, top: r.top, width: r.width, height: r.height } : null;
+}
+
+// Public API: play the shoe-into-box-to-cart overlay. colour = colourway key (or { key }); sourceRect = viewport
+// rect the shoe flies out of. Visual only unless onLand is given (called once when the box reaches the cart icon).
+// Returns true if animating. Reduced motion / no WebGL / already playing: onLand runs immediately, returns false.
+export function playAddToCart({ colour, sourceRect, onLand } = {}) {
+  const key = typeof colour === 'object' ? colour?.key : colour;
+  if (reducedMotion() || detectTier() === 'static') {
+    onLand?.();
+    return false;
+  }
+  const ok = useUi.getState().startCartBox({ colour: key, sourceRect, onLand });
+  if (!ok) onLand?.();
+  return ok;
+}
+
+// Add a line with the animation: count/toast/badge bump are held until the box lands in the cart.
+export function addToCartAnimated(line, { sourceRect } = {}) {
+  if (reducedMotion() || detectTier() === 'static' || useUi.getState().cartBox) return addToCartNow(line);
+  const res = useCart.getState().add(line);
+  if (!res.ok) return addToCartNow(line); // full: reuse the message path
+  useCart.getState().startFlight();
+  const land = () => {
+    useCart.getState().endFlight();
+    useUi.getState().bump();
+    notifyAdded(line);
+  };
+  playAddToCart({ colour: line.colourwayKey, sourceRect, onLand: land });
   return res;
 }
