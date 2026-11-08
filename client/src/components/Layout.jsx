@@ -79,6 +79,20 @@ export default function Layout() {
   const loc = useLocation();
   const light = isLightRoute(loc.pathname);
 
+  // Sneaker cursor: fine pointers only, loaded when the page is idle (its own tiny chunk; nothing on touch).
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia?.('(hover: hover) and (pointer: fine)').matches) return undefined;
+    let cleanup = () => {};
+    let cancelled = false;
+    const start = () => import('../lib/sneakerCursor.js').then((m) => { if (!cancelled) cleanup = m.mountSneakerCursor(); }).catch(() => {});
+    const idle = window.requestIdleCallback ? window.requestIdleCallback(start, { timeout: 2500 }) : setTimeout(start, 1200);
+    return () => {
+      cancelled = true;
+      if (window.cancelIdleCallback) window.cancelIdleCallback(idle); else clearTimeout(idle);
+      cleanup();
+    };
+  }, []);
+
   // Expose the sticky header height so sticky story frames can clear it.
   useEffect(() => {
     const el = headRef.current?.querySelector('header');
