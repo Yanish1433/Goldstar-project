@@ -80,7 +80,8 @@ export function useStoryEngine({ rootRef, bgRef, reduced, onTime }) {
       doc.style.setProperty('--story-ink', colourOf(0).ink);
       for (let i = 0; i < SECTIONS.length - 1; i += 1) {
         const t0 = endOf(SECTIONS[i].id);
-        tl.fromTo(bg, { backgroundColor: colourOf(i).bg }, { backgroundColor: colourOf(i + 1).bg, duration: TRANSITION, ease: 'power1.inOut', immediateRender: false }, t0);
+        // Short, centred crossfade: less time spent in the muddy midpoint between two bold colours.
+        tl.fromTo(bg, { backgroundColor: colourOf(i).bg }, { backgroundColor: colourOf(i + 1).bg, duration: TRANSITION * 0.55, ease: 'power2.inOut', immediateRender: false }, t0 + TRANSITION * 0.2);
         tl.fromTo(doc, { '--story-ink': colourOf(i).ink }, { '--story-ink': colourOf(i + 1).ink, duration: TRANSITION * 0.4, immediateRender: false }, t0 + TRANSITION * 0.3);
       }
 

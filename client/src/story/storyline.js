@@ -221,7 +221,7 @@ export function copyTrack(id) {
   const e = endOf(id);
   return {
     in: id === 'hero' ? null : [s - 75, s - 5],
-    out: id === 'finale' ? null : [e - 20, e + 30],
+    out: id === 'finale' ? null : [e - 20, e + 18],
   };
 }
 
