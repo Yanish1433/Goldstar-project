@@ -15,6 +15,8 @@ import { PageBox, useTitle } from '../components/Page.jsx';
 import { StatusChip } from '../components/OrderParts.jsx';
 import { useLogout, useMe, useMyOrders } from '../api/hooks.js';
 import { formatDate, formatNPR } from '../lib/format.js';
+import { Panel } from '../components/shop/kit.jsx';
+import { shop } from '../theme/tokens.js';
 
 export default function Account() {
   useTitle('Your account');
@@ -26,9 +28,15 @@ export default function Account() {
   const items = orders.data?.items || [];
 
   return (
-    <PageBox sx={{ py: { xs: 6, md: 12 }, display: 'flex', flexDirection: 'column', gap: { xs: 6, md: 10 } }}>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'flex-start' }}>
-        <Typography variant="h3" component="h1">Your account</Typography>
+    <PageBox sx={{ pt: { xs: 4, md: 6 }, pb: { xs: 8, md: 12 }, display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', md: 'minmax(0,4fr) minmax(0,8fr)' }, gap: { xs: 2.5, md: 4 }, alignItems: 'start' }}>
+      <Typography variant="h1" component="h1" sx={{ gridColumn: '1 / -1', fontSize: { xs: 40, md: 64 }, mb: { md: 1 } }}>Your account</Typography>
+      <Panel sx={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'flex-start' }}>
+        {user ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box aria-hidden="true" sx={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: shop.lilac, color: shop.lilacInk, display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 22 }}>{(user.name || '?').trim().charAt(0).toUpperCase()}</Box>
+            <Typography sx={{ fontWeight: 800, fontSize: 20 }}>{user.name}</Typography>
+          </Box>
+        ) : null}
         {user ? (
           <Box component="dl" sx={{ m: 0, display: 'grid', gridTemplateColumns: 'max-content 1fr', gap: 1, columnGap: 3 }}>
             <Typography component="dt" color="text.secondary">Name</Typography><Typography component="dd" sx={{ m: 0 }}>{user.name}</Typography>
@@ -37,9 +45,9 @@ export default function Account() {
           </Box>
         ) : <Skeleton variant="rectangular" width={280} height={96} />}
         <Button variant="outlined" onClick={async () => { navigate('/'); await logout.mutateAsync(); }} aria-disabled={logout.isPending}>Log out</Button>
-      </Box>
+      </Panel>
 
-      <Box>
+      <Panel>
         <Typography variant="h4" component="h2" sx={{ mb: 3 }}>Your orders</Typography>
         {orders.isLoading ? <Skeleton variant="rectangular" height={160} /> : items.length === 0 ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>
@@ -84,7 +92,7 @@ export default function Account() {
             </List>
           </>
         )}
-      </Box>
+      </Panel>
     </PageBox>
   );
 }

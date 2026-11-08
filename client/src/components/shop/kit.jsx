@@ -152,6 +152,18 @@ export const TRUST = [
 ];
 
 export function TrustRow({ variant = 'row', sx }) {
+  if (variant === 'mini') {
+    return (
+      <Box component="ul" aria-label="How this demo store works" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', columnGap: 2, rowGap: 0.5, ...sx }}>
+        {TRUST.map(({ icon: Icon, title }) => (
+          <Box component="li" key={title} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 12, fontWeight: 700, color: shop.ink2 }}>
+            <Icon size={14} strokeWidth={2.25} aria-hidden="true" />
+            {title}
+          </Box>
+        ))}
+      </Box>
+    );
+  }
   const stack = variant === 'stack';
   return (
     <Box

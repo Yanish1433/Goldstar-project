@@ -15,6 +15,7 @@ import { HistoryList, OrderItemsTable, ShippingBlock, StatusChip } from '../comp
 import NotFound from './NotFound.jsx';
 import { useCancelOrder, useOrder } from '../api/hooks.js';
 import { formatDate } from '../lib/format.js';
+import { Panel } from '../components/shop/kit.jsx';
 
 export default function AccountOrder() {
   const { id } = useParams();
@@ -38,18 +39,20 @@ export default function AccountOrder() {
   };
 
   return (
-    <PageBox sx={{ py: { xs: 6, md: 12 } }}>
-      <Box sx={{ maxWidth: 860, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+    <PageBox sx={{ pt: { xs: 4, md: 6 }, pb: { xs: 8, md: 12 } }}>
+      <Box sx={{ maxWidth: 860, display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'flex-start' }}>
         <Link component={RouterLink} to="/account" sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>Back to your account</Link>
-        <Typography variant="h3" component="h1" sx={{ fontVariantNumeric: 'tabular-nums' }}>Order {order.orderNumber}</Typography>
+        <Typography variant="h1" component="h1" sx={{ fontVariantNumeric: 'tabular-nums', fontSize: { xs: 30, md: 52 } }}>Order {order.orderNumber}</Typography>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
           <StatusChip status={order.status} />
           <Typography variant="body2" color="text.secondary">Placed {formatDate(order.createdAt)} &middot; Cash on delivery &middot; {order.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}</Typography>
         </Box>
         {err ? <Alert severity="error">{err}</Alert> : null}
-        <Box sx={{ width: '100%' }}><OrderItemsTable order={order} /></Box>
-        <Box><Typography variant="h5" component="h2" sx={{ mb: 2 }}>Delivery</Typography><ShippingBlock shipping={order.shipping} /></Box>
-        <Box><Typography variant="h5" component="h2" sx={{ mb: 1 }}>History</Typography><HistoryList history={order.statusHistory} /></Box>
+        <Panel sx={{ width: '100%', boxSizing: 'border-box', p: { xs: 1, md: 2 } }}><OrderItemsTable order={order} /></Panel>
+        <Box sx={{ width: '100%', display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', sm: 'repeat(2, minmax(0,1fr))' }, gap: 2.5 }}>
+          <Panel><Typography variant="h5" component="h2" sx={{ mb: 2 }}>Delivery</Typography><ShippingBlock shipping={order.shipping} /></Panel>
+          <Panel><Typography variant="h5" component="h2" sx={{ mb: 1 }}>History</Typography><HistoryList history={order.statusHistory} /></Panel>
+        </Box>
         {order.status === 'placed' ? <Button variant="outlined" onClick={() => setConfirm(true)}>Cancel order</Button> : null}
       </Box>
       <Dialog open={confirm} onClose={() => setConfirm(false)} aria-labelledby="cancel-title">

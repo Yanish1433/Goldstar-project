@@ -10,7 +10,7 @@ export default function Footer() {
   // Home ends with the animated brand finale, so the footer's big wordmark is left out there.
   const home = useLocation().pathname === '/';
   return (
-    <Box component="footer" sx={{ position: 'relative', zIndex: 1, backgroundColor: 'background.default', pt: { xs: 6, md: 10 }, pb: 4, overflow: 'hidden' }}>
+    <Box component="footer" sx={{ position: 'relative', zIndex: 1, backgroundColor: 'background.default', color: 'text.primary', pt: { xs: 6, md: 10 }, pb: 4, overflow: 'hidden' }}>
       <PageBox sx={{ display: 'flex', flexDirection: 'column' }}>
         <Box sx={{ order: 2, mt: { xs: 4, md: 5 }, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 2fr' }, gap: { xs: 6, md: 8 } }}>
           <Reveal component="nav" aria-label="Footer" delay={0.07} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0.5 }}>

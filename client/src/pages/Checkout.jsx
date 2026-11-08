@@ -5,26 +5,39 @@ import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
-import Paper from '@mui/material/Paper';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormControl from '@mui/material/FormControl';
-import FormLabel from '@mui/material/FormLabel';
 import CircularProgress from '@mui/material/CircularProgress';
+import InputAdornment from '@mui/material/InputAdornment';
+import { Banknote, Check, Lock, ShoppingBag } from 'lucide-react';
 import { PageBox, useTitle } from '../components/Page.jsx';
+import { Panel, Steps, Thumb, TrustRow } from '../components/shop/kit.jsx';
 import { useCart, cartSubtotal } from '../store/cart.js';
+import { useUi } from '../store/ui.js';
 import { useMe, usePlaceOrder, useQuote } from '../api/hooks.js';
 import { formatNPR } from '../lib/format.js';
 import { detailsToErrors, focusFirstInvalid, PHONE_RE, cleanPhone } from '../lib/forms.js';
-import { tokens } from '../theme/tokens.js';
-import InputAdornment from '@mui/material/InputAdornment';
-import { Check } from 'lucide-react';
+import { shop } from '../theme/tokens.js';
 
 const emptyForm = { fullName: '', phone: '', addressLine: '', area: '', city: '', landmark: '', notes: '' };
 
 export function Component() {
   return <Checkout />;
+}
+
+const two = { display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', sm: 'repeat(2, minmax(0,1fr))' }, gap: 2.5 };
+
+// A numbered form section on a white panel.
+function Section({ n, title, children }) {
+  return (
+    <Panel component="fieldset" sx={{ border: 0, m: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+      <Box component="legend" sx={{ float: 'left', width: '100%', p: 0, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1.5, '& + *': { clear: 'both' } }}>
+        <Box component="span" aria-hidden="true" sx={{ width: 30, height: 30, borderRadius: '50%', backgroundColor: shop.ink, color: '#FFFFFF', display: 'inline-grid', placeItems: 'center', fontSize: 14, fontWeight: 800, flexShrink: 0 }}>{n}</Box>
+        <Typography component="span" variant="h4">{title}</Typography>
+      </Box>
+      {children}
+    </Panel>
+  );
 }
 
 export default function Checkout() {
@@ -35,6 +48,7 @@ export default function Checkout() {
   const clear = useCart((s) => s.clear);
   const replacePrices = useCart((s) => s.replacePrices);
   const localSubtotal = useCart(cartSubtotal);
+  const openCart = useUi((s) => s.openCart);
   const place = usePlaceOrder();
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
@@ -121,10 +135,11 @@ export default function Checkout() {
       onBlur={blur(k)}
       error={!!errors[k]}
       helperText={errors[k]}
+      fullWidth
       slotProps={{
-        htmlInput: { 'aria-invalid': !!errors[k], 'aria-describedby': errors[k] ? `${k}-error` : undefined },
+        htmlInput: { 'aria-invalid': !!errors[k], 'aria-describedby': errors[k] ? `${k}-error` : undefined, ...(k === 'phone' ? { inputMode: 'tel' } : null) },
         formHelperText: { id: `${k}-error` },
-        input: k === 'phone' && phoneValid ? { endAdornment: <InputAdornment position="end"><Check size={20} strokeWidth={1.75} color={tokens.success} aria-label="Looks valid" role="img" /></InputAdornment> } : undefined,
+        input: k === 'phone' && phoneValid ? { endAdornment: <InputAdornment position="end"><Check size={20} strokeWidth={2.25} color={shop.success} aria-label="Looks valid" role="img" /></InputAdornment> } : undefined,
       }}
       {...props}
     />
@@ -132,50 +147,73 @@ export default function Checkout() {
 
   if (lines.length === 0) {
     return (
-      <PageBox sx={{ py: { xs: 6, md: 12 }, display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'flex-start' }}>
-        <Typography variant="h3" component="h1">Checkout</Typography>
-        <Typography>Your cart is empty.</Typography>
-        <Button component={RouterLink} to="/shop" variant="contained">Shop all</Button>
+      <PageBox sx={{ py: { xs: 6, md: 12 } }}>
+        <Panel sx={{ maxWidth: 560, mx: 'auto', py: { xs: 6, md: 8 }, display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center', textAlign: 'center' }}>
+          <Box sx={{ width: 72, height: 72, borderRadius: '50%', backgroundColor: shop.saffron, display: 'grid', placeItems: 'center' }}>
+            <ShoppingBag size={30} strokeWidth={1.75} aria-hidden="true" />
+          </Box>
+          <Typography variant="h3" component="h1">Checkout</Typography>
+          <Typography sx={{ color: shop.ink2 }}>Your cart is empty.</Typography>
+          <Button component={RouterLink} to="/shop" variant="contained" size="large">Shop all</Button>
+        </Panel>
       </PageBox>
     );
   }
 
   const subtotal = quote.data?.subtotal ?? localSubtotal;
+  const count = lines.reduce((n, l) => n + l.qty, 0);
+  const imageFor = (l) => l.image || quote.data?.lines?.find((q) => q.productId === l.productId && q.colourwayKey === l.colourwayKey)?.image || null;
 
   return (
-    <PageBox sx={{ py: { xs: 4, md: 10 } }}>
-      <Typography variant="h3" component="h1" sx={{ mb: { xs: 3, md: 5 } }}>Checkout</Typography>
-      <Box component="form" ref={ref} noValidate onSubmit={submit} sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', md: 'minmax(0,7fr) minmax(0,5fr)' }, gap: { xs: 5, md: 10 }, alignItems: 'start' }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+    <PageBox sx={{ pt: { xs: 3, md: 5 }, pb: { xs: 8, md: 12 } }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { md: 'flex-end' }, justifyContent: 'space-between', gap: 2.5, mb: { xs: 3, md: 5 } }}>
+        <Box>
+          <Typography variant="h1" component="h1" sx={{ fontSize: { xs: 40, md: 64 } }}>Checkout</Typography>
+          <Typography sx={{ mt: 1, color: shop.ink2, display: 'flex', alignItems: 'center', gap: 0.75, fontSize: 14, fontWeight: 600 }}>
+            <Lock size={14} strokeWidth={2.5} aria-hidden="true" /> Demo checkout · nothing is charged online
+          </Typography>
+        </Box>
+        <Steps current={1} />
+      </Box>
+      <Box component="form" ref={ref} noValidate onSubmit={submit} sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', md: 'minmax(0,7fr) minmax(0,5fr)' }, gap: { xs: 2.5, md: 4, lg: 6 }, alignItems: 'start' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, minWidth: 0 }}>
           {formError ? <Alert severity="error" role="alert">{formError}</Alert> : null}
-          <Box component="fieldset" sx={{ border: 0, p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Typography component="legend" variant="h4" sx={{ mb: 3, p: 0 }}>Contact</Typography>
-            {tf('fullName', 'Full name', { autoComplete: 'name' })}
-            {tf('phone', 'Mobile number', { type: 'tel', autoComplete: 'tel' })}
-          </Box>
-          <Box component="fieldset" sx={{ border: 0, p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Typography component="legend" variant="h4" sx={{ mb: 3, p: 0 }}>Delivery address</Typography>
+          <Section n={1} title="Contact">
+            <Box sx={two}>
+              {tf('fullName', 'Full name', { autoComplete: 'name' })}
+              {tf('phone', 'Mobile number', { type: 'tel', autoComplete: 'tel' })}
+            </Box>
+          </Section>
+          <Section n={2} title="Delivery address">
             {tf('addressLine', 'Address line', { autoComplete: 'address-line1' })}
-            {tf('area', 'Area', { autoComplete: 'address-line2' })}
-            {tf('city', 'City', { autoComplete: 'address-level2' })}
+            <Box sx={two}>
+              {tf('area', 'Area', { autoComplete: 'address-line2' })}
+              {tf('city', 'City', { autoComplete: 'address-level2' })}
+            </Box>
             {tf('landmark', 'Landmark (optional)')}
             {tf('notes', 'Notes for delivery (optional)', { multiline: true, minRows: 3 })}
-          </Box>
-          <FormControl component="fieldset">
-            <FormLabel component="legend" sx={{ color: 'text.primary', typography: 'h4', mb: 2 }}>Payment</FormLabel>
+          </Section>
+          <Section n={3} title="Payment">
             <RadioGroup value="cod" aria-label="Payment method">
-              <FormControlLabel
-                value="cod"
-                control={<Radio sx={{ '&.Mui-checked': { color: tokens.blue }, '& .MuiSvgIcon-root': { fontSize: 28 } }} />}
-                label="Cash on delivery"
-              />
+              <Box component="label" sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, borderRadius: `${shop.radius.md}px`, boxShadow: `inset 0 0 0 2px ${shop.blue}`, backgroundColor: shop.blueWash, cursor: 'pointer' }}>
+                <Radio value="cod" sx={{ p: 0.5 }} slotProps={{ input: { 'aria-label': 'Cash on delivery' } }} />
+                <Box sx={{ width: 44, height: 44, borderRadius: '10px', backgroundColor: shop.surface, display: 'grid', placeItems: 'center', flexShrink: 0, boxShadow: `inset 0 0 0 1px ${shop.line}` }}>
+                  <Banknote size={22} strokeWidth={2} aria-hidden="true" />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 800 }}>Cash on delivery</Typography>
+                  <Typography variant="body2" sx={{ color: shop.ink2 }}>Pay in cash when the shoes arrive.</Typography>
+                </Box>
+              </Box>
             </RadioGroup>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Pay in cash when the shoes arrive.</Typography>
-          </FormControl>
+          </Section>
         </Box>
 
-        <Paper sx={{ p: { xs: 2.5, md: 4 }, position: { md: 'sticky' }, top: { md: 'calc(var(--appbar-h, 64px) + 24px)' }, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Typography variant="h4" component="h2">Order summary</Typography>
+        <Panel sx={{ position: { md: 'sticky' }, top: { md: 'calc(var(--appbar-h, 64px) + 24px)' }, display: 'flex', flexDirection: 'column', gap: 2, boxShadow: `inset 0 0 0 1px ${shop.line}, ${shop.shadowCard}` }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+            <Typography variant="h4" component="h2">Order summary</Typography>
+            <Button variant="text" size="small" onClick={openCart} sx={{ minHeight: 40, textDecoration: 'underline', textUnderlineOffset: 4 }}>Edit cart</Button>
+          </Box>
           {problems.length ? (
             <Alert severity="error" role="alert">
               Some items need attention:
@@ -187,23 +225,42 @@ export default function Checkout() {
             </Alert>
           ) : null}
           {quote.data?.problems?.length && !problems.length ? <Alert severity="warning">Some items in your cart are no longer available.</Alert> : null}
-          <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <Box component="ul" aria-label={`${count} ${count === 1 ? 'item' : 'items'}`} sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {lines.map((l) => (
-              <Box component="li" key={`${l.productId}${l.colourwayKey}${l.size}`} sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                <Typography variant="body2">{l.name}, {l.colourwayName}, UK {l.size} &times; {l.qty}</Typography>
-                <Typography variant="body2" sx={{ fontVariantNumeric: 'tabular-nums' }}>{formatNPR(l.qty * l.unitPrice)}</Typography>
+              <Box component="li" key={`${l.productId}${l.colourwayKey}${l.size}`} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Box sx={{ position: 'relative' }}>
+                  <Thumb src={imageFor(l)} size={64} />
+                  <Box component="span" aria-hidden="true" sx={{ position: 'absolute', top: -6, right: -6, minWidth: 22, height: 22, px: 0.5, boxSizing: 'border-box', borderRadius: '11px', backgroundColor: shop.ink, color: '#FFFFFF', fontSize: 12, fontWeight: 800, display: 'grid', placeItems: 'center' }}>{l.qty}</Box>
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: 15 }}>{l.name}</Typography>
+                  <Typography variant="body2" sx={{ color: shop.ink2 }}>{l.colourwayName} · UK {l.size} &times; {l.qty}</Typography>
+                </Box>
+                <Typography sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, fontSize: 15 }}>{formatNPR(l.qty * l.unitPrice)}</Typography>
               </Box>
             ))}
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', pt: 1 }}>
-            <Typography variant="h6" component="p">Subtotal</Typography>
-            <Typography variant="h4" component="p" sx={{ fontVariantNumeric: 'tabular-nums' }}>{formatNPR(subtotal)}</Typography>
+          <Box sx={{ borderTop: `1px solid ${shop.line}`, pt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography sx={{ color: shop.ink2 }}>Subtotal</Typography>
+              <Typography sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>{formatNPR(subtotal)}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography sx={{ color: shop.ink2 }}>Delivery</Typography>
+              <Typography sx={{ color: shop.ink2, fontWeight: 600 }}>Confirmed by phone</Typography>
+            </Box>
           </Box>
-          <Typography variant="body2" color="text.secondary">Cash on delivery. Delivery fee confirmed by phone.</Typography>
-          <Button type="submit" variant="contained" size="large" aria-disabled={place.isPending} startIcon={place.isPending ? <CircularProgress size={18} color="inherit" /> : null}>
+          <Box sx={{ borderTop: `1px solid ${shop.line}`, pt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <Typography sx={{ fontWeight: 800, fontSize: 17 }}>Total</Typography>
+            <Typography sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 800, fontSize: 28, fontStretch: '108%', fontVariationSettings: '"wdth" 108' }}>{formatNPR(subtotal)}</Typography>
+          </Box>
+          <Button type="submit" variant="contained" size="large" aria-disabled={place.isPending} startIcon={place.isPending ? <CircularProgress size={18} color="inherit" /> : <Lock size={18} strokeWidth={2.25} aria-hidden="true" />}>
             Place order (cash on delivery)
           </Button>
-        </Paper>
+          <Box sx={{ pt: 2, borderTop: `1px solid ${shop.line}` }}>
+            <TrustRow variant="stack" />
+          </Box>
+        </Panel>
       </Box>
     </PageBox>
   );
