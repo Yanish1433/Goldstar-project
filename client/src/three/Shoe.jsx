@@ -2,6 +2,7 @@ import { forwardRef, useImperativeHandle, useLayoutEffect, useMemo, useRef } fro
 import * as THREE from 'three';
 import { useGLTF } from '@react-three/drei';
 import { SHOE, tintFor } from './shoe.config.js';
+import { disposeShoe } from './shoeDispose.js';
 const easeOutCubic = (x) => 1 - (1 - x) ** 3;
 
 const _v = new THREE.Vector3();
@@ -52,7 +53,7 @@ function toPhysical(src) {
   return m;
 }
 
-const Shoe = forwardRef(function Shoe({ url, onReady, physical = false }, ref) {
+const Shoe = forwardRef(function Shoe({ url, onReady, physical = false, shared = false }, ref) {
   const gltf = useGLTF(url, false, true);
   const scene = useMemo(() => {
     const s = gltf.scene.clone(true);
@@ -114,17 +115,7 @@ const Shoe = forwardRef(function Shoe({ url, onReady, physical = false }, ref) {
     tint.current.to.set(t0.color);
     tint.current.key = null;
 
-    return () => {
-      mats.current.forEach((m) => m.dispose());
-      useGLTF.clear(url);
-      gltf.scene.traverse((o) => {
-        if (o.isMesh) {
-          o.geometry?.dispose();
-          const mm = o.material;
-          Object.values(mm).forEach((v) => v && v.isTexture && v.dispose());
-        }
-      });
-    };
+    return () => disposeShoe({ ownMaterials: mats.current, gltfScene: gltf.scene, clearCache: () => useGLTF.clear(url), shared });
   }, [scene]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useImperativeHandle(ref, () => ({
