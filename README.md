@@ -16,10 +16,6 @@ Requirements: Node 24 (`.nvmrc`), MongoDB running locally on `mongodb://127.0.0.
    ```
    cp server/.env.example server/.env
    ```
-   - `JWT_SECRET`: at least 32 random characters. Generate one with
-     `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`.
-   - `SEED_ADMIN_PASSWORD`: 12 or more characters. This is the password of the demo admin
-     (`SEED_ADMIN_EMAIL`, default `admin@goldstar.test`). `server/.env` is git-ignored; never commit it.
 3. Seed the catalogue and the admin account (5 products, 11 colourways):
    ```
    npm run seed
