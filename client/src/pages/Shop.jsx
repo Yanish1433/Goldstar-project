@@ -20,6 +20,8 @@ import Reveal from '../components/Reveal.jsx';
 import LineReveal from '../components/LineReveal.jsx';
 import ProductPhoto from '../components/ProductPhoto.jsx';
 import Price from '../components/Price.jsx';
+import QuickAdd from '../components/QuickAdd.jsx';
+import { useRef } from 'react';
 import { useCategories, useProducts } from '../api/hooks.js';
 import { tokens } from '../theme/tokens.js';
 
@@ -48,8 +50,9 @@ function ProductCard({ p, index, lead }) {
   const first = p.colourways[0];
   const hover = first?.secondImage || p.colourways[1]?.image;
   const sale = first && first.regularPrice > first.price;
+  const photoRef = useRef(null);
   return (
-    <Card component={motion.div} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '0px 0px -6% 0px' }} transition={{ duration: 0.6, delay: (index % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}>
+    <Card ref={photoRef} sx={{ position: 'relative' }} component={motion.div} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '0px 0px -6% 0px' }} transition={{ duration: 0.6, delay: (index % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}>
       <CardActionArea
         component={RouterLink}
         to={`/product/${p.slug}`}
@@ -69,6 +72,7 @@ function ProductCard({ p, index, lead }) {
           <Price from={p.priceFrom} to={p.priceTo} regularPrice={!sale || p.priceFrom !== p.priceTo ? undefined : first.regularPrice} price={sale && p.priceFrom === p.priceTo ? first.price : undefined} variant="body2" sx={{ fontWeight: 600 }} />
         </CardContent>
       </CardActionArea>
+      <QuickAdd product={p} photoRef={photoRef} />
     </Card>
   );
 }

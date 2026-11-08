@@ -11,7 +11,7 @@ export const makeLine = (product, colourway, size, qty = 1) => ({
   size: String(size),
   qty,
   unitPrice: colourway.price,
-  image: colourway.images?.[0]?.thumb || colourway.images?.[0]?.src || null,
+  image: colourway.images?.[0]?.thumb || colourway.images?.[0]?.src || colourway.image?.thumb || colourway.image?.src || null,
 });
 
 export const addedText = (line) => `Added ${line.name}, ${line.colourwayName}, UK ${line.size} to your cart.`;

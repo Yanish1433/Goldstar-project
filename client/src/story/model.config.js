@@ -88,8 +88,9 @@ export const COLOURWAYS = [
 ];
 export const DEFAULT_COLOUR = 'earth';
 export const colourwayOf = (key) => COLOURWAYS.find((c) => c.key === key) || COLOURWAYS[0];
-// Display colourway for a catalogue colourway key (the cart box): falls back to black.
-export const displayForProduct = (productKey) => COLOURWAYS.find((c) => c.product === productKey) || COLOURWAYS.find((c) => c.key === 'black');
+// Display colourway for any catalogue colourway key (the boot in the cart box): nearest look, else black.
+const LOOK_ALIKE = { olive: 'earth', coffee: 'earth', brown: 'earth', pink: 'pink', 'grey-pink': 'pink', grey: 'grey', black: 'black' };
+export const displayForProduct = (productKey) => COLOURWAYS.find((c) => c.product === productKey) || colourwayOf(LOOK_ALIKE[productKey] || 'black');
 
 // Per-part colour (sRGB hex) for a display colourway key.
 export function partColours(key) {

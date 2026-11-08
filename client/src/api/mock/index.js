@@ -39,7 +39,7 @@ const full = (p) => ({ ...clone(p), priceFrom: priceFrom(p), priceTo: priceTo(p)
 const summary = (p) => ({
   id: p.id, slug: p.slug, name: p.name, series: p.series, categories: p.categories, featured: p.featured,
   priceFrom: priceFrom(p), priceTo: priceTo(p),
-  colourways: p.colourways.map((c) => ({ key: c.key, name: c.name, hex: c.hex, price: c.price, regularPrice: c.regularPrice, inStock: c.inStock, image: c.images[0] || null, secondImage: c.images[1] || null })),
+  colourways: p.colourways.map((c) => ({ key: c.key, name: c.name, hex: c.hex, price: c.price, regularPrice: c.regularPrice, inStock: c.inStock, sizes: c.sizes, image: c.images[0] || null, secondImage: c.images[1] || null })),
 });
 
 const catName = (slug) => {

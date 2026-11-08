@@ -20,6 +20,7 @@ export function productSummary(doc) {
       price: c.price,
       regularPrice: c.regularPrice,
       inStock: c.inStock,
+      sizes: c.sizes,
       image: c.images?.[0] ?? null,
       secondImage: c.images?.[1] ?? null,
     })),
