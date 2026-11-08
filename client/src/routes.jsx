@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createBrowserRouter } from 'react-router';
 import Layout from './components/Layout.jsx';
 import { RequireAuth, RequireAdmin, GuestOnly } from './components/Guards.jsx';
 import NotFound from './pages/NotFound.jsx';
@@ -43,12 +43,16 @@ export const routes = [
           {
             lazy: lazyPage(() => import('./pages/admin/AdminLayout.jsx')),
             children: [
-              { index: true, element: <Navigate to="/admin/orders" replace /> },
+              { index: true, lazy: lazyPage(() => import('./pages/admin/AdminDashboard.jsx')) },
               { path: 'products', lazy: lazyPage(() => import('./pages/admin/AdminProducts.jsx')) },
               { path: 'products/new', lazy: lazyPage(() => import('./pages/admin/AdminProductEdit.jsx')) },
               { path: 'products/:id', lazy: lazyPage(() => import('./pages/admin/AdminProductEdit.jsx')) },
               { path: 'orders', lazy: lazyPage(() => import('./pages/admin/AdminOrders.jsx')) },
               { path: 'orders/:id', lazy: lazyPage(() => import('./pages/admin/AdminOrder.jsx')) },
+              { path: 'customers', lazy: lazyPage(() => import('./pages/admin/AdminCustomers.jsx')) },
+              { path: 'customers/:id', lazy: lazyPage(() => import('./pages/admin/AdminCustomer.jsx')) },
+              { path: 'settings', lazy: lazyPage(() => import('./pages/admin/AdminSettings.jsx')) },
+              { path: '*', lazy: lazyPage(() => import('./pages/admin/AdminNotFound.jsx')) },
             ],
           },
         ],

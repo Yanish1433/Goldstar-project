@@ -110,3 +110,53 @@ export const shop = {
 
 // Archivo at the story's display width.
 export const WIDE = { fontStretch: '112%', fontVariationSettings: '"wdth" 112' };
+
+// Admin console: a quiet, dense working surface carrying the commerce identity (Archivo, Goldstar blue, the status
+// tones). Light by default with a selected (not inverted) dark set. AA: ink on surface 16.7:1 / 15.1:1, ink2 6.9:1 /
+// 8.6:1, ink3 5.2:1 / 5.8:1, accent text 7.3:1 / 7.6:1, white on accent 9.9:1 / 6.3:1; chart hue checked with the dataviz validator on both surfaces.
+export const adminTones = {
+  light: {
+    canvas: '#F6F4EF',
+    surface: '#FFFFFF',
+    sunk: '#F1EEE8',
+    raised: '#FFFFFF',
+    ink: '#16120E',
+    ink2: '#5A5247',
+    ink3: '#756C61',
+    line: 'rgba(22,18,14,0.09)',
+    lineStrong: 'rgba(22,18,14,0.20)',
+    accent: '#2A27E9',
+    accentText: '#2A27E9',
+    accentWash: 'rgba(42,39,233,0.08)',
+    chart: '#2A27E9',
+    chartSoft: 'rgba(42,39,233,0.12)',
+    good: '#0F7A4F',
+    bad: '#B3261E',
+    warn: '#8A5300',
+    warnWash: '#FFF3D6',
+    shadow: '0 1px 2px rgba(22,18,14,0.05)',
+    shadowFloat: '0 16px 48px rgba(22,18,14,0.18)',
+  },
+  dark: {
+    canvas: '#100F0D',
+    surface: '#1A1916',
+    sunk: '#24221E',
+    raised: '#22201C',
+    ink: '#F2EDE3',
+    ink2: '#BDB4A5',
+    ink3: '#9C9385',
+    line: 'rgba(242,237,227,0.10)',
+    lineStrong: 'rgba(242,237,227,0.22)',
+    accent: '#4744F0',
+    accentText: '#A3A1FF',
+    accentWash: 'rgba(140,138,255,0.14)',
+    chart: '#6E6BFF',
+    chartSoft: 'rgba(110,107,255,0.18)',
+    good: '#6FD3A2',
+    bad: '#FF9C94',
+    warn: '#F5B861',
+    warnWash: 'rgba(245,184,97,0.14)',
+    shadow: '0 1px 2px rgba(0,0,0,0.4)',
+    shadowFloat: '0 16px 48px rgba(0,0,0,0.55)',
+  },
+};

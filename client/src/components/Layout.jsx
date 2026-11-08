@@ -11,6 +11,7 @@ import { shop } from '../theme/tokens.js';
 import AppBar from './AppBar.jsx';
 import Footer from './Footer.jsx';
 import { useUi } from '../store/ui.js';
+import { useMe } from '../api/hooks.js';
 import { visuallyHidden } from './Page.jsx';
 
 const CartDrawer = lazy(() => import('./CartDrawer.jsx'));
@@ -46,8 +47,9 @@ function Announcer() {
   );
 }
 
-// Commerce routes use the light shop theme; Home keeps the story's own grounds and the admin keeps the dark console.
-export const isLightRoute = (pathname) => pathname !== '/' && !pathname.startsWith('/admin');
+// Commerce routes use the light shop theme; Home keeps the story's own grounds; the admin has its own shell.
+export const isAdminPath = (pathname) => pathname === '/admin' || pathname.startsWith('/admin/');
+export const isLightRoute = (pathname) => pathname !== '/' && !isAdminPath(pathname);
 
 const lightGlobals = (
   <GlobalStyles
@@ -72,6 +74,10 @@ export default function Layout() {
   const headRef = useRef(null);
   const loc = useLocation();
   const light = isLightRoute(loc.pathname);
+  const me = useMe();
+  // Admins on /admin get the console shell alone (no store header, footer or cart). Anyone else keeps the store
+  // chrome, so a non-admin sees the ordinary store 404 there and the panel is not advertised.
+  const bare = isAdminPath(loc.pathname) && (me.isLoading || me.data?.role === 'admin');
 
   // Expose the sticky header height so sticky story frames can clear it.
   useEffect(() => {
@@ -82,7 +88,7 @@ export default function Layout() {
     const ro = new ResizeObserver(set);
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [bare]);
 
   // Hash links (e.g. /#story-explode, /#credits).
   useEffect(() => {
@@ -99,6 +105,16 @@ export default function Layout() {
     }, 100);
     return () => clearInterval(t);
   }, [loc.hash, loc.pathname]);
+
+  if (bare) {
+    return (
+      <>
+        <Outlet />
+        <Announcer />
+        <ScrollRestoration getKey={(l) => l.pathname + l.search} />
+      </>
+    );
+  }
 
   return (
     <Box ref={headRef}>

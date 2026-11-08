@@ -81,7 +81,7 @@ export function useCancelOrder() {
   });
 }
 
-export const useAdminProducts = (params) => useQuery({ queryKey: ['admin', 'products', params], queryFn: () => apiFetch('/admin/products', { query: params }), placeholderData: keepPreviousData });
+export const useAdminProducts = (params, opts) => useQuery({ queryKey: ['admin', 'products', params], queryFn: () => apiFetch('/admin/products', { query: params }), placeholderData: keepPreviousData, ...opts });
 export const useAdminProduct = (id) => useQuery({ queryKey: ['admin', 'product', id], queryFn: async () => (await apiFetch(`/admin/products/${id}`)).product, enabled: !!id && id !== 'new' });
 export function useSaveProduct() {
   const qc = useQueryClient();
@@ -95,7 +95,7 @@ export function useSaveProduct() {
     },
   });
 }
-export const useAdminOrders = (params) => useQuery({ queryKey: ['admin', 'orders', params], queryFn: () => apiFetch('/admin/orders', { query: params }), placeholderData: keepPreviousData });
+export const useAdminOrders = (params, opts) => useQuery({ queryKey: ['admin', 'orders', params], queryFn: () => apiFetch('/admin/orders', { query: params }), placeholderData: keepPreviousData, ...opts });
 export const useAdminOrder = (id) => useQuery({ queryKey: ['admin', 'order', id], queryFn: async () => (await apiFetch(`/admin/orders/${id}`)).order, enabled: !!id });
 export function useSetOrderStatus() {
   const qc = useQueryClient();
@@ -109,3 +109,7 @@ export function useSetOrderStatus() {
     },
   });
 }
+
+export const useAdminStats = (params) => useQuery({ queryKey: ['admin', 'stats', params], queryFn: () => apiFetch('/admin/stats', { query: params }), placeholderData: keepPreviousData });
+export const useAdminCustomers = (params, opts) => useQuery({ queryKey: ['admin', 'customers', params], queryFn: () => apiFetch('/admin/customers', { query: params }), placeholderData: keepPreviousData, ...opts });
+export const useAdminCustomer = (id) => useQuery({ queryKey: ['admin', 'customer', id], queryFn: () => apiFetch(`/admin/customers/${id}`), enabled: !!id });

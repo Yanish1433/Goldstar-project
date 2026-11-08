@@ -23,7 +23,9 @@
       // rules as src/three/tier.js) are preloaded so the poster shows at once and the 3D can fade in over it.
       (function () {
         var home = location.pathname === '/';
-        document.documentElement.style.background = home ? '#FF5A1F' : location.pathname.indexOf('/admin') === 0 ? '#0B0A08' : '#F6F2EA';
+        var admin = '#F6F4EF';
+        if (location.pathname.indexOf('/admin') === 0) { try { if ((JSON.parse(localStorage.getItem('gs-admin-prefs')) || {}).mode === 'dark') admin = '#100F0D'; } catch (e) {} }
+        document.documentElement.style.background = home ? '#FF5A1F' : location.pathname.indexOf('/admin') === 0 ? admin : '#F6F2EA';
         if (!home) return;
         function pre(href, as, type, media) { var l = document.createElement('link'); l.rel = 'preload'; l.as = as; l.href = href; if (type) l.type = type; if (media) l.media = media; if (as === 'fetch') l.crossOrigin = 'anonymous'; if (as === 'image') l.fetchPriority = 'high'; document.head.appendChild(l); }
         pre('/img/hero/boot-phone.webp', 'image', 'image/webp', '(max-width: 899.95px)');
