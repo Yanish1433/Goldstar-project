@@ -169,7 +169,7 @@ function Scene({ req }) {
         ? { x: r.left + r.width / 2 - size.width / 2, y: size.height / 2 - (r.top + r.height / 2) }
         : { x: size.width / 2 - 40, y: size.height / 2 - 40 };
     }
-    const freeze = typeof window !== 'undefined' ? window.__gsCartBoxT : undefined; // test hook: pin the timeline
+    const freeze = import.meta.env.DEV && typeof window !== 'undefined' ? window.__gsCartBoxT : undefined; // dev-only test hook: pin the timeline
     C.t = Number.isFinite(freeze) ? freeze : advanceFlightClock(C.t, now, C.last);
     C.last = now;
     const s = sampleBox(C.t, sample);
