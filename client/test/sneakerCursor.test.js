@@ -77,6 +77,20 @@ describe('Sneaker cursor guards', () => {
     expect(root.dataset.hover).toBe('true');
   });
 
+  it('a touch hides the boot and gives the native cursor back until the mouse moves again', () => {
+    const win = fakeWin([CURSOR_QUERY]);
+    cleanup = mountSneakerCursor({ win, doc: document });
+    move(10, 10);
+    const root = document.querySelector('.gs-cursor-root');
+    const t = new MouseEvent('pointerdown', { bubbles: true, button: 0 });
+    Object.defineProperty(t, 'pointerType', { value: 'touch' });
+    document.body.dispatchEvent(t);
+    expect(root.dataset.hidden).toBe('true');
+    expect(document.documentElement.classList.contains('gs-cursor')).toBe(false);
+    move(20, 20);
+    expect(document.documentElement.classList.contains('gs-cursor')).toBe(true);
+  });
+
   it('cleans up completely', () => {
     const win = fakeWin([CURSOR_QUERY]);
     const off = mountSneakerCursor({ win, doc: document });

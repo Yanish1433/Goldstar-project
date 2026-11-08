@@ -175,6 +175,7 @@ export function mountSneakerCursor({ win = window, doc = document } = {}) {
 
   const onMove = (e) => {
     if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+    if (!mq(win, CURSOR_QUERY)) return;
     const dx = e.clientX - s.x;
     const dy = e.clientY - s.y;
     s.x = e.clientX;
@@ -202,7 +203,16 @@ export function mountSneakerCursor({ win = window, doc = document } = {}) {
     root.dataset.hidden = String(text);
     wake();
   };
+  // Touch (a phone that misreports, or a touch laptop): the boot gets out of the way and the native cursor returns
+  // until a real mouse moves again.
+  const park = () => {
+    s.seen = false;
+    s.down = false;
+    root.dataset.hidden = 'true';
+    doc.documentElement.classList.remove('gs-cursor');
+  };
   const onDown = (e) => {
+    if (e.pointerType === 'touch') return park();
     if (e.button !== 0) return;
     s.down = true;
     wake();
@@ -218,6 +228,11 @@ export function mountSneakerCursor({ win = window, doc = document } = {}) {
     if (s.seen && !s.text) root.dataset.hidden = 'false';
   };
 
+  const mql = win.matchMedia(CURSOR_QUERY);
+  const onMedia = (e) => {
+    if (!e.matches) park();
+  };
+  mql.addEventListener?.('change', onMedia);
   doc.addEventListener('pointermove', onMove, { passive: true });
   doc.addEventListener('pointerdown', onDown, { passive: true });
   doc.addEventListener('pointerup', onUp, { passive: true });
@@ -227,6 +242,7 @@ export function mountSneakerCursor({ win = window, doc = document } = {}) {
 
   return () => {
     if (raf) win.cancelAnimationFrame(raf);
+    mql.removeEventListener?.('change', onMedia);
     doc.removeEventListener('pointermove', onMove);
     doc.removeEventListener('pointerdown', onDown);
     doc.removeEventListener('pointerup', onUp);
