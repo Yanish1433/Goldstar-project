@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import Shoe from './Shoe.jsx';
 import Lights from './Lights.jsx';
 import { SHOE } from './shoe.config.js';
+import { STORY_MODEL } from '../story/model.config.js';
 import { detectTier } from './tier.js';
 import { advanceFlightClock } from './flight.js';
 import { useUi } from '../store/ui.js';
@@ -25,7 +26,8 @@ const LID_COL = '#1d1b19';
 const RIM = 0.9; // gold fresnel edge strength on the shoe (contrast on dark pages)
 const TRAIL_N = 44;
 
-const modelUrl = () => SHOE.urls[detectTier() === 'full' ? 'desktop' : 'mobile'];
+// The boot that goes into the box is the real G10-401 (same files as the home story).
+const modelUrl = () => STORY_MODEL.urls[detectTier() === 'full' ? 'desktop' : 'mobile'];
 try {
   useGLTF.preload(modelUrl(), false, true);
 } catch {

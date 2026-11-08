@@ -185,7 +185,7 @@ function Sparkles() {
       }}
     >
       {SPARKS.map(([x, y, r, d], i) => (
-        <span key={i} style={{ left: `${x * 100}%`, top: `${y * 100}%`, width: r * 2, height: r * 2, animationDelay: `${d}s` }}>
+        <span key={i} style={{ left: `${x * 100}%`, top: `${y * 100}%`, width: r * 3.4, height: r * 3.4, animationDelay: `${d}s` }}>
           <svg viewBox="0 0 10 10" width="100%" height="100%"><path d="M5 0 L6 4 L10 5 L6 6 L5 10 L4 6 L0 5 L4 4 Z" fill="#FFE08A" /></svg>
         </span>
       ))}
@@ -219,7 +219,7 @@ export const PerformanceSection = forwardRef(function PerformanceSection(_, degR
   return (
     <Panel id="performance" side="rightWide">
       <Eyebrow>01 · Performance</Eyebrow>
-      <Headline id="story-performance-h" sx={{ fontSize: { xs: 'clamp(38px, 11vw, 52px)', md: 'clamp(48px, 4.1vw, 76px)' }, textTransform: 'uppercase', lineHeight: 0.92 }}>
+      <Headline id="story-performance-h" sx={{ fontSize: { xs: 'clamp(28px, 8.4vw, 40px)', md: 'clamp(48px, 4.1vw, 76px)' }, textTransform: 'uppercase', lineHeight: 0.92 }}>
         Performance, redefined.
       </Headline>
       <Body>A lugged rubber outsole and a cushioned midsole, shaped for long days on rough ground.</Body>
@@ -415,7 +415,7 @@ export function StudioSection({ product }) {
   };
   const iconBtn = { width: 44, height: 44, borderRadius: '50%', border: `2px solid ${p.ink}`, background: 'transparent', color: p.ink, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', '&:focus-visible': { outline: `3px solid ${p.ink}`, outlineOffset: 2 } };
   return (
-    <Panel id="studio" side="centre" phoneTop="50%" extra={<DragSurface />} sx={{ '& [data-ui]': { position: 'relative', zIndex: 1 } }}>
+    <Panel id="studio" side="centre" phoneTop="50%" extra={<DragSurface />} sx={{ '& [data-copybox]': { pointerEvents: 'none' }, '& [data-ui]': { position: 'relative', zIndex: 1, pointerEvents: 'auto' } }}>
       <Box data-ui sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, pt: { md: 3 } }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 0.5, md: 1.5 } }}>
           <Eyebrow>06 · {display.name}</Eyebrow>
