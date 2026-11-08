@@ -49,7 +49,8 @@ function Announcer() {
 
 // Commerce routes use the light shop theme; Home keeps the story's own grounds; the admin has its own shell.
 export const isAdminPath = (pathname) => pathname === '/admin' || pathname.startsWith('/admin/');
-export const isLightRoute = (pathname) => pathname !== '/' && !isAdminPath(pathname);
+// (A non-admin on /admin sees the store's light 404 page.)
+export const isLightRoute = (pathname) => pathname !== '/';
 
 const lightGlobals = (
   <GlobalStyles

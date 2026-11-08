@@ -219,7 +219,7 @@ function ImagesEditor({ form, setIn, fe }) {
           ))}
         </Box>
       )}
-      <Box sx={(th) => ({ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', md: '2fr 2fr 1.5fr auto' }, alignItems: 'start', p: 1.5, borderRadius: '10px', border: `1px dashed ${th.admin.lineStrong}` })}>
+      <Box sx={(th) => ({ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: 'minmax(0,1fr)', md: '2fr 2fr 1.5fr auto' }, alignItems: 'start', p: 1.5, borderRadius: '10px', border: `1px dashed ${th.admin.lineStrong}` })}>
         <TextField size="small" label="Image URL" value={draft.src} onChange={(e) => setDraft((d) => ({ ...d, src: e.target.value }))} placeholder="https://…" />
         <TextField size="small" label="Thumbnail URL (optional)" value={draft.thumb} onChange={(e) => setDraft((d) => ({ ...d, thumb: e.target.value }))} />
         <TextField size="small" label="Alt text" value={draft.alt} onChange={(e) => setDraft((d) => ({ ...d, alt: e.target.value }))} />
@@ -278,7 +278,7 @@ export default function AdminProductEdit() {
     if (tried && form) setErrors((prev) => [...validateProduct(form, isNew), ...prev.filter((e) => e.server)]);
   }, [form, tried, isNew]);
 
-  if (!isNew && isLoading) return <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' } }}><Skeleton variant="rectangular" height={520} sx={{ borderRadius: '12px' }} /><Skeleton variant="rectangular" height={420} sx={{ borderRadius: '12px' }} /></Box>;
+  if (!isNew && isLoading) return <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: 'minmax(0,1fr)', lg: '2fr 1fr' } }}><Skeleton variant="rectangular" height={520} sx={{ borderRadius: '12px' }} /><Skeleton variant="rectangular" height={420} sx={{ borderRadius: '12px' }} /></Box>;
   if (!isNew && (error?.status === 404 || (!error && !data))) return <AdminNotFound what="product" />;
   if (!isNew && error) return <Panel><ErrorState title="Could not load this product" onRetry={refetch} /></Panel>;
   if (!form) return null;
@@ -348,7 +348,7 @@ export default function AdminProductEdit() {
       <Box sx={{ display: 'grid', gap: { xs: 2, md: 3 }, gridTemplateColumns: { xs: 'minmax(0,1fr)', lg: 'minmax(0,1fr) 340px' }, alignItems: 'start' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 3 }, minWidth: 0 }}>
           <Section id="details" title="Details">
-            <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' } }}>
+            <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'minmax(0,1fr)', sm: '1fr 1fr' } }}>
               <TextField
                 label="Name"
                 required
@@ -382,7 +382,7 @@ export default function AdminProductEdit() {
                 const reg = num(c.regularPrice);
                 const off = Number.isFinite(price) && Number.isFinite(reg) && reg > price ? Math.round((1 - price / reg) * 100) : 0;
                 return (
-                  <Box key={i} sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr 1fr', sm: 'minmax(120px,1fr) 1fr 1fr 72px' }, alignItems: 'start' }}>
+                  <Box key={i} sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: 'repeat(2, minmax(0,1fr))', sm: 'minmax(120px,1fr) 1fr 1fr 72px' }, alignItems: 'start' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minHeight: 40, gridColumn: { xs: '1 / -1', sm: 'auto' } }}>
                       <Box sx={(th) => ({ width: 16, height: 16, borderRadius: '50%', backgroundColor: c.hex, boxShadow: `inset 0 0 0 1px ${th.admin.lineStrong}`, flex: 'none' })} />
                       <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{c.name || `Colour ${i + 1}`}</Typography>
@@ -407,7 +407,7 @@ export default function AdminProductEdit() {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {form.colourways.map((c, i) => (
                 <Box key={i} role="group" aria-label={c.name || `Colour ${i + 1}`} sx={(th) => ({ border: `1px solid ${th.admin.line}`, borderRadius: '10px', p: 2, display: 'flex', flexDirection: 'column', gap: 2 })}>
-                  <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr 1fr', md: '1.2fr 1fr 1fr 1.2fr' }, alignItems: 'start' }}>
+                  <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: 'repeat(2, minmax(0,1fr))', md: '1.2fr 1fr 1fr 1.2fr' }, alignItems: 'start' }}>
                     <TextField size="small" label="Colour name" value={c.name} onChange={(e) => setIn('colourways', i, { name: e.target.value, ...(c._new && !c._keyTouched ? { key: slugify(e.target.value) } : {}) })} {...fp(`colourways.${i}.name`)} />
                     <TextField size="small" label="Nepali name" value={c.nameNe} onChange={(e) => setIn('colourways', i, { nameNe: e.target.value })} slotProps={{ htmlInput: { lang: 'ne', style: { fontFamily: 'Mukta, sans-serif' } } }} />
                     <TextField size="small" label="Key" value={c.key} disabled={!c._new && !isNew} onChange={(e) => setIn('colourways', i, { key: e.target.value, _keyTouched: true })} {...fp(`colourways.${i}.key`, c._new || isNew ? 'e.g. olive' : 'Fixed after saving')} />
@@ -457,7 +457,7 @@ export default function AdminProductEdit() {
                     {fe(`colourways.${i}.sizes`) ? <Typography variant="caption" sx={(th) => ({ color: th.admin.bad, display: 'block', mt: 0.75 })}>{fe(`colourways.${i}.sizes`)}</Typography> : null}
                   </Box>
 
-                  <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', md: '1fr auto' }, alignItems: 'center' }}>
+                  <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: 'minmax(0,1fr)', md: '1fr auto' }, alignItems: 'center' }}>
                     <TextField size="small" label="Product page on goldstarshoes.com" value={c.productUrl} onChange={(e) => setIn('colourways', i, { productUrl: e.target.value })} {...fp(`colourways.${i}.productUrl`)} />
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <FormControlLabel control={<Switch checked={c.inStock} onChange={(e) => setIn('colourways', i, { inStock: e.target.checked })} />} label="Available to order" />
@@ -483,7 +483,7 @@ export default function AdminProductEdit() {
             </AccordionSummary>
             <AccordionDetails sx={{ px: 2.5, pb: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
               {form.specCallouts.map((s, i) => (
-                <Box key={i} role="group" aria-label={`Callout ${s.title || i + 1}`} sx={(th) => ({ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(6, 1fr)' }, gap: 1.5, p: 2, borderRadius: '10px', border: `1px solid ${th.admin.line}` })}>
+                <Box key={i} role="group" aria-label={`Callout ${s.title || i + 1}`} sx={(th) => ({ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, minmax(0,1fr))', md: 'repeat(6, 1fr)' }, gap: 1.5, p: 2, borderRadius: '10px', border: `1px solid ${th.admin.line}` })}>
                   <TextField size="small" label="Key" value={s.key} onChange={(e) => setIn('specCallouts', i, { key: e.target.value })} sx={{ gridColumn: { md: 'span 2' } }} {...fp(`specCallouts.${i}.key`)} />
                   <TextField size="small" label="Title" value={s.title} onChange={(e) => setIn('specCallouts', i, { title: e.target.value })} sx={{ gridColumn: { md: 'span 4' } }} {...fp(`specCallouts.${i}.title`)} />
                   <TextField size="small" label="Body" value={s.body} multiline minRows={2} onChange={(e) => setIn('specCallouts', i, { body: e.target.value })} sx={{ gridColumn: '1 / -1' }} {...fp(`specCallouts.${i}.body`)} />

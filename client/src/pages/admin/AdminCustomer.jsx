@@ -63,22 +63,23 @@ export default function AdminCustomer() {
             <Box sx={{ overflowX: 'auto' }}>
               <Table size="small" aria-label={`Orders by ${c.name}`}>
                 <TableHead>
-                  <TableRow><TableCell>Order</TableCell><TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Placed</TableCell><TableCell>Status</TableCell><TableCell align="right">Total</TableCell></TableRow>
+                  <TableRow><TableCell>Order</TableCell><TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Placed</TableCell><TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Status</TableCell><TableCell align="right">Total</TableCell></TableRow>
                 </TableHead>
                 <TableBody>
                   {orders.map((o) => (
                     <TableRow key={o.id} hover sx={{ cursor: 'pointer' }} onClick={() => navigate(`/admin/orders/${o.id}`)}>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                          <Thumb src={o.items[0]?.image} size={36} />
+                          <Box sx={{ display: { xs: 'none', sm: 'block' } }}><Thumb src={o.items[0]?.image} size={36} /></Box>
                           <Box>
                             <Box component={RouterLink} to={`/admin/orders/${o.id}`} onClick={(e) => e.stopPropagation()} sx={{ fontWeight: 700, color: 'inherit', textDecoration: 'none', whiteSpace: 'nowrap', '&:hover': { textDecoration: 'underline' } }}>{o.orderNumber}</Box>
                             <Typography variant="caption" component="div" sx={(th) => ({ color: th.admin.ink2 })}>{o.items.map((i) => `${i.name} (${i.colourwayName}, UK ${i.size})`).join(', ')}</Typography>
+                            <Box sx={{ display: { sm: 'none' }, mt: 0.5 }}><StatusChip status={o.status} /></Box>
                           </Box>
                         </Box>
                       </TableCell>
                       <TableCell sx={{ whiteSpace: 'nowrap', display: { xs: 'none', sm: 'table-cell' } }}>{fmtDateTime(o.createdAt)}</TableCell>
-                      <TableCell><StatusChip status={o.status} /></TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}><StatusChip status={o.status} /></TableCell>
                       <TableCell align="right" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{formatNPR(o.total)}</TableCell>
                     </TableRow>
                   ))}
