@@ -21,6 +21,7 @@ import LineReveal from '../components/LineReveal.jsx';
 import ProductPhoto from '../components/ProductPhoto.jsx';
 import Price from '../components/Price.jsx';
 import QuickAdd from '../components/QuickAdd.jsx';
+import { useUi } from '../store/ui.js';
 import { useRef } from 'react';
 import { useCategories, useProducts } from '../api/hooks.js';
 import { tokens } from '../theme/tokens.js';
@@ -51,12 +52,15 @@ function ProductCard({ p, index, lead }) {
   const hover = first?.secondImage || p.colourways[1]?.image;
   const sale = first && first.regularPrice > first.price;
   const photoRef = useRef(null);
+  // While the add-to-cart box plays from this grid, keep every card on its main photo (the pointer is still over
+  // the card after a quick add, and the hover swap would show a half-faded second photo under the box).
+  const boxing = useUi((s) => !!s.cartBox);
   return (
     <Card ref={photoRef} sx={{ position: 'relative' }} component={motion.div} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '0px 0px -6% 0px' }} transition={{ duration: 0.6, delay: (index % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}>
       <CardActionArea
         component={RouterLink}
         to={`/product/${p.slug}`}
-        sx={{
+        sx={boxing ? undefined : {
           '@media (hover:hover)': {
             '&:hover .photo-alt, &.Mui-focusVisible .photo-alt': { opacity: 1 },
             '&:hover .photo > img:first-of-type, &.Mui-focusVisible .photo > img:first-of-type': { opacity: hover ? 0 : 1 },

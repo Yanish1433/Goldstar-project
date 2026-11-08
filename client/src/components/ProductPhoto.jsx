@@ -13,6 +13,8 @@ export default function ProductPhoto({ image, alt, eager = false, sizes = '(min-
       sx={{
         position: 'relative', aspectRatio: '1 / 1', backgroundColor: tokens.tile, overflow: 'hidden', width: '100%',
         '& img': { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: fit, mixBlendMode: 'multiply', transition: 'opacity 240ms cubic-bezier(0.22,1,0.36,1), transform 400ms cubic-bezier(0.22,1,0.36,1)' },
+        // Hidden until the card's hover rule reveals it (a stylesheet rule: an inline opacity could never be overridden).
+        '& .photo-alt': { opacity: 0 },
         ...sx,
       }}
     >
@@ -29,7 +31,7 @@ export default function ProductPhoto({ image, alt, eager = false, sizes = '(min-
         style={imgSx}
       />
       {hoverImage ? (
-        <img className="photo-alt" src={hoverImage.thumb || hoverImage.src} alt="" width={800} height={800} loading="lazy" decoding="async" referrerPolicy="no-referrer" style={{ opacity: 0 }} />
+        <img className="photo-alt" src={hoverImage.thumb || hoverImage.src} alt="" width={800} height={800} loading="lazy" decoding="async" referrerPolicy="no-referrer" />
       ) : null}
     </Box>
   );
