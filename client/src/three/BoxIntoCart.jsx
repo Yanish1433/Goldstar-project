@@ -1,4 +1,4 @@
-import { Component, Suspense, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { Component, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -8,18 +8,22 @@ import { SHOE } from './shoe.config.js';
 import { detectTier } from './tier.js';
 import { advanceFlightClock } from './flight.js';
 import { useUi } from '../store/ui.js';
-import { sampleBox, makeBoxSample, BOX_T, BOX_FLY_SCALE, clamp01 } from './boxTimeline.js';
+import { sampleBox, makeBoxSample, makeParticleLayout, BOX_T, BOX_FLY_SCALE, clamp01 } from './boxTimeline.js';
 
-// Self-contained overlay: a fixed, click-through canvas that plays "shoe arcs into a shoebox, lid closes, box flies
-// to the cart icon". Mounted once in Layout; renders only while useUi.cartBox is set. Orthographic camera, so
-// 1 world unit = 1 CSS px and screen rects map straight onto the scene.
+// Self-contained overlay: a fixed, click-through canvas that plays "shoe arcs in, gold sparkles swirl in and form a
+// shoebox around it, the solid cardboard box + GOLDSTAR lid materialise, the lid closes, the box flies to the cart
+// icon". Mounted once in Layout; renders only while useUi.cartBox is set. Orthographic camera, so 1 world unit =
+// 1 CSS px and screen rects map straight onto the scene. The shoe is fitted to the box by its bounding box (reported
+// by Shoe.jsx), and its URL comes from shoe.config.js, so a different model drops in unchanged.
 
-const BODY = { L: 2.3, W: 1.3, H: 1.0, T: 0.05 }; // box-local units; the shoe (length 3.0) is scaled by SHOE_K
-const SHOE_K = 0.62;
+const BODY = { L: 2.3, W: 1.3, H: 1.0, T: 0.05 }; // box-local units
+const FLOOR_Y = 0.16; // top of the tissue paper: the shoe sits on this
 const LID_H = 0.34;
 const KRAFT = '#b88b5c';
 const KRAFT_IN = '#9c7248';
 const LID_COL = '#1d1b19';
+const RIM = 0.9; // gold fresnel edge strength on the shoe (contrast on dark pages)
+const TRAIL_N = 44;
 
 const modelUrl = () => SHOE.urls[detectTier() === 'full' ? 'desktop' : 'mobile'];
 try {
@@ -130,18 +134,127 @@ function Lid({ lidRef }) {
   );
 }
 
+// Gold sparkles: soft round points with a pale core, normal blending (stays visible on light photos as well as dark).
+const SPARK_FRAG = `
+varying float vA;
+void main() {
+  float r = length(gl_PointCoord - 0.5) * 2.0;
+  if (r > 1.0) discard;
+  float core = 1.0 - r;
+  vec3 col = mix(vec3(0.89, 0.66, 0.2), vec3(1.0, 0.95, 0.72), core * core);
+  gl_FragColor = vec4(col, vA * core * 1.4);
+}`;
+const FORM_VERT = `
+attribute vec3 aStart; attribute vec3 aTarget; attribute vec3 aRnd;
+uniform float uForm, uFade, uTime, uSize, uDpr;
+varying float vA;
+void main() {
+  float d = aRnd.x * 0.45;
+  float e = clamp((uForm - d) / (1.0 - d), 0.0, 1.0);
+  e = 1.0 - pow(1.0 - e, 3.0);
+  vec3 p = mix(aStart, aTarget, e);
+  float ang = (1.0 - e) * (2.5 + aRnd.y * 3.0);
+  float c = cos(ang), s = sin(ang);
+  vec3 q = p - vec3(0.0, 0.5, 0.0);
+  p = vec3(q.x * c - q.z * s, q.y + 0.5, q.x * s + q.z * c);
+  float tw = 0.7 + 0.3 * sin(uTime * 14.0 + aRnd.z * 40.0);
+  vA = tw * uFade * smoothstep(0.0, 0.12, uForm * 1.4 - d * 0.5);
+  gl_PointSize = uSize * uDpr * (0.55 + aRnd.y) * (1.0 + (1.0 - e) * 0.5);
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+}`;
+const TRAIL_VERT = `
+attribute float aI;
+uniform float uA, uDpr;
+varying float vA;
+void main() {
+  vA = (1.0 - aI) * uA;
+  gl_PointSize = 15.0 * uDpr * (1.0 - aI * 0.7);
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+
+function setFade(group, a, state) {
+  const transparent = a < 0.999;
+  group.traverse((o) => {
+    if (!o.isMesh) return;
+    (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => {
+      if (m.transparent !== transparent) {
+        m.transparent = transparent;
+        m.depthWrite = !transparent;
+        m.needsUpdate = true;
+      }
+      m.opacity = a;
+    });
+  });
+  state.a = a;
+}
+
 function Scene({ req }) {
-  const { size } = useThree();
+  const { size, viewport } = useThree();
   const root = useRef();
   const boxG = useRef();
+  const solidG = useRef();
   const lid = useRef();
   const shoeG = useRef();
   const shoe = useRef();
   const shadow = useRef();
+  const fade = useRef({ a: -1 });
+  const fit = useRef({ k: 0.62, len: 3, bottom: SHOE.bottomY });
   const shadowTex = useMemo(shadowTexture, []);
   const clock = useRef({ t: 0, last: null, landed: false, cart: null });
   const sample = useMemo(makeBoxSample, []);
   const tmp = useMemo(() => new THREE.Vector3(), []);
+  const dpr = viewport.dpr || 1;
+  const lite = useMemo(() => detectTier() !== 'full', []);
+
+  // Particles (instanced points) and the sparkle trail.
+  const form = useMemo(() => {
+    const n = lite ? 1000 : 2400;
+    const { start, target, rnd } = makeParticleLayout(n, { hx: BODY.L / 2 + 0.05, hz: BODY.W / 2 + 0.05, y0: 0, y1: BODY.H + 0.02 });
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    g.setAttribute('aStart', new THREE.BufferAttribute(start, 3));
+    g.setAttribute('aTarget', new THREE.BufferAttribute(target, 3));
+    g.setAttribute('aRnd', new THREE.BufferAttribute(rnd, 3));
+    const m = new THREE.ShaderMaterial({
+      vertexShader: FORM_VERT,
+      fragmentShader: SPARK_FRAG,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: { uForm: { value: 0 }, uFade: { value: 1 }, uTime: { value: 0 }, uSize: { value: lite ? 4.5 : 5 }, uDpr: { value: dpr } },
+    });
+    const pts = new THREE.Points(g, m);
+    pts.frustumCulled = false;
+    pts.renderOrder = 10;
+    return pts;
+  }, [lite, dpr]);
+  const trail = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TRAIL_N * 3), 3));
+    g.setAttribute('aI', new THREE.BufferAttribute(Float32Array.from({ length: TRAIL_N }, (_, i) => i / TRAIL_N), 1));
+    const m = new THREE.ShaderMaterial({
+      vertexShader: TRAIL_VERT,
+      fragmentShader: SPARK_FRAG,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      uniforms: { uA: { value: 1 }, uDpr: { value: dpr } },
+    });
+    const pts = new THREE.Points(g, m);
+    pts.frustumCulled = false;
+    pts.renderOrder = 11;
+    pts.visible = false;
+    return pts;
+  }, [dpr]);
+  useEffect(
+    () => () => {
+      [form, trail].forEach((p) => {
+        p.geometry.dispose();
+        p.material.dispose();
+      });
+    },
+    [form, trail],
+  );
 
   const S = Math.min(96, Math.max(52, size.width * 0.14)); // px per box unit
   const home = useMemo(() => ({ x: 0, y: -size.height * 0.04 }), [size.height]);
@@ -155,8 +268,15 @@ function Scene({ req }) {
     return { x: cx - w / 2, y: h / 2 - cy, px: Math.min(Math.max(r.width * 0.5, S * 1.6), S * 3.2) };
   }, [req.sourceRect, size.width, size.height, S]);
 
+  // Fit any model to the box by its normalised bounding box (reported once the GLB is placed).
+  const onShoeReady = useCallback(({ size: sz }) => {
+    const [sx, sy, sz2] = sz;
+    const k = Math.min((BODY.L - 0.3) / sx, (BODY.W - 0.25) / sz2, (BODY.H - FLOOR_Y - 0.12) / sy, 0.9);
+    fit.current = { k, len: sx, bottom: SHOE.bottomY };
+  }, []);
+
   useLayoutEffect(() => {
-    shoe.current?.apply(0, 0, req.colour, true, 0.25);
+    shoe.current?.apply(0, 0, req.colour, true, RIM);
   }, [req.colour]);
 
   useFrame((_, dtSec) => {
@@ -174,38 +294,66 @@ function Scene({ req }) {
     C.last = now;
     const s = sampleBox(C.t, sample);
 
-    // Box: pops in at home, then flies to the cart icon along a quadratic arc.
-    const f = s.fly;
-    const u = 1 - f;
+    // Box: eases to full size at home, then flies to the cart icon along a quadratic arc.
     const cx = home.x + (C.cart.x - home.x) * 0.15;
     const cy = Math.max(home.y, C.cart.y) + size.height * 0.12;
-    root.current.position.set(u * u * home.x + 2 * u * f * cx + f * f * C.cart.x, u * u * home.y + 2 * u * f * cy + f * f * C.cart.y, 0);
+    const path = (f) => {
+      const u = 1 - f;
+      return [u * u * home.x + 2 * u * f * cx + f * f * C.cart.x, u * u * home.y + 2 * u * f * cy + f * f * C.cart.y];
+    };
+    const f = s.fly;
+    const [bx, by] = path(f);
+    root.current.position.set(bx, by, 0);
     const k = (0.6 + 0.4 * s.pop) * (1 + (BOX_FLY_SCALE - 1) * f) * S;
     boxG.current.scale.set(k, k * (1 - 0.035 * s.impact), k);
     boxG.current.rotation.set(0.62 + 0.5 * f, -0.55 + 1.2 * f, 0.35 * f);
     lid.current.rotation.x = s.lid;
-    shadow.current.material.opacity = (1 - f) * clamp01(s.pop);
-    shadow.current.visible = f < 0.98;
+    if (Math.abs(fade.current.a - s.solid) > 0.004) setFade(solidG.current, s.solid, fade.current);
+    solidG.current.visible = s.solid > 0.003;
+    shadow.current.material.opacity = (1 - f) * s.solid;
+    shadow.current.visible = f < 0.98 && s.solid > 0.003;
 
-    // Shoe: arcs in through screen space, then falls into the box (box-local coordinates).
+    // Particles: converge on the box outline, then fade as the solid box takes over.
+    const U = form.material.uniforms;
+    U.uForm.value = s.form;
+    U.uFade.value = s.pfade;
+    U.uTime.value = C.t / 1000;
+    form.visible = s.pfade > 0.003;
+
+    // Sparkle trail: stateless, laid along the flight path behind the box.
+    trail.visible = f > 0.001;
+    if (trail.visible) {
+      const pos = trail.geometry.attributes.position;
+      for (let i = 0; i < TRAIL_N; i += 1) {
+        const fi = Math.max(0, f - (i / TRAIL_N) * 0.3);
+        const [px, py] = path(fi);
+        const j = Math.sin(i * 12.9898) * 43758.5453;
+        const jx = (j - Math.floor(j) - 0.5) * 26 * (i / TRAIL_N);
+        const j2 = Math.sin(i * 78.233) * 12345.678;
+        pos.setXYZ(i, px + jx, py + (j2 - Math.floor(j2) - 0.5) * 26 * (i / TRAIL_N), 5);
+      }
+      pos.needsUpdate = true;
+      trail.material.uniforms.uA.value = 1;
+    }
+
+    // Shoe: arcs in through screen space, then falls into the (forming) box in box-local coordinates.
     boxG.current.updateWorldMatrix(true, false);
-    const restY = BODY.T + 0.1 + 0.77 * SHOE_K + 0.02;
+    const F = fit.current;
+    const restY = FLOOR_Y - F.bottom * F.k;
     const hoverY = BODY.H + 1.6;
     if (s.t < BOX_T.arcEnd) {
       const a = s.arc;
       const lift = 4 * a * (1 - a) * S * 1.4;
-      const wx = src.x + (home.x - src.x) * a;
-      const wy = src.y + (home.y + hoverY * S * 0.62 - src.y) * a + lift;
-      tmp.set(wx, wy, 0);
+      tmp.set(src.x + (home.x - src.x) * a, src.y + (home.y + hoverY * S * 0.62 - src.y) * a + lift, 0);
       shoeG.current.position.copy(boxG.current.worldToLocal(tmp));
     } else {
       shoeG.current.position.set(0, hoverY + (restY - hoverY) * s.drop + 0.22 * s.bounce, 0);
     }
-    const startK = src.px / 3 / (S * (0.6 + 0.4 * s.pop));
-    shoeG.current.scale.setScalar(startK + (SHOE_K - startK) * Math.min(1, s.arc * 1.15));
+    const startK = src.px / F.len / (S * (0.6 + 0.4 * s.pop));
+    shoeG.current.scale.setScalar(startK + (F.k - startK) * Math.min(1, s.arc * 1.15));
     const tumble = 1 - Math.min(1, s.arc * 1.1);
     shoeG.current.rotation.set(0.5 * tumble, -0.9 * tumble, 0.7 * tumble);
-    shoe.current?.apply(0, Math.min(dtSec, 0.05), req.colour, true, 0.25);
+    shoe.current?.apply(0, Math.min(dtSec, 0.05), req.colour, true, RIM);
 
     const wrap = document.getElementById('gs-cartbox');
     if (wrap) wrap.style.opacity = String(s.opacity);
@@ -219,17 +367,23 @@ function Scene({ req }) {
   return (
     <>
       <Lights />
-      <ambientLight intensity={0.5} />
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[-2.5, 3, -3]} intensity={2.2} color="#E2B857" />
+      <directionalLight position={[3, 2, 2]} intensity={0.8} color="#fff4e0" />
+      <primitive object={trail} />
       <group ref={root}>
         <group ref={boxG}>
           <mesh ref={shadow} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
             <planeGeometry args={[4.4, 3.2]} />
             <meshBasicMaterial map={shadowTex} transparent depthWrite={false} />
           </mesh>
-          <Base />
-          <Lid lidRef={lid} />
+          <group ref={solidG} visible={false}>
+            <Base />
+            <Lid lidRef={lid} />
+          </group>
+          <primitive object={form} />
           <group ref={shoeG}>
-            <Shoe ref={shoe} url={modelUrl()} />
+            <Shoe ref={shoe} url={modelUrl()} onReady={onShoeReady} />
           </group>
         </group>
       </group>
