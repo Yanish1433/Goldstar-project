@@ -297,7 +297,7 @@ export function AnatomySection() {
     <Panel id="anatomy" side="leftNarrow" phoneTop="64%">
       <Eyebrow>03 · Layers</Eyebrow>
       <Headline id="story-anatomy-h" sx={{ fontSize: { md: 'clamp(46px, 4.4vw, 74px)' }, textTransform: 'uppercase', lineHeight: 0.9 }}>Designed to endure.</Headline>
-      <Body sx={{ display: { xs: 'none', md: 'block' } }}>Twelve parts, from the rubber outsole to the padded collar, built to take a beating and keep going.</Body>
+      <Body sx={{ display: { xs: 'none', md: 'block' } }}>Eight layers, from the rubber outsole to the padded collar, built to take a beating and keep going.</Body>
       <Legend items={BADGES} accent={p.accent} />
       <Box component="ul" sx={srOnly}>
         {LABEL_ORDER.map((k) => <li key={k}>{parts[k].label}: {parts[k].detail}</li>)}

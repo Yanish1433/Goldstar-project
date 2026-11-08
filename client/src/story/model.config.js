@@ -13,6 +13,12 @@ const SOURCE_LENGTH = 0.299; // metres
 // Exploded offsets from the Blender export (exploded.json, metres) converted to rig units.
 const m = (x, y, z) => [x, y, z].map((v) => +((v * LENGTH) / SOURCE_LENGTH).toFixed(3));
 
+// Exploded view as eight clean layers (top to bottom): laces + hardware, tongue, collar + pull tab, upper (with its
+// overlays and heel counter, which stay attached), toe cap, insole, midsole, outsole. Parts of one layer share an offset.
+const LACES = m(0.12, 0.13, 0);
+const COLLAR = m(-0.02, 0.13, 0);
+const UPPER = m(0, 0.06, 0);
+
 export const STORY_MODEL = {
   urls: { desktop: '/models/g10-hd.glb', mobile: '/models/g10-hd-mobile.glb' },
   length: LENGTH,
@@ -20,21 +26,24 @@ export const STORY_MODEL = {
   frame: 1.18, // framing radius multiplier vs the storyline (a mid-cut boot is taller than a sneaker)
   // Materials that keep their baked colour in every colourway (the grey tongue logo, the gunmetal hardware).
   keepMaterials: ['logo', 'eyelets'],
+  // Leather / textile finish: the export's white sheen and glossy thread make the stitch lines sparkle white on light
+  // colourways, so on these parts the sheen follows the tint, roughness has a floor and the normal map is softened.
+  finish: { parts: ['upper', 'overlays', 'heel_counter', 'toe_cap', 'tongue', 'collar', 'pull_tab'], roughMin: 0.6, normalScale: 0.75, sheenTint: 0.55 },
   order: ['outsole', 'midsole', 'insole', 'upper', 'overlays', 'toe_cap', 'heel_counter', 'eyelets', 'laces', 'tongue', 'collar', 'pull_tab'],
   fallbackPart: 'upper',
   parts: {
     outsole: { nodeNames: ['outsole'], offset: m(0, -0.075, 0), rot: [0, 0, 0], anchor: [0.5, -0.4, 1], label: 'Outsole', detail: 'Rubber lugs for grip and slip resistance' },
     midsole: { nodeNames: ['midsole'], offset: m(0, -0.038, 0), rot: [0, 0, 0], anchor: [-0.5, 0, 1], label: 'Midsole', detail: 'EVA foam for bounce' },
     insole: { nodeNames: ['insole'], generate: 'footbed', offset: m(0, 0.012, 0), rot: [0, 0, 0], anchor: [-0.35, 1, 0.3], label: 'Insole', detail: 'Arch support and a cushioned footbed' },
-    upper: { nodeNames: ['upper'], offset: m(0, 0.06, 0), rot: [0, 0, 0], anchor: [-0.25, 0, 1], label: 'Upper', detail: 'PU synthetic leather over canvas mesh' },
-    overlays: { nodeNames: ['overlays'], offset: m(0, 0.095, 0), rot: [0, 0, 0], anchor: [0.2, -0.3, 1], label: 'Leather overlays', detail: 'PU synthetic leather cage over the mesh' },
+    upper: { nodeNames: ['upper'], offset: UPPER, rot: [0, 0, 0], anchor: [-0.25, 0, 1], label: 'Upper', detail: 'PU synthetic leather over canvas mesh' },
+    overlays: { nodeNames: ['overlays'], offset: UPPER, rot: [0, 0, 0], anchor: [0.2, -0.3, 1], label: 'Leather overlays', detail: 'PU synthetic leather cage over the mesh' },
     toe_cap: { nodeNames: ['toe_cap'], offset: m(0.06, 0.05, 0), rot: [0, 0, -0.06], anchor: [0.4, 0, 1], label: 'Toe cap', detail: 'Rubber bumper against rocks and roots' },
-    heel_counter: { nodeNames: ['heel_counter'], offset: m(-0.065, 0.055, 0), rot: [0, 0, 0.06], anchor: [-0.4, 0, 1], label: 'Heel counter', detail: 'Holds the heel steady on uneven ground' },
-    eyelets: { nodeNames: ['eyelets'], offset: m(0.095, 0.09, 0), rot: [0, 0, 0], anchor: [0, 0.2, 1], label: 'Metal hardware', detail: 'D-rings and speed hooks' },
-    laces: { nodeNames: ['laces'], offset: m(0.12, 0.13, 0), rot: [0, 0, 0.05], anchor: [-0.1, 0.1, 1], label: 'Laces', detail: 'Thick woven laces' },
+    heel_counter: { nodeNames: ['heel_counter'], offset: UPPER, rot: [0, 0, 0], anchor: [-0.4, 0, 1], label: 'Heel counter', detail: 'Holds the heel steady on uneven ground' },
+    eyelets: { nodeNames: ['eyelets'], offset: LACES, rot: [0, 0, 0], anchor: [0, 0.2, 1], label: 'Metal hardware', detail: 'D-rings and speed hooks' },
+    laces: { nodeNames: ['laces'], offset: LACES, rot: [0, 0, 0], anchor: [-0.1, 0.1, 1], label: 'Laces', detail: 'Thick woven laces' },
     tongue: { nodeNames: ['tongue'], offset: m(0.075, 0.115, 0), rot: [0, 0, 0.1], anchor: [-0.4, 0.63, 0], label: 'Tongue', detail: 'Padded, with the Goldstar logo' },
-    collar: { nodeNames: ['collar'], offset: m(-0.02, 0.13, 0), rot: [0, 0, -0.04], anchor: [0, 0.8, 0.8], label: 'Collar', detail: 'High-density foam padding' },
-    pull_tab: { nodeNames: ['pull_tab'], offset: m(-0.075, 0.13, 0), rot: [0, 0, 0], anchor: [0, 0.5, 0], label: 'Pull tab', detail: 'Webbing loop for a quick pull-on' },
+    collar: { nodeNames: ['collar'], offset: COLLAR, rot: [0, 0, 0], anchor: [0, 0.8, 0.8], label: 'Collar', detail: 'High-density foam padding' },
+    pull_tab: { nodeNames: ['pull_tab'], offset: COLLAR, rot: [0, 0, 0], anchor: [0, 0.5, 0], label: 'Pull tab', detail: 'Webbing loop for a quick pull-on' },
   },
 };
 

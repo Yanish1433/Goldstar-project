@@ -42,7 +42,7 @@ function Driver({ active }) {
 
 const damp = (a, b, lambda, dt) => THREE.MathUtils.damp(a, b, lambda, dt);
 // Exploded view stagger (fraction of the explode track), outside in.
-const EXPLODE_DELAY = { collar: 0, pull_tab: 0.02, laces: 0.04, tongue: 0.07, eyelets: 0.09, toe_cap: 0.12, heel_counter: 0.12, overlays: 0.14, upper: 0.16, insole: 0.2, midsole: 0.1, outsole: 0 };
+const EXPLODE_DELAY = { collar: 0, pull_tab: 0, laces: 0.04, eyelets: 0.04, tongue: 0.07, toe_cap: 0.12, heel_counter: 0.16, overlays: 0.16, upper: 0.16, insole: 0.2, midsole: 0.1, outsole: 0 };
 const LABEL_SETS = [['callouts', CALLOUTS], ['badges', BADGES]];
 
 function ShoeRig({ url, onReady, shadowRef }) {

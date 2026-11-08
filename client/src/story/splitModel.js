@@ -69,7 +69,9 @@ export function buildParts(scene, model) {
       if (!mat) {
         mat = shared ? material.clone() : material;
         clones.set(material, mat);
-        if (!keep.has(material.name) && !keep.has(name)) tint.push(mat);
+        const tintable = !keep.has(material.name) && !keep.has(name);
+        if (tintable) tint.push(mat);
+        if (tintable && model.finish?.parts?.includes(name)) applyFinish(mat, model.finish);
       }
       const mesh = new THREE.Mesh(geometry, mat);
       mesh.matrixAutoUpdate = false;
@@ -89,6 +91,23 @@ export function buildParts(scene, model) {
   });
   return { root, parts, size: size.multiplyScalar(k) };
 }
+
+// Softer leather: roughness floor (shader), softened normals, and a sheen that follows the base colour (see createTinter).
+function applyFinish(mat, finish) {
+  if (mat.normalScale && finish.normalScale != null) mat.normalScale.multiplyScalar(finish.normalScale);
+  if (mat.sheen > 0 && finish.sheenTint != null) mat.userData.sheenTint = finish.sheenTint;
+  if (finish.roughMin != null) {
+    const min = finish.roughMin.toFixed(3);
+    mat.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+	roughnessFactor = max( roughnessFactor, ${min} );`);
+    };
+    mat.customProgramCacheKey = () => `gs-finish-${min}`;
+  }
+}
+const followSheen = (m) => {
+  if (m.userData.sheenTint != null && m.sheenColor) m.sheenColor.copy(m.color).multiplyScalar(m.userData.sheenTint);
+};
 
 // Point on a part (fractions -1..1 of its bounding box) in the coordinates of `space` (an ancestor of the rig).
 export function partPoint(built, part, anchor, space, out = new THREE.Vector3()) {
@@ -110,7 +129,7 @@ export function createTinter(parts) {
       Object.entries(parts).forEach(([name, p]) => {
         const t = (targets[name] ||= new THREE.Color());
         t.set(colours[name] || colours.upper);
-        if (instant) p.tint.forEach((m) => m.color.copy(t));
+        if (instant) p.tint.forEach((m) => { m.color.copy(t); followSheen(m); });
       });
       moving = !instant;
     },
@@ -127,6 +146,7 @@ export function createTinter(parts) {
             m.color.lerp(t, f);
             any = true;
           }
+          followSheen(m);
         });
       });
       moving = any;
