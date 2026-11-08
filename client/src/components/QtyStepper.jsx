@@ -1,20 +1,28 @@
 import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
 import { Minus, Plus } from 'lucide-react';
 import { MAX_QTY } from '../store/cart.js';
-import { tokens } from '../theme/tokens.js';
+import { shop } from '../theme/tokens.js';
 
-export default function QtyStepper({ value, onChange, label = 'Quantity' }) {
+const btn = {
+  width: 40, height: 40, border: 0, borderRadius: '50%', background: 'transparent', color: shop.ink, display: 'grid', placeItems: 'center', cursor: 'pointer',
+  transition: 'background-color 180ms ease',
+  '&:hover:not(:disabled)': { backgroundColor: shop.sunk },
+  '&:disabled': { color: 'rgba(22,18,14,0.3)', cursor: 'not-allowed' },
+  '&:focus-visible': { outline: `3px solid ${shop.blue}`, outlineOffset: 1 },
+};
+
+// Pill stepper: − n +. `size="sm"` for cart lines.
+export default function QtyStepper({ value, onChange, label = 'Quantity', size = 'md' }) {
+  const sm = size === 'sm';
   return (
-    <Box role="group" aria-label={label} sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
-      <IconButton aria-label="Decrease quantity" disabled={value <= 1} onClick={() => onChange(value - 1)} sx={{ border: `1px solid ${tokens.fieldBorder}` }}>
-        <Minus size={20} strokeWidth={1.75} aria-hidden="true" />
-      </IconButton>
-      <Typography aria-live="polite" sx={{ minWidth: 32, textAlign: 'center', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>{value}</Typography>
-      <IconButton aria-label="Increase quantity" disabled={value >= MAX_QTY} onClick={() => onChange(value + 1)} sx={{ border: `1px solid ${tokens.fieldBorder}` }}>
-        <Plus size={20} strokeWidth={1.75} aria-hidden="true" />
-      </IconButton>
+    <Box role="group" aria-label={label} sx={{ display: 'inline-flex', alignItems: 'center', p: '2px', borderRadius: `${shop.radius.pill}px`, backgroundColor: shop.surface, boxShadow: `inset 0 0 0 1.5px ${shop.lineStrong}` }}>
+      <Box component="button" type="button" aria-label="Decrease quantity" disabled={value <= 1} onClick={() => onChange(value - 1)} sx={{ ...btn, ...(sm ? { width: 36, height: 36 } : null) }}>
+        <Minus size={16} strokeWidth={2.25} aria-hidden="true" />
+      </Box>
+      <Box component="span" aria-live="polite" sx={{ minWidth: sm ? 24 : 32, textAlign: 'center', fontVariantNumeric: 'tabular-nums', fontWeight: 800, fontSize: sm ? 15 : 16 }}>{value}</Box>
+      <Box component="button" type="button" aria-label="Increase quantity" disabled={value >= MAX_QTY} onClick={() => onChange(value + 1)} sx={{ ...btn, ...(sm ? { width: 36, height: 36 } : null) }}>
+        <Plus size={16} strokeWidth={2.25} aria-hidden="true" />
+      </Box>
     </Box>
   );
 }

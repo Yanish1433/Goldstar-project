@@ -1,38 +1,34 @@
 import Box from '@mui/material/Box';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import Typography from '@mui/material/Typography';
-import { tokens } from '../theme/tokens.js';
+import { shop } from '../theme/tokens.js';
 import { formatNPR } from '../lib/format.js';
+import { Dot } from './shop/kit.jsx';
 
-function Sw({ hex, selected }) {
+// Colour picker as a radio group (arrow keys move; name + price are read out). Shows "Colour: Black" above
+// round swatches; each swatch is a 48 px target.
+export default function Swatches({ colourways, value, onChange, showPrice = true, label = 'Colour' }) {
+  const current = colourways.find((c) => c.key === value);
   return (
-    <Box
-      className="swatch"
-      sx={{ width: 44, height: 44, backgroundColor: hex, outline: selected ? `2px solid ${tokens.gold}` : `1px solid ${tokens.fieldBorder}`, outlineOffset: selected ? 3 : 0, transition: 'outline-color 180ms ease', flexShrink: 0 }}
-    />
-  );
-}
-
-// Colour picker as a radio group: arrow keys move, name + price are read out.
-export default function Swatches({ colourways, value, onChange, showPrice = true, label = 'Colour', row = true }) {
-  return (
-    <RadioGroup row={row} aria-label={label} name="colourway" value={value} onChange={(e) => onChange(e.target.value)} sx={{ gap: 2, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-      {colourways.map((c) => (
-        <FormControlLabel
-          key={c.key}
-          value={c.key}
-          sx={{ m: 0, gap: 1.25, alignItems: 'center', '& .Mui-focusVisible .swatch': { outline: `2px solid ${tokens.goldLight}`, outlineOffset: 3 } }}
-          control={<Radio disableRipple sx={{ p: 0 }} icon={<Sw hex={c.hex} />} checkedIcon={<Sw hex={c.hex} selected />} />}
-          label={
-            <Typography component="span" variant="body1" sx={{ color: value === c.key ? 'primary.main' : 'text.primary', fontWeight: 600 }}>
-              {c.name}
-              {showPrice ? ` · ${formatNPR(c.price)}` : ''}
-            </Typography>
-          }
-        />
-      ))}
-    </RadioGroup>
+    <Box>
+      <Typography sx={{ fontWeight: 800, fontSize: 15, mb: 1, minHeight: 32, display: 'flex', alignItems: 'center' }}>
+        {label}
+        {current ? <Box component="span" sx={{ fontWeight: 500, color: shop.ink2 }}>{`: ${current.name}`}</Box> : null}
+      </Typography>
+      <RadioGroup row aria-label={label} name="colourway" value={value} onChange={(e) => onChange(e.target.value)} sx={{ gap: 1, flexWrap: 'wrap', ml: -0.5 }}>
+        {colourways.map((c) => (
+          <Radio
+            key={c.key}
+            value={c.key}
+            disableRipple
+            slotProps={{ input: { 'aria-label': `${c.name}${showPrice ? `, ${formatNPR(c.price)}` : ''}${c.inStock ? '' : ', sold out'}` } }}
+            sx={{ p: 0.75, borderRadius: '50%', '&.Mui-focusVisible': { outline: `3px solid ${shop.blue}`, outlineOffset: 0 }, '&:hover .MuiBox-root': { transform: 'scale(1.08)' } }}
+            icon={<Dot hex={c.hex} size={34} />}
+            checkedIcon={<Dot hex={c.hex} size={34} selected />}
+          />
+        ))}
+      </RadioGroup>
+    </Box>
   );
 }

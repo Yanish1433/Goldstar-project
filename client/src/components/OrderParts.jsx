@@ -8,11 +8,26 @@ import TableRow from '@mui/material/TableRow';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 import { statusChipSx } from '../theme/theme.js';
+import { shop } from '../theme/tokens.js';
+
+// Status tones on light surfaces (AA text on each tint).
+const LIGHT_TONES = {
+  placed: { bg: '#ECEBFF', fg: '#2A27E9' },
+  confirmed: { bg: '#FFF1C7', fg: '#6B4A00' },
+  shipped: { bg: '#E3EEFF', fg: '#1D4ED8' },
+  delivered: { bg: '#DDF1E8', fg: '#0F5E3F' },
+  cancelled: { bg: '#FBE4E2', fg: '#9F1D16' },
+};
 import { statusLabel } from '../lib/orders.js';
 import { formatNPR, formatDate } from '../lib/format.js';
 
-export const StatusChip = ({ status }) => <Chip label={statusLabel(status)} size="small" sx={statusChipSx(status)} />;
+export function StatusChip({ status }) {
+  const light = useTheme().palette.mode === 'light';
+  const t = LIGHT_TONES[status] || LIGHT_TONES.placed;
+  return <Chip label={statusLabel(status)} size="small" sx={light ? { backgroundColor: t.bg, color: t.fg } : statusChipSx(status)} />;
+}
 
 export function OrderItemsTable({ order }) {
   return (

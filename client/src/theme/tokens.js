@@ -69,3 +69,44 @@ export const motionTokens = {
 };
 
 export const FONT_STACK = '"Archivo Variable", "Mukta", system-ui, sans-serif';
+
+// Commerce (Shop, Product, Cart, Checkout, Account): a light system carrying the Home story's identity. Warm off-white
+// pages, cream photo tiles (#EDE7DC, the catalogue's own background), Goldstar-blue pill CTAs, and the story's section
+// grounds as bands and badges. Every text pairing below is AA (checked: ink 16.7:1, ink2 6.9:1 on ground, blue 7.3:1,
+// sale 5.4:1, white on pine 9.7:1, ink on lilac 7.5:1 / saffron 11.5:1 / tangerine 6.0:1).
+export const shop = {
+  ground: '#F6F2EA',
+  surface: '#FFFFFF',
+  sunk: '#EFE9DF',
+  tile: '#EDE7DC',
+  ink: '#16120E',
+  ink2: '#5A5247',
+  ink3: '#7A7166', // 4.8:1 on white: meta text only
+  line: 'rgba(22,18,14,0.10)',
+  lineStrong: 'rgba(22,18,14,0.22)',
+  lineInk: 'rgba(22,18,14,0.85)',
+  blue: '#2A27E9',
+  blueHover: '#1F1CC9',
+  bluePress: '#1714A8',
+  blueWash: 'rgba(42,39,233,0.08)',
+  sale: '#C2124F',
+  success: '#0F7A4F',
+  error: '#B3261E',
+  // Home story grounds
+  tangerine: '#FF5A1F',
+  tangerineInk: '#1A0B05',
+  lilac: '#A996FF',
+  lilacInk: '#140F33',
+  pine: '#0F4D42',
+  saffron: '#FFC21A',
+  raspberry: '#D0175A',
+  aubergine: '#24163F',
+  shadowCard: '0 1px 2px rgba(22,18,14,0.06), 0 8px 24px rgba(22,18,14,0.06)',
+  shadowLift: '0 2px 4px rgba(22,18,14,0.06), 0 18px 40px rgba(22,18,14,0.12)',
+  shadowFloat: '0 24px 64px rgba(22,18,14,0.22)',
+  scrim: 'rgba(22,18,14,0.48)',
+  radius: { sm: 8, md: 14, lg: 20, xl: 28, pill: 999 },
+};
+
+// Archivo at the story's display width.
+export const WIDE = { fontStretch: '112%', fontVariationSettings: '"wdth" 112' };

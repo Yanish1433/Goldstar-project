@@ -3,6 +3,11 @@ import { Outlet, ScrollRestoration, useLocation } from 'react-router';
 import Box from '@mui/material/Box';
 import Snackbar from '@mui/material/Snackbar';
 import Button from '@mui/material/Button';
+import GlobalStyles from '@mui/material/GlobalStyles';
+import { ThemeProvider } from '@mui/material/styles';
+import { shopTheme } from '../theme/shopTheme.js';
+import { theme as storyTheme } from '../theme/theme.js';
+import { shop } from '../theme/tokens.js';
 import AppBar from './AppBar.jsx';
 import Footer from './Footer.jsx';
 import { useUi } from '../store/ui.js';
@@ -33,7 +38,7 @@ function Toasts() {
       sx={{ '@media (max-width:599.95px)': { left: 0, right: 0, bottom: 0, '& .MuiSnackbarContent-root': { width: '100%', minWidth: 0 } } }}
       action={
         snackbar?.actionLabel ? (
-          <Button size="small" onClick={() => { snackbar.onAction?.(); hide(); }} sx={{ minHeight: 44 }}>{snackbar.actionLabel}</Button>
+          <Button size="small" onClick={() => { snackbar.onAction?.(); hide(); }} sx={{ minHeight: 44, color: shop.saffron, '&:hover': { color: shop.saffron } }}>{snackbar.actionLabel}</Button>
         ) : null
       }
     />
@@ -49,9 +54,30 @@ function Announcer() {
   );
 }
 
+// Commerce routes use the light shop theme; Home keeps the story's own grounds and the admin keeps the dark console.
+export const isLightRoute = (pathname) => pathname !== '/' && !pathname.startsWith('/admin');
+
+const lightGlobals = (
+  <GlobalStyles
+    styles={{
+      html: { colorScheme: 'light' },
+      body: { backgroundColor: shop.ground, color: shop.ink },
+      '::selection': { backgroundColor: shop.blue, color: '#FFFFFF' },
+      ':focus-visible': { outline: `3px solid ${shop.blue}`, outlineOffset: 2 },
+      'input:-webkit-autofill': { WebkitBoxShadow: `0 0 0 100px ${shop.surface} inset`, WebkitTextFillColor: shop.ink, caretColor: shop.ink },
+    }}
+  />
+);
+
+// One provider whose theme swaps (not a conditional wrapper), so the header and main never remount on navigation.
+function Themed({ light, children }) {
+  return <ThemeProvider theme={light ? shopTheme : storyTheme}>{children}</ThemeProvider>;
+}
+
 export default function Layout() {
   const headRef = useRef(null);
   const loc = useLocation();
+  const light = isLightRoute(loc.pathname);
 
   // Expose the sticky header height so sticky story frames can clear it.
   useEffect(() => {
@@ -89,16 +115,21 @@ export default function Layout() {
       >
         Skip to content
       </Box>
-      <AppBar />
-      <Box component="main" id="content" tabIndex={-1} sx={{ outline: 'none', minHeight: '60vh' }}>
-        <Suspense fallback={<Box sx={{ minHeight: '70vh' }} />}>
-          {loc.pathname === '/' ? <Outlet /> : <RouteTransition />}
-        </Suspense>
-      </Box>
+      <Themed light={light}>
+        {light ? lightGlobals : null}
+        <AppBar />
+        <Box component="main" id="content" tabIndex={-1} sx={{ outline: 'none', minHeight: '60vh', ...(light ? { backgroundColor: shop.ground, color: shop.ink } : null) }}>
+          <Suspense fallback={<Box sx={{ minHeight: '70vh' }} />}>
+            {loc.pathname === '/' ? <Outlet /> : <RouteTransition />}
+          </Suspense>
+        </Box>
+      </Themed>
       <Footer />
-      <Suspense fallback={null}><CartDrawer /></Suspense>
+      <ThemeProvider theme={shopTheme}>
+        <Suspense fallback={null}><CartDrawer /></Suspense>
+        <Toasts />
+      </ThemeProvider>
       <CartBoxHost />
-      <Toasts />
       <Announcer />
       <ScrollRestoration getKey={(l) => l.pathname + l.search} />
     </Box>
