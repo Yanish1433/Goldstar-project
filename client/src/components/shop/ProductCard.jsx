@@ -6,7 +6,6 @@ import Skeleton from '@mui/material/Skeleton';
 import { motion, useReducedMotion } from 'motion/react';
 import ProductPhoto from '../ProductPhoto.jsx';
 import QuickAdd from '../QuickAdd.jsx';
-import { useUi } from '../../store/ui.js';
 import { shop } from '../../theme/tokens.js';
 import { ShopBadge, badgesFor, descriptorFor, CardPrice, CardSwatches } from './kit.jsx';
 
@@ -26,9 +25,6 @@ export default function ProductCard({ p, index = 0, eager = false, sizes = '(min
   const hover = colour?.secondImage || null;
   const photoRef = useRef(null);
   const reduced = useReducedMotion();
-  // While the add-to-cart box plays, keep every card on its main photo (the pointer is still over the card after a
-  // quick add, and the hover swap would show a half-faded second photo under the box).
-  const boxing = useUi((s) => !!s.cartBox);
   const badges = badgesFor(p);
   const to = `/product/${p.slug}${colour && colour.key !== p.colourways[0]?.key ? `?colour=${colour.key}` : ''}`;
 
@@ -48,7 +44,7 @@ export default function ProductCard({ p, index = 0, eager = false, sizes = '(min
           display: 'flex', flexDirection: 'column', flex: 1, color: 'inherit', textDecoration: 'none', borderRadius: `${shop.radius.lg}px`,
           '&:focus-visible': { outline: `3px solid ${shop.blue}`, outlineOffset: 4 },
           '& .tile': { transition: 'transform 320ms cubic-bezier(0.22,1,0.36,1), box-shadow 320ms cubic-bezier(0.22,1,0.36,1)' },
-          ...(boxing ? null : {
+          ...({
             '@media (hover:hover)': {
               '&:hover .tile, &:focus-visible .tile': { transform: 'translateY(-4px)', boxShadow: shop.shadowLift },
               '&:hover .photo-alt, &:focus-visible .photo-alt': { opacity: 1 },

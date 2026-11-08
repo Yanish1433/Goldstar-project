@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 import { shop } from '../theme/tokens.js';
 import { Dot } from './shop/kit.jsx';
 import { formatNPR } from '../lib/format.js';
-import { makeLine, addToCartAnimated, pickSourceRect, warmCartBox } from '../lib/addToCart.js';
+import { makeLine, addToCartAnimated, pickSourceRect } from '../lib/addToCart.js';
 
 const chip = (on) => ({
   minWidth: 48, minHeight: 44, px: 1.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 1,
@@ -46,7 +46,6 @@ export default function QuickAdd({ product, photoRef, colourKey }) {
         aria-haspopup="dialog"
         aria-expanded={!!anchor}
         aria-controls={anchor ? id : undefined}
-        onPointerEnter={warmCartBox}
         onClick={(e) => setAnchor(e.currentTarget)}
         sx={{
           position: 'absolute', top: { xs: 8, sm: 12 }, right: { xs: 8, sm: 12 }, zIndex: 2, width: 44, height: 44, borderRadius: '50%', border: 0,

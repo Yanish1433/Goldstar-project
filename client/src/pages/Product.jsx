@@ -32,7 +32,7 @@ import ProductCard from '../components/shop/ProductCard.jsx';
 import { Band, Eyebrow, PriceTag, ShopBadge, TrustRow, badgesFor, descriptorFor } from '../components/shop/kit.jsx';
 import NotFound from './NotFound.jsx';
 import { useProduct, useProducts } from '../api/hooks.js';
-import { makeLine, addToCartAnimated, pickSourceRect, warmCartBox } from '../lib/addToCart.js';
+import { makeLine, addToCartAnimated, pickSourceRect } from '../lib/addToCart.js';
 import { ApiError } from '../api/client.js';
 import { formatNPR } from '../lib/format.js';
 import { shop, WIDE } from '../theme/tokens.js';
@@ -258,11 +258,6 @@ export default function Product() {
 
   const key = params.get('colour') || product?.colourways?.[0]?.key;
   const colour = product?.colourways?.find((c) => c.key === key) || product?.colourways?.[0];
-
-  useEffect(() => {
-    const id = setTimeout(warmCartBox, 1200);
-    return () => clearTimeout(id);
-  }, []);
 
   useEffect(() => {
     setSize(null);

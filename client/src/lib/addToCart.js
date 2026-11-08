@@ -1,6 +1,6 @@
 import { useCart } from '../store/cart.js';
 import { useUi } from '../store/ui.js';
-import { detectTier } from '../three/tier.js';
+import { playSparkles } from './sparkles.js';
 
 export const makeLine = (product, colourway, size, qty = 1) => ({
   productId: product.id,
@@ -38,11 +38,6 @@ export function addToCartNow(line) {
 
 const reducedMotion = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-// Preload the overlay chunk (call on idle / hover of an Add button).
-export function warmCartBox() {
-  import('../three/BoxIntoCart.jsx').catch(() => {});
-}
-
 // Pick the first element whose rect is meaningfully inside the viewport (shoe photo, else the button).
 export function pickSourceRect(...els) {
   const vh = window.innerHeight;
@@ -54,23 +49,20 @@ export function pickSourceRect(...els) {
   return r ? { left: r.left, top: r.top, width: r.width, height: r.height } : null;
 }
 
-// Public API: play the shoe-into-box-to-cart overlay. colour = colourway key (or { key }); sourceRect = viewport
-// rect the shoe flies out of. Visual only unless onLand is given (called once when the box reaches the cart icon).
-// Returns true if animating. Reduced motion / no WebGL / already playing: onLand runs immediately, returns false.
-export function playAddToCart({ colour, sourceRect, onLand } = {}) {
-  const key = typeof colour === 'object' ? colour?.key : colour;
-  if (reducedMotion() || detectTier() === 'static') {
+// Public API: gold sparkles burst from `sourceRect` (viewport rect of the button / product photo) and stream to the
+// cart icon; onLand runs once when they arrive (~720 ms). Returns true if animating. Reduced motion or no 2D canvas:
+// onLand runs at once and it returns false.
+export function playAddToCart({ sourceRect, onLand } = {}) {
+  if (reducedMotion()) {
     onLand?.();
     return false;
   }
-  const ok = useUi.getState().startCartBox({ colour: key, sourceRect, onLand });
-  if (!ok) onLand?.();
-  return ok;
+  return playSparkles({ sourceRect, onLand });
 }
 
-// Add a line with the animation: count/toast/badge bump are held until the box lands in the cart.
+// Add a line with the sparkles: the badge count, bump and toast are held until the sparkles reach the cart.
 export function addToCartAnimated(line, { sourceRect } = {}) {
-  if (reducedMotion() || detectTier() === 'static' || useUi.getState().cartBox) return addToCartNow(line);
+  if (reducedMotion()) return addToCartNow(line);
   const res = useCart.getState().add(line);
   if (!res.ok) return addToCartNow(line); // full: reuse the message path
   useCart.getState().startFlight();
@@ -79,6 +71,6 @@ export function addToCartAnimated(line, { sourceRect } = {}) {
     useUi.getState().bump();
     notifyAdded(line);
   };
-  playAddToCart({ colour: line.colourwayKey, sourceRect, onLand: land });
+  playAddToCart({ sourceRect, onLand: land });
   return res;
 }
