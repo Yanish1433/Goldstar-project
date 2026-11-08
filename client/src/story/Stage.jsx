@@ -20,7 +20,9 @@ function Driver({ active }) {
     live.invalidate = () => touch();
     const tick = () => {
       if (!active.current) return;
-      if (performance.now() - live.lastMove > IDLE_MS && !live.drag.active) return;
+      const idle = performance.now() - live.lastMove > IDLE_MS && !live.drag.active;
+      if (idle && live.pending <= 0) return;
+      live.pending -= 1;
       advance(performance.now());
     };
     gsap.ticker.add(tick);
@@ -98,6 +100,7 @@ function ShoeRig({ url, colourways, onReady, shadowRef, tier }) {
     s.yaw = damp(s.yaw, D.yaw, 8, dt);
     s.pitch = damp(s.pitch, D.pitch, 8, dt);
     s.zoom = damp(s.zoom, D.zoom, 8, dt);
+    if (Math.abs(s.yaw - D.yaw) + Math.abs(s.pitch - D.pitch) + Math.abs(s.zoom - D.zoom) < 0.0005) Object.assign(s, { yaw: D.yaw, pitch: D.pitch, zoom: D.zoom });
     const k = pose.studio;
     const easing = Math.abs(s.yaw - D.yaw) + Math.abs(s.pitch - D.pitch) + Math.abs(s.zoom - D.zoom) > 0.001;
 
@@ -137,6 +140,11 @@ function ShoeRig({ url, colourways, onReady, shadowRef, tier }) {
           const f = 1 - Math.exp(-7 * dt);
           u.uDark.value.lerp(tc[0], f);
           u.uLight.value.lerp(tc[1], f);
+          const far = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) > 0.003;
+          if (!far(u.uDark.value, tc[0]) && !far(u.uLight.value, tc[1])) {
+            u.uDark.value.copy(tc[0]); // snap, so the idle check can stop rendering
+            u.uLight.value.copy(tc[1]);
+          }
           colourMoving = true;
         }
       }

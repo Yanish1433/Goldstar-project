@@ -6,6 +6,7 @@ export const live = {
   T: 0, // story time in vh units (see storyline.js)
   vh: 1, // px per vh unit (window.innerHeight / 100)
   lastMove: 0, // performance.now() of the last change (idle frames are skipped)
+  pending: 0, // frames still owed after the last change (slow devices still get the final pose)
   reduced: false,
   // Studio interaction (pointer drag + zoom), eased in the scene.
   drag: { yaw: 0, pitch: 0, zoom: 1, active: false },
@@ -17,6 +18,7 @@ export const live = {
 
 export const touch = () => {
   live.lastMove = performance.now();
+  live.pending = 3;
 };
 
 // Low-frequency UI state (React subscribes to this).
@@ -30,3 +32,6 @@ export const useStoryUi = create((set) => ({
   userColour: null, // set when the user picks a swatch; wins over the scroll
   set: (patch) => set(patch),
 }));
+
+// Dev-only handle for debugging and the screenshot scripts.
+if (import.meta.env?.DEV && typeof window !== 'undefined') window.__story = live;
