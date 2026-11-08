@@ -8,3 +8,4 @@ _dl/
 .taste-skill/inspect/
 *.log
 .DS_Store
+.firstmate/
