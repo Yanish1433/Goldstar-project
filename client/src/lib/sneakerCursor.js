@@ -1,6 +1,6 @@
 // Animated sneaker cursor (desktop, fine pointers only). Plain DOM + one rAF loop, transform/opacity only, no React.
-// - The hotspot (a small dot at the toe tip) sits exactly on the pointer; the boot itself trails with a light lerp.
-// - Tilts with horizontal travel, bobs a little "step" while moving, settles flat when still.
+// - Position is written straight from every pointermove (no lag): the toe tip is always exactly on the pointer.
+// - Only the pose is smoothed (tilt with horizontal travel, a small step bob while moving), settling flat when still.
 // - Over links/buttons/cards it grows and kicks (toe up) with an accent ring; on mouse-down it squashes.
 // - Fast moves leave a few tread prints that fade.
 // - Text fields keep the native text cursor; the boot hides there.
@@ -63,7 +63,7 @@ export function mountSneakerCursor({ win = window, doc = document } = {}) {
 }
 .gs-cursor-root { position: fixed; left: 0; top: 0; width: 0; height: 0; pointer-events: none; z-index: 2147483000; }
 .gs-cursor-root > * { position: absolute; left: 0; top: 0; pointer-events: none; will-change: transform, opacity; }
-.gs-cursor-ring { width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; border: 2px solid #2A27E9; box-shadow: 0 0 0 2px rgba(255,255,255,0.9); opacity: 0; transform: scale(0.4); transition: opacity 160ms ease, transform 220ms cubic-bezier(0.22,1,0.36,1); }
+.gs-cursor-ring { width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; border: 2px solid #2A27E9; box-shadow: 0 0 0 2px rgba(255,255,255,0.9); opacity: 0; transform: scale(0.4); transition: opacity 90ms ease, transform 110ms cubic-bezier(0.22,1,0.36,1); }
 .gs-cursor-root[data-hover="true"] .gs-cursor-ring { opacity: 1; transform: scale(1); }
 .gs-cursor-dot { width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: #16120E; box-shadow: 0 0 0 1.5px #FFFFFF; }
 .gs-cursor-print { color: rgba(22,18,14,0.28); transition: opacity 700ms ease; }
@@ -86,8 +86,12 @@ export function mountSneakerCursor({ win = window, doc = document } = {}) {
     root.appendChild(p);
     return p;
   });
+  // The ring is positioned by a wrapper's transform; the ring itself only scales in/out on hover.
   const ring = doc.createElement('div');
-  ring.className = 'gs-cursor-ring';
+  ring.className = 'gs-cursor-ringpos';
+  const ringInner = doc.createElement('div');
+  ringInner.className = 'gs-cursor-ring';
+  ring.appendChild(ringInner);
   const boot = doc.createElement('div');
   boot.className = 'gs-cursor-boot';
   // Pivot at the toe tip so rotation and scale keep the hotspot on the pointer.
@@ -101,12 +105,13 @@ export function mountSneakerCursor({ win = window, doc = document } = {}) {
   doc.body.appendChild(root);
   // The native cursor is only hidden once the boot has a position (first move), so a resting mouse never vanishes.
 
+  const mql = win.matchMedia(CURSOR_QUERY);
   const s = {
     x: -100, y: -100, // pointer
     bx: -100, by: -100, // boot (lagged)
     vx: 0, speed: 0, tilt: 0, phase: 0, amp: 0,
     hover: false, kick: 0, kickV: 0, down: false, squash: 0,
-    seen: false, text: false, lastPrint: 0, printIdx: 0, lastT: 0,
+    seen: false, text: false, lastPrint: 0, printIdx: 0, lastT: 0, hiddenAttr: 'true', lastMove: 0,
   };
 
   const place = () => {
@@ -117,8 +122,7 @@ export function mountSneakerCursor({ win = window, doc = document } = {}) {
     const sy = grow * (1 - 0.2 * s.squash);
     boot.style.transform = `translate3d(${s.bx}px, ${s.by + lift}px, 0) rotate(${rot}deg) scale(${sx}, ${sy})`;
     dot.style.transform = `translate3d(${s.x}px, ${s.y}px, 0)`;
-    ring.style.left = `${s.x}px`;
-    ring.style.top = `${s.y}px`;
+    ring.style.transform = `translate3d(${s.x}px, ${s.y}px, 0)`;
   };
 
   const dropPrint = (t) => {
@@ -142,23 +146,20 @@ export function mountSneakerCursor({ win = window, doc = document } = {}) {
     raf = 0;
     const dt = Math.min(0.05, s.lastT ? (t - s.lastT) / 1000 : 1 / 60);
     s.lastT = t;
-    const k = 1 - Math.pow(1 - 0.38, dt * 60); // frame-rate independent lerp
-    const px = s.bx;
-    s.bx += (s.x - s.bx) * k;
-    s.by += (s.y - s.by) * k;
-    s.vx = (s.bx - px) / Math.max(dt, 1e-3);
-    s.tilt += (clamp(s.vx * 0.012, -16, 16) - s.tilt) * k;
+    const f = (r) => 1 - Math.pow(1 - r, dt * 60); // frame-rate independent smoothing factor
+    s.tilt += (clamp(s.vx * 0.01, -14, 14) - s.tilt) * f(0.35);
+    s.vx *= Math.pow(0.002, dt); // velocity fades once the mouse stops
     const moving = s.speed > 0.08;
-    s.amp += ((moving ? 1 : 0) - s.amp) * (1 - Math.pow(1 - 0.18, dt * 60));
-    if (moving) s.phase += dt * clamp(10 + s.speed * 8, 10, 22);
-    s.speed *= Math.pow(0.0005, dt); // decays to rest when the mouse stops
-    // Kick: spring toward the hover target angle (toe up).
+    s.amp += ((moving ? 1 : 0) - s.amp) * f(0.3);
+    if (moving) s.phase += dt * clamp(12 + s.speed * 8, 12, 24);
+    s.speed *= Math.pow(0.0002, dt);
+    // Kick: stiff, critically damped spring toward the hover angle (toe up), settles in about 100 ms.
     const target = s.hover ? 18 : 0;
-    s.kickV += (target - s.kick) * 260 * dt - s.kickV * 16 * dt;
+    s.kickV += ((target - s.kick) * 1600 - s.kickV * 80) * dt;
     s.kick += s.kickV * dt;
-    s.squash += ((s.down ? 1 : 0) - s.squash) * (1 - Math.pow(1 - 0.45, dt * 60));
+    s.squash += ((s.down ? 1 : 0) - s.squash) * f(0.6);
     place();
-    const settled = Math.abs(s.x - s.bx) < 0.1 && Math.abs(s.y - s.by) < 0.1 && s.amp < 0.01 && Math.abs(s.kick - target) < 0.05 && Math.abs(s.kickV) < 0.05 && Math.abs(s.squash - (s.down ? 1 : 0)) < 0.01;
+    const settled = Math.abs(s.tilt) < 0.05 && s.amp < 0.01 && Math.abs(s.kick - target) < 0.05 && Math.abs(s.kickV) < 0.5 && Math.abs(s.squash - (s.down ? 1 : 0)) < 0.01;
     if (!settled) raf = win.requestAnimationFrame(tick);
     else s.lastT = 0;
   };
@@ -173,34 +174,47 @@ export function mountSneakerCursor({ win = window, doc = document } = {}) {
     if (!raf) raf = win.requestAnimationFrame(tick);
   };
 
+  const setHidden = (v) => {
+    if (s.hiddenAttr !== v) root.dataset.hidden = s.hiddenAttr = v;
+  };
+  let lastTarget = null;
   const onMove = (e) => {
     if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
-    if (!mq(win, CURSOR_QUERY)) return;
+    if (!mql.matches) return;
     const dx = e.clientX - s.x;
     const dy = e.clientY - s.y;
+    const now = e.timeStamp || win.performance.now();
     s.x = e.clientX;
     s.y = e.clientY;
+    // Instant: the boot sits on the pointer this very event.
+    s.bx = s.x;
+    s.by = s.y;
     if (!s.seen) {
       s.seen = true;
-      s.bx = s.x;
-      s.by = s.y;
       doc.documentElement.classList.add('gs-cursor');
     } else {
       const d = Math.hypot(dx, dy);
+      const ms = Math.max(4, now - (s.lastMove || now - 16));
+      s.vx = s.vx * 0.5 + (dx / ms) * 1000 * 0.5;
       s.speed = Math.min(4, s.speed * 0.6 + (d / 16) * 0.4);
       s.lastDx = dx;
       s.lastDy = dy;
-      if (d > 38) dropPrint(e.timeStamp || win.performance.now());
+      if (d > 38) dropPrint(now);
     }
-    const el = e.target instanceof win.Element ? e.target : null;
-    const text = !!el?.closest(TEXT);
-    const hover = !text && !!el?.closest(INTERACTIVE);
-    if (hover !== s.hover) {
-      s.hover = hover;
-      root.dataset.hover = String(hover);
+    s.lastMove = now;
+    // Hover / text-field checks only when the element under the pointer changes.
+    if (e.target !== lastTarget) {
+      lastTarget = e.target;
+      const el = e.target instanceof win.Element ? e.target : null;
+      s.text = !!el?.closest(TEXT);
+      const hover = !s.text && !!el?.closest(INTERACTIVE);
+      if (hover !== s.hover) {
+        s.hover = hover;
+        root.dataset.hover = String(hover);
+      }
     }
-    s.text = text;
-    root.dataset.hidden = String(text);
+    setHidden(String(s.text));
+    place();
     wake();
   };
   // Touch (a phone that misreports, or a touch laptop): the boot gets out of the way and the native cursor returns
@@ -208,7 +222,7 @@ export function mountSneakerCursor({ win = window, doc = document } = {}) {
   const park = () => {
     s.seen = false;
     s.down = false;
-    root.dataset.hidden = 'true';
+    setHidden('true');
     doc.documentElement.classList.remove('gs-cursor');
   };
   const onDown = (e) => {
@@ -222,13 +236,12 @@ export function mountSneakerCursor({ win = window, doc = document } = {}) {
     wake();
   };
   const onLeave = (e) => {
-    if (!e.relatedTarget) root.dataset.hidden = 'true';
+    if (!e.relatedTarget) setHidden('true');
   };
   const onEnter = () => {
-    if (s.seen && !s.text) root.dataset.hidden = 'false';
+    if (s.seen && !s.text) setHidden('false');
   };
 
-  const mql = win.matchMedia(CURSOR_QUERY);
   const onMedia = (e) => {
     if (!e.matches) park();
   };
