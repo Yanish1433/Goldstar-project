@@ -170,7 +170,7 @@ export default function Checkout() {
                 label="Cash on delivery"
               />
             </RadioGroup>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Pay in cash when the shoes arrive. This is a demo: no order will be delivered.</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Pay in cash when the shoes arrive.</Typography>
           </FormControl>
         </Box>
 

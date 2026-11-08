@@ -10,7 +10,10 @@ export class ApiError extends Error {
   }
 }
 
-export const apiState = { mock: import.meta.env.VITE_USE_MOCK === 'true', mockFallback: false };
+// Built-in data: production builds run fully static on the bundled catalogue (the pitch demo) unless built with
+// VITE_USE_MOCK=false for a live API. Dev uses the API and falls back to the bundled data when it is down.
+const MOCK_BUILD = import.meta.env.VITE_USE_MOCK ? import.meta.env.VITE_USE_MOCK === 'true' : !import.meta.env.DEV;
+export const apiState = { mock: MOCK_BUILD };
 
 const buildQuery = (query) => {
   if (!query) return '';
@@ -25,8 +28,8 @@ const buildQuery = (query) => {
 export async function apiFetch(path, { method = 'GET', body, query } = {}) {
   const url = `/api${path}${buildQuery(query)}`;
   if (apiState.mock) {
-    // Dead-code eliminated in production builds unless VITE_USE_MOCK=true.
-    if (import.meta.env.VITE_USE_MOCK === 'true' || import.meta.env.DEV) {
+    // Dead-code eliminated in production builds made with VITE_USE_MOCK=false.
+    if (MOCK_BUILD || import.meta.env.DEV) {
       const { mockRequest } = await import('./mock/index.js');
       return mockRequest(method, path, body, query);
     }
@@ -58,7 +61,7 @@ export async function apiFetch(path, { method = 'GET', body, query } = {}) {
   return data;
 }
 
-// Dev-only boot check: when the API is unreachable fall back to mock data.
+// Dev-only boot check: when the API is unreachable use the bundled data.
 export async function initApi() {
   if (import.meta.env.DEV && !apiState.mock) {
     try {
@@ -66,7 +69,6 @@ export async function initApi() {
       if (!r.ok) throw new Error('down');
     } catch {
       apiState.mock = true;
-      apiState.mockFallback = true;
     }
   }
 }

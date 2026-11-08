@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
 import Box from '@mui/material/Box';
 
+export const SITE_TITLE = 'Goldstar — G10-401 Trek';
+
 export const PAGE_PX = { xs: 2, sm: 3, lg: 4 };
 
 export function useTitle(title) {
   useEffect(() => {
-    document.title = title ? `${title} · Goldstar concept` : 'Goldstar concept';
+    document.title = title ? `${title} · Goldstar` : SITE_TITLE;
   }, [title]);
 }
 

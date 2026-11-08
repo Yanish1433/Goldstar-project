@@ -69,4 +69,3 @@ export const motionTokens = {
 };
 
 export const FONT_STACK = '"Archivo Variable", "Mukta", system-ui, sans-serif';
-export const CONCEPT_NOTE = 'Concept prototype — not an official Goldstar site.';

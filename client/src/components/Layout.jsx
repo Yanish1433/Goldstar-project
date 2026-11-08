@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef } from 'react';
 import { Outlet, ScrollRestoration, useLocation } from 'react-router';
 import Box from '@mui/material/Box';
 import Snackbar from '@mui/material/Snackbar';
@@ -9,20 +9,6 @@ import { useUi } from '../store/ui.js';
 import { visuallyHidden } from './Page.jsx';
 
 const CartDrawer = lazy(() => import('./CartDrawer.jsx'));
-
-// The drawer chunk loads the first time the cart is opened.
-function LazyCart() {
-  const open = useUi((s) => s.cartOpen);
-  const [seen, setSeen] = useState(false);
-  useEffect(() => {
-    if (open) setSeen(true);
-  }, [open]);
-  return seen || open ? (
-    <Suspense fallback={null}>
-      <LazyCart />
-    </Suspense>
-  ) : null;
-}
 
 const BoxIntoCart = lazy(() => import('../three/BoxIntoCart.jsx'));
 
@@ -110,7 +96,7 @@ export default function Layout() {
         </Suspense>
       </Box>
       <Footer />
-      <CartDrawer />
+      <Suspense fallback={null}><CartDrawer /></Suspense>
       <CartBoxHost />
       <Toasts />
       <Announcer />

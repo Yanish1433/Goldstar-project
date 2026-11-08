@@ -27,7 +27,6 @@ export default function OrderConfirmation() {
         <Paper sx={{ p: { xs: 2, md: 3 }, width: '100%', boxSizing: 'border-box' }}>
           <OrderItemsTable order={order} />
         </Paper>
-        <Typography color="text.secondary">This is a demo: no order will be delivered.</Typography>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <Button component={RouterLink} to="/account" variant="contained">View my orders</Button>
           <Button component={RouterLink} to="/shop" variant="outlined">Keep shopping</Button>

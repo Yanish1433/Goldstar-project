@@ -5,11 +5,8 @@ import Link from '@mui/material/Link';
 import { PageBox } from './Page.jsx';
 import Reveal from './Reveal.jsx';
 import ExternalLink from './ExternalLink.jsx';
-import { CONCEPT_NOTE } from '../theme/tokens.js';
-import { SHOE } from '../three/shoe.config.js';
 
 export default function Footer() {
-  const c = SHOE.credit;
   // Home ends with the animated brand finale, so the footer's big wordmark is left out there.
   const home = useLocation().pathname === '/';
   return (
@@ -24,15 +21,10 @@ export default function Footer() {
             <Link href="#credits" onClick={(e) => { e.preventDefault(); document.getElementById('credits')?.scrollIntoView({ block: 'start' }); }} sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center', color: 'text.secondary' }}>Credits</Link>
           </Reveal>
           <Reveal id="credits" delay={0.14} sx={{ scrollMarginTop: 160, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: '62ch' }}>
-            <Typography variant="body1" color="text.primary">3D boot on the home page: the G10-401, reconstructed from Goldstar product photography.</Typography>
-            <Typography variant="body1" color="text.primary">
-              3D shoe on product pages: &lsquo;{c.title}&rsquo; &copy; {c.year} {c.author}, licensed{' '}
-              <Link href={c.licenceUrl} target="_blank" rel="noopener noreferrer">{c.licence}</Link>, from the{' '}
-              <Link href={c.source} target="_blank" rel="noopener noreferrer">Khronos glTF Sample Assets</Link>. Recoloured and compressed. Logos and trademarks excluded. The 3D model is a stand-in sneaker, not the Goldstar G10-401.
-            </Typography>
-            <Typography variant="body1" color="text.primary">Product names, photos and prices: goldstarshoes.com public store data, shown for a pitch.</Typography>
+            <Typography variant="body1" color="text.primary">The 3D G10-401 is modelled part by part from Goldstar product photography.</Typography>
+            <Typography variant="body1" color="text.primary">Product names, photos and prices: the Goldstar catalogue at goldstarshoes.com.</Typography>
             <Typography variant="body1" color="text.primary">Fonts: Archivo and Mukta, SIL Open Font License.</Typography>
-            <Typography variant="body1" color="text.secondary">{CONCEPT_NOTE} Demo build, November 2026.</Typography>
+            <Typography variant="body1" color="text.secondary">Goldstar Shoes · Made in Nepal. Cash on delivery.</Typography>
           </Reveal>
         </Box>
           {home ? null : (

@@ -36,7 +36,7 @@ function useEnv() {
 }
 
 export default function Home() {
-  useTitle('G10-401');
+  useTitle(null);
   const { data: product } = useProduct('g10-401');
   useEnv();
   const tier = useStoryUi((s) => s.tier);
