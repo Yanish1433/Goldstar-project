@@ -2,7 +2,7 @@ import { forwardRef, useImperativeHandle, useLayoutEffect, useMemo, useRef } fro
 import * as THREE from 'three';
 import { useGLTF } from '@react-three/drei';
 import { SHOE, tintFor } from './shoe.config.js';
-import { easeOutCubic } from './timeline.js';
+const easeOutCubic = (x) => 1 - (1 - x) ** 3;
 
 const _v = new THREE.Vector3();
 const _m = new THREE.Matrix4();

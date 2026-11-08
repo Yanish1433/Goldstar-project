@@ -26,9 +26,9 @@ function renderAt(path) {
 const T = { timeout: 15000 };
 
 describe('route smoke renders with the mock API', () => {
-  it('/ renders the static story when WebGL is missing', async () => {
+  it('/ renders the story copy when WebGL is missing', async () => {
     renderAt('/');
-    expect(await screen.findByText(/Performance, redefined/i, {}, T)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: /Built for every trail/i }, T)).toBeInTheDocument();
   });
   it('/shop lists products', async () => {
     renderAt('/shop');

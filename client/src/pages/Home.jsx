@@ -1,119 +1,125 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
+import { gsap } from 'gsap';
 import { useTitle } from '../components/Page.jsx';
 import { useProduct } from '../api/hooks.js';
-import { StoryCtx, useStoryEnv, useStoryProgress } from '../story/StoryContext.jsx';
-import { overlay, useStory } from '../story/store.js';
-import { CalloutsSection, EndureSection, ExplodeSection, FinaleSection, HeroSection, PerformanceSection } from '../story/Sections.jsx';
-import ColourSection from '../story/ColourSection.jsx';
-const StaticStory = lazy(() => import('../story/StaticStory.jsx'));
-const ChapterNav = lazy(() => import('../story/ChapterNav.jsx'));
 import { detectTier, layoutFor } from '../three/tier.js';
-import { SECTIONS } from '../three/timeline.js';
-import { tokens } from '../theme/tokens.js';
+import { PALETTE, SECTIONS, START, colourIndexAt, endOf, pinOf, sectionAt } from '../story/storyline.js';
+import { useStoryUi } from '../story/state.js';
+import { useStoryEngine } from '../story/useStoryEngine.js';
+import { AnatomyLabels, AnatomySection, ColourSection, FinaleSection, HeroSection, RevealSection, SoleSection, StudioSection } from '../story/Sections.jsx';
 
-const StoryCanvas = lazy(() => import('../three/StoryCanvas.jsx'));
+const Stage = lazy(() => import('../story/Stage.jsx'));
 
-function ScrollStory({ product }) {
-  const storyRef = useRef(null);
-  const { progress, reduced } = useStoryProgress(storyRef);
-  const canvasReady = useStory((s) => s.canvasReady);
-  const phone = useStory((s) => s.layout) === 'phone';
-  const [mountCanvas, setMountCanvas] = useState(false);
-  const dotRef = useRef(null);
-
-  // The canvas mounts after the hero poster has painted (idle, 1500 ms timeout).
+function useEnv() {
+  // Tier, layout and reduced motion are decided before the first paint (a static device never mounts WebGL).
+  useState(() => {
+    const reduced = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    useStoryUi.setState({ tier: detectTier(), layout: layoutFor(window.innerWidth), reduced, section: 0, userColour: null });
+    return null;
+  });
   useEffect(() => {
-    const go = () => setMountCanvas(true);
-    if ('requestIdleCallback' in window) {
-      const id = window.requestIdleCallback(go, { timeout: 1500 });
-      return () => window.cancelIdleCallback(id);
-    }
-    const t = setTimeout(go, 300);
-    return () => clearTimeout(t);
-  }, []);
-
-  // Active section = the one crossing the viewport centre (drives reduced-motion snapping and the phone panel).
-  useEffect(() => {
-    const els = SECTIONS.map((s) => document.getElementById(s.id)).filter(Boolean);
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && useStory.getState().setActiveSection(e.target.id)),
-      { rootMargin: '-50% 0px -50% 0px' },
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [product]);
-
-  useEffect(() => {
-    overlay.activeDot = dotRef.current;
-    return () => {
-      overlay.activeDot = null;
+    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const onMq = () => useStoryUi.getState().set({ reduced: !!mq.matches });
+    const onResize = () => {
+      const layout = layoutFor(window.innerWidth);
+      if (layout !== useStoryUi.getState().layout) useStoryUi.getState().set({ layout });
     };
-  }, [phone]);
-
-  const ctx = useMemo(() => ({ progress, reduced }), [progress, reduced]);
-  const callouts = useMemo(() => (product?.specCallouts || []).filter((c) => c.stage === 'callout').sort((a, b) => a.order - b.order).slice(0, 4), [product]);
-  const layers = useMemo(() => (product?.specCallouts || []).filter((c) => c.stage === 'layer').sort((a, b) => a.order - b.order).slice(0, 3), [product]);
-
-  return (
-    <StoryCtx.Provider value={ctx}>
-      <Box id="story" ref={storyRef} sx={{ position: 'relative', mt: 'calc(var(--appbar-h, 64px) * -1)' }}>
-        {mountCanvas ? (
-          <Suspense fallback={null}>
-            <StoryCanvas progress={progress} storyRef={storyRef} />
-          </Suspense>
-        ) : null}
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-          <HeroSection product={product} posterVisible={!canvasReady} />
-          <PerformanceSection product={product} />
-          <CalloutsSection items={callouts} />
-          <ExplodeSection items={layers} />
-          <EndureSection product={product} />
-          <ColourSection product={product} />
-          <FinaleSection product={product} />
-        </Box>
-        <Suspense fallback={null}><ChapterNav /></Suspense>
-        {phone ? (
-          <Box
-            ref={dotRef}
-            aria-hidden="true"
-            sx={{ position: 'fixed', left: -6, top: -6, width: 12, height: 12, borderRadius: '50%', backgroundColor: tokens.gold, outline: `2px solid ${tokens.gold}`, outlineOffset: 3, zIndex: 3, pointerEvents: 'none', opacity: 0, transform: 'translate(-100px,-100px)' }}
-          />
-        ) : null}
-      </Box>
-    </StoryCtx.Provider>
-  );
+    mq?.addEventListener?.('change', onMq);
+    window.addEventListener('resize', onResize);
+    return () => {
+      mq?.removeEventListener?.('change', onMq);
+      window.removeEventListener('resize', onResize);
+    };
+  }, []);
 }
 
 export default function Home() {
   useTitle('G10-401');
   const { data: product } = useProduct('g10-401');
-  // Decide the tier synchronously so a static device never mounts the story (then PerformanceMonitor may demote later).
-  useState(() => {
-    useStory.setState({ tier: detectTier(), layout: layoutFor(window.innerWidth) });
-    return null;
-  });
-  const tier = useStory((s) => s.tier);
-  return tier === 'static' ? <StaticHome product={product} /> : <ScrollStoryWithEnv product={product} />;
-}
+  useEnv();
+  const tier = useStoryUi((s) => s.tier);
+  const reduced = useStoryUi((s) => s.reduced);
+  const flow = reduced || tier === 'static'; // no pins, no scrub
+  const rootRef = useRef(null);
+  const bgRef = useRef(null);
+  const degRef = useRef(null);
+  const productRef = useRef(product);
+  productRef.current = product;
+  const [mountStage, setMountStage] = useState(false);
 
-function ScrollStoryWithEnv({ product }) {
-  return <EnvBridge><ScrollStory product={product} /></EnvBridge>;
-}
+  // Default colourway once the product is known.
+  useEffect(() => {
+    const first = product?.colourways?.[0]?.key;
+    if (first && !useStoryUi.getState().colourKey) useStoryUi.getState().set({ colourKey: first });
+  }, [product]);
 
-function EnvBridge({ children }) {
-  // Layout follows the window; reduced motion is read inside the story and mirrored to the store.
-  const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  useStoryEnv(!!reduced);
-  return children;
-}
+  // Low-frequency side effects of story time (called by the engine on every scroll update).
+  const onTimeRef = useRef(null);
+  onTimeRef.current = (T) => {
+    const ui = useStoryUi.getState();
+    const i = sectionAt(T);
+    if (ui.section !== i) ui.set({ section: i });
+    if (degRef.current) {
+      const f = Math.min(1, Math.max(0, (T - START.reveal) / pinOf('reveal')));
+      const txt = `${Math.round(f * 360)}°`;
+      if (degRef.current.textContent !== txt) degRef.current.textContent = txt;
+    }
+    const cws = productRef.current?.colourways || [];
+    if (!ui.userColour && cws.length && T >= START.colour - 40 && T <= endOf('colour')) {
+      const k = cws[colourIndexAt(T, cws.length)].key;
+      if (k !== ui.colourKey) ui.set({ colourKey: k });
+    }
+  };
 
-function StaticHome({ product }) {
-  const reduced = false;
-  useStoryEnv(reduced);
+  useStoryEngine({ rootRef, bgRef, reduced: flow, onTime: (T) => onTimeRef.current?.(T) });
+
+  // The canvas mounts after the first paint (idle), so the copy is the first thing on screen.
+  useEffect(() => {
+    if (tier === 'static') return undefined;
+    const go = () => setMountStage(true);
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(go, { timeout: 800 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const t = setTimeout(go, 200);
+    return () => clearTimeout(t);
+  }, [tier]);
+
+  // Hero copy arrives on load (time-based, once). Reduced motion: no movement.
+  useLayoutEffect(() => {
+    if (flow) return undefined;
+    const ctx = gsap.context(() => {
+      gsap.from('#story-hero [data-copy]', { autoAlpha: 0, y: 40, duration: 1, stagger: 0.09, ease: 'power3.out', delay: 0.1 });
+    }, rootRef);
+    return () => ctx.revert();
+  }, [flow]);
+
   return (
-    <Box sx={{ position: 'relative', zIndex: 1, backgroundColor: 'background.default' }}>
-      <Suspense fallback={null}><StaticStory product={product} /></Suspense>
+    <Box
+      id="story"
+      ref={rootRef}
+      data-flow={flow ? 'true' : 'false'}
+      sx={{ position: 'relative', mt: 'calc(var(--appbar-h, 64px) * -1)', isolation: 'isolate' }}
+    >
+      <Box
+        ref={bgRef}
+        aria-hidden="true"
+        sx={{ position: 'fixed', inset: 0, zIndex: -1, backgroundColor: PALETTE[SECTIONS[0].colour].bg, transition: flow ? 'background-color 500ms ease' : 'none' }}
+      />
+      {mountStage ? (
+        <Suspense fallback={null}>
+          <Stage colourways={product?.colourways || []} rootRef={rootRef} />
+        </Suspense>
+      ) : null}
+      {tier !== 'static' ? <AnatomyLabels /> : null}
+      <HeroSection product={product} />
+      <RevealSection ref={degRef} />
+      <AnatomySection />
+      <SoleSection />
+      <ColourSection product={product} />
+      <StudioSection product={product} />
+      <FinaleSection />
     </Box>
   );
 }

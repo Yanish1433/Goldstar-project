@@ -3,7 +3,8 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { motion, useReducedMotion, useTransform } from 'motion/react';
 import { motionTokens } from '../theme/tokens.js';
-import { sToP } from '../three/timeline.js';
+// Scroll-scrubbed lines take story positions in vh over a 900 vh span (legacy prop; Shop/Product use load mode).
+const sToP = (s) => s / 900;
 
 // Display type that arrives (Addendum B U6): each line sits in an overflow-hidden mask and rises into place.
 // - Story h2s: the rise is scrubbed by the story's scroll MotionValue (reversible), staggered per line.

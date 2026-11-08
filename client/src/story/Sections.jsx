@@ -1,387 +1,469 @@
-import { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 import { Link as RouterLink } from 'react-router';
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Link from '@mui/material/Link';
-import IconButton from '@mui/material/IconButton';
-import { motion } from 'motion/react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { PAGE_PX } from '../components/Page.jsx';
+import { Minus, Plus, RotateCcw, ArrowDown, MoveHorizontal } from 'lucide-react';
+import { PALETTE, SECTIONS } from './storyline.js';
+import { STORY_MODEL, LABEL_ORDER } from './model.config.js';
+import { live, touch, useStoryUi } from './state.js';
+import { scrollToSection } from './useStoryEngine.js';
 import { formatNPR } from '../lib/format.js';
-import { tokens } from '../theme/tokens.js';
-import { SECTIONS } from '../three/timeline.js';
-import { overlay, useStory } from './store.js';
-import { BadgeTile } from './badges.jsx';
-import LineReveal from '../components/LineReveal.jsx';
-import ProductPhoto from '../components/ProductPhoto.jsx';
-import { useSFade, useStepIndex, useStoryCtx } from './StoryContext.jsx';
+import { makeLine, addToCartNow } from '../lib/addToCart.js';
 
-const sec = (id) => SECTIONS.find((s) => s.id === id);
-const GRID = { display: 'grid', gridTemplateColumns: 'repeat(12, minmax(0, 1fr))', columnGap: { xs: 2, md: 3 } };
-const FRAME_BASE = { position: 'sticky', top: 0, height: '100svh', boxSizing: 'border-box', pt: 'var(--appbar-h, 64px)', overflow: 'hidden' };
+const pal = (id) => PALETTE[SECTIONS.find((s) => s.id === id).colour];
+const WIDE = { fontVariationSettings: '"wdth" 112', fontStretch: '112%' };
 
-export function Section({ id, children, sx }) {
-  const s = sec(id);
+// --- Type ------------------------------------------------------------------------------------------
+export const Eyebrow = ({ children, ...p }) => (
+  <Box component="p" data-copy sx={{ m: 0, fontSize: { xs: 12, md: 13 }, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', opacity: 0.9 }} {...p}>
+    {children}
+  </Box>
+);
+
+export const Headline = ({ children, component = 'h2', sx, ...p }) => (
+  <Box
+    component={component}
+    data-copy
+    sx={{ m: 0, fontWeight: 800, ...WIDE, lineHeight: 0.94, letterSpacing: '-0.03em', fontSize: { xs: 'clamp(34px, 10vw, 46px)', md: 'clamp(52px, 5.4vw, 92px)' }, textWrap: 'balance', ...sx }}
+    {...p}
+  >
+    {children}
+  </Box>
+);
+
+export const Body = ({ children, sx, ...p }) => (
+  <Box component="p" data-copy sx={{ m: 0, fontSize: { xs: 16, md: 19 }, lineHeight: 1.5, maxWidth: '34ch', fontWeight: 450, ...sx }} {...p}>
+    {children}
+  </Box>
+);
+
+// Pill buttons in the section's ink.
+const pill = (ink, bg, filled) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 1,
+  minHeight: { xs: 48, md: 54 },
+  px: { xs: 2.5, md: 3.5 },
+  borderRadius: '999px',
+  fontSize: { xs: 15, md: 16 },
+  fontWeight: 700,
+  letterSpacing: '0.01em',
+  textDecoration: 'none',
+  cursor: 'pointer',
+  border: `2px solid ${ink}`,
+  backgroundColor: filled ? ink : 'transparent',
+  color: filled ? bg : ink,
+  transition: 'transform 180ms ease, background-color 180ms ease, color 180ms ease',
+  '&:hover': { transform: 'translateY(-2px)' },
+  '&:focus-visible': { outline: `3px solid ${ink}`, outlineOffset: 3 },
+  '&[aria-disabled="true"]': { opacity: 0.6 },
+});
+
+export const PillLink = ({ to, children, ink, bg, filled = true, sx, ...p }) => (
+  <Box component={RouterLink} to={to} sx={{ ...pill(ink, bg, filled), ...sx }} {...p}>{children}</Box>
+);
+export const PillButton = forwardRef(({ children, ink, bg, filled = true, sx, ...p }, ref) => (
+  <Box component="button" type="button" ref={ref} sx={{ ...pill(ink, bg, filled), fontFamily: 'inherit', fontWeight: 700, ...sx }} {...p}>{children}</Box>
+));
+PillButton.displayName = 'PillButton';
+
+// --- Panel -----------------------------------------------------------------------------------------
+// One section = one screen (pinned by the engine). `side` is where the COPY sits on desktop (the shoe takes the
+// other side). Phones: the stage is the top ~45%, the copy sits in the lower part.
+const COPY_DESKTOP = {
+  left: { left: '6vw', top: 0, bottom: 0, width: 'min(36vw, 560px)', justifyContent: 'center' },
+  right: { right: '6vw', top: 0, bottom: 0, width: 'min(34vw, 540px)', justifyContent: 'center' },
+  leftNarrow: { left: '5vw', top: 0, bottom: 0, width: 'min(27vw, 420px)', justifyContent: 'center' },
+  centre: { left: '6vw', right: '6vw', top: 0, bottom: 0, justifyContent: 'space-between' },
+};
+
+export function Panel({ id, side = 'left', children, sx, phoneTop = '57%' }) {
+  const p = pal(id);
   return (
-    <Box component="section" id={id} aria-labelledby={`${id}-h`} sx={{ position: 'relative', height: `${s.heightVh}vh`, scrollMarginTop: 0, ...sx }}>
-      {children}
+    <Box
+      component="section"
+      id={`story-${id}`}
+      aria-labelledby={`story-${id}-h`}
+      sx={{ position: 'relative', height: 'var(--stage-h, 100svh)', minHeight: { xs: 560, md: 600 }, overflow: 'hidden', color: p.ink, '--ink': p.ink, '--bg': p.bg, '--accent': p.accent, zIndex: 1, ...sx }}
+    >
+      <Box
+        sx={{
+          position: 'absolute',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: { xs: 1.5, md: 2.5 },
+          boxSizing: 'border-box',
+          left: { xs: 20 },
+          right: { xs: 20 },
+          top: { xs: phoneTop },
+          bottom: { xs: 20 },
+          // (one media block: a separate `pt: { md }` would share this key and be overwritten)
+          '@media (min-width:900px)': { left: 'auto', right: 'auto', paddingTop: 'var(--appbar-h, 64px)', ...COPY_DESKTOP[side] },
+        }}
+      >
+        {children}
+      </Box>
     </Box>
   );
 }
 
-const MBox = motion.create(Box);
-function Fade({ inS, outS, dy, children, sx }) {
-  const { progress, reduced } = useStoryCtx();
-  const f = useSFade(progress, inS, outS, dy);
-  if (reduced) return <Box sx={sx}>{children}</Box>;
-  return <MBox style={{ opacity: f.opacity, y: f.y }} sx={sx}>{children}</MBox>;
-}
-
-const frameWide = { px: PAGE_PX, mx: 'auto', maxWidth: 1440, width: '100%', boxSizing: 'border-box', height: '100%', position: 'relative' };
-
-// ---------------------------------------------------------------- Hero
-const LINE_PRICE = { typography: 'price', display: 'block', color: 'text.primary', textTransform: 'none', mt: 1.5, fontWeight: 600 };
-const H2_SIZE = { fontSize: { xs: 'clamp(30px, 8.4vw, 76px)', sm: 'clamp(34px, 4.6vw, 76px)' } };
-
-// Real G10-401 photos from the API by colourway + image index (thumb for lit tiles).
-const photo = (product, key, i) => product?.colourways?.find((c) => c.key === key)?.images?.[i] || null;
-const firstPhoto = (product, ci, i) => product?.colourways?.[ci]?.images?.[i] || null;
-
-export function HeroSection({ product, posterVisible }) {
-  const layout = useStory((s) => s.layout);
-  const phone = layout === 'phone';
-  const price = product ? formatNPR(product.priceFrom) : null;
+// --- Sections --------------------------------------------------------------------------------------
+export function HeroSection({ product }) {
+  const p = pal('hero');
+  const from = product?.colourways?.length ? Math.min(...product.colourways.map((c) => c.price)) : null;
   return (
-    <Section id="story-hero">
-      <Box
-        component="img"
-        src="/posters/hero.webp"
-        alt=""
-        width={1440}
-        height={900}
-        fetchPriority="high"
-        sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: posterVisible ? 1 : 0, transition: 'opacity 400ms cubic-bezier(0.22,1,0.36,1)', pointerEvents: 'none', display: phone ? 'none !important' : 'block' }}
-      />
-      <Box sx={{ ...frameWide, ...GRID, zIndex: 1, alignContent: 'end', pb: phone ? '8svh' : '38vh' }}>
-        <Box sx={{ gridColumn: { xs: '1 / -1', md: '1 / span 6' }, display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'flex-start' }}>
-          {/* The h1 is never faded (it is the page title); only the supporting copy fades out as the hero scrolls away. */}
-          <LineReveal component="h1" variant="display" id="story-hero-h" load lines={[{ text: 'G10-401' }, { text: 'Built for the trail.', sx: LINE_PRICE }]} />
-          <Fade outS={[30, 90]} sx={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'flex-start' }}>
-          <>
-            <Typography variant="body1" sx={{ maxWidth: '40ch', minHeight: '3.2em' }}>
-              Goldstar&rsquo;s trek shoe from Kathmandu.{price ? ` From ${price}.` : ''}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-              <Button component={RouterLink} to="/product/g10-401" variant="contained" size="large">Shop the G10-401</Button>
-              <Link component={RouterLink} to="/#story-performance" sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>Explore further</Link>
-            </Box>
-          </>
-          </Fade>
-        </Box>
+    <Panel id="hero" side="left" phoneTop="55%">
+      <Eyebrow>Goldstar · G10-401 · Trek</Eyebrow>
+      <Headline component="h1" id="story-hero-h" sx={{ fontSize: { xs: 'clamp(40px, 12vw, 54px)', md: 'clamp(64px, 7vw, 120px)' } }}>
+        Built for every trail.
+      </Headline>
+      <Body>A trek shoe made in Nepal. Light on its feet, hard to wear out.{from ? ` From ${formatNPR(from)}.` : ''}</Body>
+      <Box data-copy sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mt: { xs: 0.5, md: 1 } }}>
+        <PillLink to="/product/g10-401" ink={p.ink} bg={p.bg}>Shop the G10-401</PillLink>
+        <PillButton ink={p.ink} bg={p.bg} filled={false} onClick={() => scrollToSection('anatomy', 60)}>
+          See inside
+        </PillButton>
       </Box>
-    </Section>
+      <Box data-copy aria-hidden="true" sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1, position: 'absolute', bottom: 36, left: 0, fontSize: 13, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+        <ArrowDown size={16} strokeWidth={2.25} /> Scroll
+      </Box>
+    </Panel>
   );
 }
 
-// ---------------------------------------------------------------- Performance
-export function PerformanceSection({ product }) {
-  const { progress } = useStoryCtx();
-  const phone = useStory((s) => s.layout) === 'phone';
-  const black = product?.colourways?.find((c) => c.key === 'black') || product?.colourways?.[0];
-  const imgs = (black?.images || []).slice(1, 5);
+export const RevealSection = forwardRef(function RevealSection(_, degRef) {
   return (
-    <Section id="story-performance">
-      <Box sx={{ ...frameWide, ...GRID, alignContent: phone ? 'start' : 'center', pt: phone ? '14svh' : 0, pb: 0 }}>
-        <Fade inS={[70, 110]} outS={[160, 200]} dy={32} sx={{ gridColumn: { xs: '1 / -1', md: '1 / span 8' }, display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <>
-            <LineReveal component="h2" variant="h2" id="story-performance-h" text="Performance, redefined." progress={progress} inS={[70, 100]} sx={H2_SIZE} />
-            <Typography variant="body1" sx={{ maxWidth: '44ch' }}>Seven parts, each one named on Goldstar&rsquo;s own spec sheet.</Typography>
-          </>
-        </Fade>
+    <Panel id="reveal" side="right">
+      <Eyebrow>01 · Form</Eyebrow>
+      <Headline id="story-reveal-h">Every angle, considered.</Headline>
+      <Body>Low, stable and trail-ready. A full turn shows a shape built around the foot, not the catalogue.</Body>
+      <Box data-copy aria-hidden="true" sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, mt: { xs: 0, md: 2 } }}>
+        <Box ref={degRef} component="span" sx={{ fontSize: { xs: 40, md: 72 }, fontWeight: 800, ...WIDE, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums' }}>0°</Box>
+        <Box component="span" sx={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' }}>of 360°</Box>
       </Box>
-      {imgs.length ? (
-        <Fade inS={[60, 90]} outS={[165, 200]} dy={24} sx={{ position: 'absolute', left: 0, right: 0, bottom: phone ? '5svh' : '7vh', px: PAGE_PX, boxSizing: 'border-box', maxWidth: 1440, mx: 'auto' }}>
-          <Box component="ul" aria-label="G10-401 photos" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', gap: { xs: 1, md: 1.5 } }}>
-            {imgs.map((im, i) => (
-              <Box component="li" key={im.src} sx={{ width: { xs: '21vw', md: '11vw' }, maxWidth: 190, flexShrink: 0 }}>
-                <ProductPhoto image={im} alt={im.alt || `G10-401 in Black, photo ${i + 2}`} sizes="12vw" />
-              </Box>
-            ))}
-          </Box>
-        </Fade>
-      ) : null}
-    </Section>
+    </Panel>
   );
-}
+});
 
-// Shared bits for the phone stepped panel -------------------------------------------------
-function scrollToStep(sStart, sEnd, count, i) {
-  const story = document.getElementById('story');
-  if (!story) return;
-  const vh = window.innerHeight / 100;
-  const s = sStart + ((i + 0.5) * (sEnd - sStart)) / count;
-  const top = story.getBoundingClientRect().top + window.scrollY + s * vh;
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
-}
-
-function StepPanel({ items, index, sStart, sEnd, badges }) {
-  const go = (i) => scrollToStep(sStart, sEnd, items.length, Math.min(items.length - 1, Math.max(0, i)));
+export function AnatomySection() {
+  const parts = STORY_MODEL.parts;
   return (
-    <Box sx={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 2, backgroundColor: 'background.paper', minHeight: '34svh', maxHeight: '42svh', p: 2, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box component="ol" sx={{ m: 0, p: 0, listStyle: 'none', display: 'flex', flexWrap: 'wrap', columnGap: 2, flex: 1, minWidth: 0 }}>
-          {items.map((it, i) => (
-            <Typography component="li" key={it.key} variant="body2" aria-current={i === index ? 'step' : undefined} sx={{ color: i === index ? 'primary.main' : 'text.secondary', fontWeight: i === index ? 600 : 400, whiteSpace: 'nowrap' }}>
-              {it.title}
-            </Typography>
-          ))}
-        </Box>
-        <IconButton aria-label="Previous part" onClick={() => go(index - 1)} disabled={index === 0}><ChevronLeft size={20} strokeWidth={1.75} aria-hidden="true" /></IconButton>
-        <IconButton aria-label="Next part" onClick={() => go(index + 1)} disabled={index === items.length - 1}><ChevronRight size={20} strokeWidth={1.75} aria-hidden="true" /></IconButton>
-      </Box>
-      <Box sx={{ position: 'relative', flex: 1, overflow: 'auto' }}>
-        {items.map((it, i) => (
-          <Box key={it.key} sx={{ display: 'flex', gap: 2, alignItems: 'flex-start', position: i === index ? 'relative' : 'absolute', inset: i === index ? 'auto' : 0, opacity: i === index ? 1 : 0, pointerEvents: i === index ? 'auto' : 'none', transition: 'opacity 180ms ease' }} aria-hidden={i === index ? undefined : true}>
-            {badges ? <BadgeTile badge={it.badge} /> : null}
-            <Box>
-              <Typography variant="h5" component="h3">{it.title}</Typography>
-              <Typography variant="body1">{it.body}</Typography>
-            </Box>
+    <Panel id="anatomy" side="leftNarrow" phoneTop="64%">
+      <Eyebrow>02 · Anatomy</Eyebrow>
+      <Headline id="story-anatomy-h" sx={{ fontSize: { md: 'clamp(48px, 4.6vw, 78px)' } }}>Six parts. One shoe.</Headline>
+      <Body sx={{ display: { xs: 'none', md: 'block' } }}>Watch the G10-401 come apart layer by layer, then lock back together.</Body>
+      {/* Phones: numbered legend (the dots on the stage carry the numbers). Desktop: labels sit by the shoe. */}
+      <Box component="ol" data-copy sx={{ display: { xs: 'grid', md: 'none' }, gridTemplateColumns: '1fr 1fr', columnGap: 2, rowGap: 0.75, m: 0, p: 0, listStyle: 'none', fontSize: 15 }}>
+        {LABEL_ORDER.map((k, i) => (
+          <Box component="li" key={k} sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
+            <Box component="span" sx={{ fontWeight: 800, color: 'var(--accent)', minWidth: '1.2em' }}>{i + 1}</Box>
+            <span>{parts[k].label}</span>
           </Box>
         ))}
       </Box>
+      {/* Screen readers: the part list as text (the labels on the stage are aria-hidden). */}
+      <Box component="ul" sx={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
+        {LABEL_ORDER.map((k) => <li key={k}>{parts[k].label}: {parts[k].detail}</li>)}
+      </Box>
+    </Panel>
+  );
+}
+
+export function SoleSection() {
+  return (
+    <Panel id="sole" side="right">
+      <Eyebrow>03 · Grip</Eyebrow>
+      <Headline id="story-sole-h">Grip that holds.</Headline>
+      <Body>A rubber outsole for durability and slip resistance, over an EVA midsole for bounce on every step.</Body>
+      <Box data-copy sx={{ display: 'flex', gap: { xs: 3, md: 5 }, mt: { xs: 0, md: 2 } }}>
+        {[['Rubber', 'outsole'], ['EVA', 'midsole'], ['Arch', 'support']].map(([a, b]) => (
+          <Box key={a}>
+            <Box sx={{ fontSize: { xs: 26, md: 40 }, fontWeight: 800, ...WIDE, letterSpacing: '-0.02em', lineHeight: 1 }}>{a}</Box>
+            <Box sx={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', mt: 0.75 }}>{b}</Box>
+          </Box>
+        ))}
+      </Box>
+    </Panel>
+  );
+}
+
+function SwatchRow({ colourways, value, onPick, ink, label = 'Colour' }) {
+  return (
+    <Box role="radiogroup" aria-label={label} sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+      {colourways.map((c) => {
+        const on = c.key === value;
+        return (
+          <Box
+            key={c.key}
+            component="button"
+            type="button"
+            role="radio"
+            aria-checked={on}
+            aria-label={`${c.name}, ${formatNPR(c.price)}`}
+            onClick={() => onPick(c.key)}
+            sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, p: '5px 14px 5px 5px', minHeight: 44, borderRadius: '999px', border: `2px solid ${on ? ink : 'transparent'}`, background: on ? 'rgba(255,255,255,0.12)' : 'transparent', color: ink, fontFamily: 'inherit', fontWeight: 700, fontSize: 15, cursor: 'pointer', '&:focus-visible': { outline: `3px solid ${ink}`, outlineOffset: 2 } }}
+          >
+            <Box component="span" sx={{ width: 30, height: 30, borderRadius: '50%', backgroundColor: c.hex, boxShadow: `inset 0 0 0 2px rgba(255,255,255,0.35)` }} />
+            {c.name}
+          </Box>
+        );
+      })}
     </Box>
   );
 }
 
-// Reduced motion on phones: all parts stacked as a list instead of the stepped panel.
-function StackedList({ items, badges }) {
+const pickColour = (key) => {
+  useStoryUi.getState().set({ colourKey: key, userColour: key });
+  touch();
+};
+
+export function ColourSection({ product }) {
+  const p = pal('colour');
+  const colourways = product?.colourways || [];
+  const key = useStoryUi((s) => s.colourKey) || colourways[0]?.key;
+  const cw = colourways.find((c) => c.key === key) || colourways[0];
   return (
-    <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 2, display: 'flex', flexDirection: 'column', gap: 2, backgroundColor: 'background.paper', position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 2, maxHeight: '46svh', overflow: 'auto', boxSizing: 'border-box' }}>
-      {items.map((it) => (
-        <Box component="li" key={it.key} sx={{ display: 'flex', gap: 2 }}>
-          {badges ? <BadgeTile badge={it.badge} /> : null}
-          <Box>
-            <Typography variant="h5" component="h3">{it.title}</Typography>
-            <Typography variant="body1">{it.body}</Typography>
-          </Box>
+    <Panel id="colour" side="left">
+      <Eyebrow>04 · Colour</Eyebrow>
+      <Headline id="story-colour-h">Pick your colour.</Headline>
+      <Box data-copy aria-live="polite" sx={{ display: 'flex', alignItems: 'baseline', gap: 2, flexWrap: 'wrap' }}>
+        <Box sx={{ fontSize: { xs: 28, md: 44 }, fontWeight: 800, ...WIDE, letterSpacing: '-0.02em' }}>
+          {cw?.name || '—'}
+          {cw?.nameNe ? <Box component="span" lang="ne" sx={{ fontFamily: 'Mukta', fontWeight: 600, ml: 1.5, fontSize: '0.7em' }}>{cw.nameNe}</Box> : null}
         </Box>
-      ))}
-    </Box>
-  );
-}
-
-const svgStyle = { position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible', pointerEvents: 'none' };
-const dotSx = { position: 'absolute', left: -6, top: -6, width: 12, height: 12, borderRadius: '50%', backgroundColor: tokens.gold, opacity: 0, transform: 'translate(-100px,-100px) scale(0.9)', willChange: 'transform' };
-
-// ---------------------------------------------------------------- Callouts
-export function CalloutsSection({ items }) {
-  const { progress, reduced } = useStoryCtx();
-  const phone = useStory((s) => s.layout) === 'phone';
-  const frame = useRef(null);
-  const dots = useRef([]);
-  const lines = useRef([]);
-  const texts = useRef([]);
-  const slots = useRef([]);
-  const index = useStepIndex(progress, 200, 300, Math.max(1, items.length));
-  const preview = useStory((s) => s.anchorPreview);
-  // FX2: desktop cards are ordered by the anchors' projected screen y at the hold pose (top anchor -> top card),
-  // computed once when the model is ready, so the leader lines never cross and nothing reshuffles mid-hold.
-  const shown = useMemo(() => {
-    const tagged = items.map((it, i0) => ({ ...it, i0 }));
-    if (phone || !preview || tagged.some((it) => it.position || preview[it.anchor] === undefined)) return tagged;
-    return [...tagged].sort((x, y) => preview[x.anchor] - preview[y.anchor]);
-  }, [items, preview, phone]);
-
-  const measure = useCallback(() => {
-    const f = frame.current;
-    if (!f) return;
-    const fr = f.getBoundingClientRect();
-    overlay.callouts.forEach((c, i) => {
-      const r = texts.current[i]?.getBoundingClientRect();
-      const sl = slots.current[i]?.getBoundingClientRect();
-      if (r && sl) {
-        c.textPoint.x = r.left - fr.left - 10; // end at the card's left edge
-        c.textPoint.y = sl.top - fr.top + 12; // centred on the title line
-      }
-    });
-  }, []);
-
-  useLayoutEffect(() => {
-    overlay.callouts = shown.map((it, i) => ({
-      index: it.i0, anchor: it.anchor, position: it.position, dot: dots.current[i], line: lines.current[i], text: texts.current[i], textPoint: { x: 0, y: 0 }, last: false,
-    }));
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (frame.current) ro.observe(frame.current);
-    return () => {
-      ro.disconnect();
-      overlay.callouts = [];
-    };
-  }, [shown, phone, measure]);
-
-  const ready = items.length > 0;
-  return (
-    <Section id="story-callouts">
-      <Box ref={frame} sx={FRAME_BASE}>
-        {!phone && ready ? (
-          <svg style={svgStyle} aria-hidden="true">
-            {shown.map((it, i) => (
-              <polyline key={it.key} ref={(el) => (lines.current[i] = el)} fill="none" stroke={tokens.gold} strokeWidth="2" pathLength="1" strokeDasharray="1" strokeDashoffset="1" style={{ opacity: 0 }} />
-            ))}
-          </svg>
-        ) : null}
-        {!phone ? shown.map((it, i) => <Box key={it.key} aria-hidden="true" ref={(el) => (dots.current[i] = el)} sx={{ ...dotSx, zIndex: 1 }} />) : null}
-        <Box sx={{ ...frameWide, ...GRID, alignContent: 'start', pt: { xs: 2, md: 6 } }}>
-          <Box sx={{ gridColumn: { xs: '1 / -1', md: '8 / -1' }, pr: { md: '160px' }, display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 5 } }}>
-            <LineReveal component="h2" variant="h2" id="story-callouts-h" text="What it’s made of" progress={progress} inS={[150, 185]} sx={H2_SIZE} />
-            {!phone ? (
-              <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {shown.map((it, i) => (
-                  <Box component="li" key={it.key} ref={(el) => (slots.current[i] = el)} sx={{ pl: 3 }}>
-                    <Box ref={(el) => (texts.current[i] = el)} style={{ opacity: reduced ? 1 : 0 }}>
-                      <Typography variant="h5" component="h3">{it.title}</Typography>
-                      <Typography variant="body1" sx={{ maxWidth: '40ch' }}>{it.body}</Typography>
-                    </Box>
-                  </Box>
-                ))}
-              </Box>
-            ) : null}
-          </Box>
-        </Box>
-        {phone ? (reduced ? <StackedList items={items} /> : <StepPanel items={items} index={index} sStart={200} sEnd={300} />) : null}
+        {cw ? <Box sx={{ fontSize: { xs: 17, md: 20 }, fontWeight: 700 }}>{formatNPR(cw.price)}</Box> : null}
       </Box>
-    </Section>
-  );
-}
-
-// ---------------------------------------------------------------- Explode
-export function ExplodeSection({ items }) {
-  const { progress, reduced } = useStoryCtx();
-  const phone = useStory((s) => s.layout) === 'phone';
-  const frame = useRef(null);
-  const dots = useRef([]);
-  const lines = useRef([]);
-  const badges = useRef([]);
-  const index = useStepIndex(progress, 430, 500, Math.max(1, items.length));
-
-  const measure = useCallback(() => {
-    const f = frame.current;
-    if (!f) return;
-    const fr = f.getBoundingClientRect();
-    overlay.layers.forEach((l, i) => {
-      l.textPoint.x = fr.width * 0.64; // badge column ends 160 px + 32 px margin before the right edge (chapter index)
-      l.textPoint.h = badges.current[i]?.offsetHeight || 80;
-    });
-  }, []);
-
-  useLayoutEffect(() => {
-    overlay.layers = items.map((it, i) => ({ index: i, anchor: it.anchor, position: it.position, dot: dots.current[i], line: lines.current[i], badge: badges.current[i], textPoint: { x: 0, h: 80 }, last: false }));
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (frame.current) ro.observe(frame.current);
-    return () => {
-      ro.disconnect();
-      overlay.layers = [];
-    };
-  }, [items, phone, measure]);
-
-  return (
-    <Section id="story-explode">
-      <Box ref={frame} sx={FRAME_BASE}>
-        {!phone ? (
-          <svg style={svgStyle} aria-hidden="true">
-            {items.map((it, i) => (
-              <polyline key={it.key} ref={(el) => (lines.current[i] = el)} fill="none" stroke={tokens.gold} strokeWidth="2" pathLength="1" strokeDasharray="1" strokeDashoffset="1" style={{ opacity: 0 }} />
-            ))}
-          </svg>
-        ) : null}
-        {!phone ? items.map((it, i) => <Box key={it.key} aria-hidden="true" ref={(el) => (dots.current[i] = el)} sx={{ ...dotSx, zIndex: 1 }} />) : null}
-        <Box sx={{ ...frameWide, ...GRID, alignContent: 'start', pt: { xs: 2, md: 6 }, height: 'auto' }}>
-          <Box sx={{ gridColumn: { xs: '1 / -1', md: '1 / span 7' } }}><LineReveal component="h2" variant="h2" id="story-explode-h" text="From the footbed down" progress={progress} inS={[350, 385]} sx={H2_SIZE} /></Box>
+      {colourways.length ? (
+        <Box data-copy>
+          <SwatchRow colourways={colourways} value={cw?.key} onPick={pickColour} ink={p.ink} />
         </Box>
-        {!phone ? (
-          <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0 }}>
-            {items.map((it, i) => (
-              <Box component="li" key={it.key} ref={(el) => (badges.current[i] = el)} style={{ opacity: reduced ? 1 : 0 }} sx={{ position: 'absolute', left: 0, top: 0, width: { md: 'calc(36vw - 192px)' }, maxWidth: 400, display: 'flex', gap: 2, alignItems: 'flex-start', zIndex: 1 }}>
-                <BadgeTile badge={it.badge} />
-                <Box>
-                  <Typography variant="h5" component="h3">{it.title}</Typography>
-                  <Typography variant="body1">{it.body}</Typography>
-                </Box>
-              </Box>
-            ))}
-          </Box>
-        ) : reduced ? <StackedList items={items} badges /> : <StepPanel items={items} index={index} sStart={430} sEnd={500} badges />}
-      </Box>
-    </Section>
+      ) : null}
+      <Body sx={{ display: { xs: 'none', md: 'block' }, fontSize: 16 }}>Keep scrolling to see every colourway, or pick one. The 3D shoe changes live.</Body>
+    </Panel>
   );
 }
 
-// ---------------------------------------------------------------- Endure
-const ENDURE_KEYS = ['rubber-outsole', 'eva-midsole', 'metal-eyelets'];
-
-export function EndureSection({ product }) {
-  const { progress } = useStoryCtx();
-  const phone = useStory((s) => s.layout) === 'phone';
-  const black = product?.colourways?.find((c) => c.key === 'black') || product?.colourways?.[0];
-  const sole = black?.images?.[7] || black?.images?.[black.images.length - 2] || null;
-  const parts = ENDURE_KEYS.map((k) => product?.specCallouts?.find((c) => c.key === k)).filter(Boolean);
+// Studio: the user takes over. Drag to turn (touch: horizontal drags turn, vertical drags still scroll),
+// buttons (and trackpad pinch) to zoom.
+function DragSurface() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    let last = null;
+    const D = live.drag;
+    const down = (e) => {
+      last = { x: e.clientX, y: e.clientY, id: e.pointerId };
+      D.active = true;
+      el.setPointerCapture?.(e.pointerId);
+      el.style.cursor = 'grabbing';
+      touch();
+    };
+    const move = (e) => {
+      if (!last || e.pointerId !== last.id) return;
+      D.yaw += (e.clientX - last.x) * 0.012;
+      D.pitch = Math.max(-0.35, Math.min(0.6, D.pitch + (e.clientY - last.y) * 0.006));
+      last = { x: e.clientX, y: e.clientY, id: e.pointerId };
+      touch();
+    };
+    const up = () => {
+      last = null;
+      D.active = false;
+      el.style.cursor = 'grab';
+      touch();
+    };
+    const wheel = (e) => {
+      if (!e.ctrlKey) return; // plain wheel scrolls the page; pinch (ctrl+wheel) zooms
+      e.preventDefault();
+      D.zoom = Math.max(0.7, Math.min(1.7, D.zoom * (1 - e.deltaY * 0.01)));
+      touch();
+    };
+    el.addEventListener('pointerdown', down);
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+    el.addEventListener('wheel', wheel, { passive: false });
+    return () => {
+      el.removeEventListener('pointerdown', down);
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', up);
+      el.removeEventListener('pointercancel', up);
+      el.removeEventListener('wheel', wheel);
+    };
+  }, []);
   return (
-    <Section id="story-endure">
-      <Box sx={{ ...frameWide, ...GRID, alignContent: phone ? 'start' : 'center', pt: phone ? '12svh' : 0 }}>
-        <Fade inS={[570, 600]} outS={[650, 690]} dy={32} sx={{ gridColumn: { xs: '1 / -1', md: '6 / -1' }, pr: { md: '120px' }, display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 3 } }}>
-          <>
-            <LineReveal component="h2" variant="h2" id="story-endure-h" text="Designed to endure." progress={progress} inS={[570, 598]} sx={H2_SIZE} />
-            <Typography variant="body1" sx={{ maxWidth: '44ch' }}>Rubber underfoot, EVA in between, metal at the laces.</Typography>
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'row', md: 'row' }, gap: { xs: 2, md: 3 }, alignItems: 'flex-start' }}>
-              {parts.length ? (
-                <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: 2.5 }, flex: 1, minWidth: 0 }}>
-                  {parts.map((c) => (
-                    <li key={c.key}>
-                      <Typography variant="h5" component="h3">{c.title}</Typography>
-                      <Typography variant="body1">{c.body}</Typography>
-                    </li>
-                  ))}
+    <Box
+      ref={ref}
+      aria-hidden="true"
+      sx={{ position: 'absolute', left: { xs: 0, md: '18%' }, right: { xs: 0, md: '18%' }, top: { xs: '10%', md: '16%' }, height: { xs: '46%', md: '62%' }, cursor: 'grab', touchAction: 'pan-y', zIndex: 0 }}
+    />
+  );
+}
+
+const zoomBy = (k) => {
+  live.drag.zoom = Math.max(0.7, Math.min(1.7, live.drag.zoom * k));
+  touch();
+};
+const resetView = () => {
+  Object.assign(live.drag, { yaw: 0, pitch: 0, zoom: 1 });
+  touch();
+};
+
+export function StudioSection({ product }) {
+  const p = pal('studio');
+  const colourways = product?.colourways || [];
+  const key = useStoryUi((s) => s.colourKey) || colourways[0]?.key;
+  const cw = colourways.find((c) => c.key === key) || colourways[0];
+  const [size, setSize] = useState(null);
+  const [err, setErr] = useState(false);
+  const addRef = useRef(null);
+  const add = () => {
+    if (!product || !cw) return;
+    if (!size) {
+      setErr(true);
+      return;
+    }
+    const line = makeLine(product, cw, size, 1);
+    // TODO(fm/cart-box): when the cart-box branch lands, play its animation first:
+    //   playAddToCart({ colour: cw.hex, sourceRect: addRef.current.getBoundingClientRect() })
+    // then add the line on landing. Until then: add at once (snackbar + announcement).
+    addToCartNow(line);
+  };
+  const iconBtn = { width: 44, height: 44, borderRadius: '50%', border: `2px solid ${p.ink}`, background: 'transparent', color: p.ink, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', '&:focus-visible': { outline: `3px solid ${p.ink}`, outlineOffset: 2 } };
+  return (
+    <Panel id="studio" side="centre" phoneTop="55%" sx={{ '& [data-ui]': { position: 'relative', zIndex: 1 } }}>
+      <DragSurface />
+      <Box data-ui sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, pt: { md: 3 } }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 0.5, md: 1.5 } }}>
+          <Eyebrow>05 · Studio</Eyebrow>
+          <Headline id="story-studio-h" sx={{ fontSize: { xs: 'clamp(30px, 8.5vw, 38px)', md: 'clamp(44px, 4vw, 68px)' } }}>Make it yours.</Headline>
+        </Box>
+        <Box data-copy sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1, fontSize: 13, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', mt: 4 }}>
+          <MoveHorizontal size={18} strokeWidth={2.25} aria-hidden="true" /> Drag the shoe to turn it
+        </Box>
+      </Box>
+      <Box data-ui data-copy sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'stretch', md: 'flex-end' }, justifyContent: 'space-between', gap: { xs: 1.5, md: 3 }, pb: { md: 5 } }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, md: 1.5 } }}>
+          {colourways.length ? <SwatchRow colourways={colourways} value={cw?.key} onPick={pickColour} ink={p.ink} /> : null}
+          {cw?.sizes?.length ? (
+            <Box role="radiogroup" aria-label="UK size" aria-describedby={err ? 'studio-size-err' : undefined} sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+              <Box component="span" sx={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', mr: 0.5 }}>UK</Box>
+              {cw.sizes.map((s) => (
+                <Box
+                  key={s}
+                  component="button"
+                  type="button"
+                  role="radio"
+                  aria-checked={size === s}
+                  aria-label={`UK size ${s}`}
+                  onClick={() => { setSize(s); setErr(false); }}
+                  sx={{ minWidth: 44, height: 44, borderRadius: '999px', border: `2px solid ${p.ink}`, background: size === s ? p.ink : 'transparent', color: size === s ? p.bg : p.ink, fontFamily: 'inherit', fontWeight: 700, cursor: 'pointer', '&:focus-visible': { outline: `3px solid ${p.ink}`, outlineOffset: 2 } }}
+                >
+                  {s}
                 </Box>
-              ) : null}
-              {sole ? (
-                <Box sx={{ width: { xs: '34vw', md: '26vw' }, maxWidth: 380, flexShrink: 0 }}>
-                  <ProductPhoto image={sole} alt="G10-401 in Black, sole view" sizes="28vw" />
-                </Box>
-              ) : null}
+              ))}
+              {err ? <Box id="studio-size-err" role="alert" component="span" sx={{ fontWeight: 700, color: p.accent, ml: 1 }}>Choose a size</Box> : null}
             </Box>
-          </>
-        </Fade>
+          ) : null}
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <Box component="button" type="button" aria-label="Zoom out" onClick={() => zoomBy(1 / 1.18)} sx={iconBtn}><Minus size={18} aria-hidden="true" /></Box>
+          <Box component="button" type="button" aria-label="Zoom in" onClick={() => zoomBy(1.18)} sx={iconBtn}><Plus size={18} aria-hidden="true" /></Box>
+          <Box component="button" type="button" aria-label="Reset view" onClick={resetView} sx={iconBtn}><RotateCcw size={18} aria-hidden="true" /></Box>
+          <PillButton ref={addRef} ink={p.ink} bg={p.bg} onClick={add} sx={{ ml: { md: 1 } }}>
+            Add to cart{cw ? ` · ${formatNPR(cw.price)}` : ''}
+          </PillButton>
+          <PillLink to={`/product/g10-401${cw ? `?colour=${cw.key}` : ''}`} ink={p.ink} bg={p.bg} filled={false} sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>Details</PillLink>
+        </Box>
       </Box>
-    </Section>
+    </Panel>
   );
 }
 
-// ---------------------------------------------------------------- Finale
-export function FinaleSection({ product }) {
-  const { progress } = useStoryCtx();
-  const black = firstPhoto(product, 0, 0);
-  const olive = photo(product, 'olive', 0) || firstPhoto(product, 1, 0);
-  const tile = (im, label, colour) =>
-    im ? (
-      <Link component={RouterLink} to={`/product/g10-401?colour=${colour}`} aria-label={`${label}: G10-401 in ${colour}`} sx={{ display: 'block', width: '100%' }}>
-        <ProductPhoto image={im} alt={`G10-401 in ${colour}`} sizes="24vw" />
-      </Link>
-    ) : <Box />;
+// Anatomy labels: aria-hidden overlay positioned by the canvas each frame (see Stage.jsx positionLabels).
+export function AnatomyLabels() {
+  const p = pal('anatomy');
+  const refs = useRef({});
+  useEffect(() => {
+    const items = {};
+    LABEL_ORDER.forEach((k) => {
+      const r = refs.current[k];
+      if (r?.root) items[k] = { ...r, shown: false };
+    });
+    live.labels = { items };
+    return () => {
+      live.labels = null;
+    };
+  }, []);
+  const set = (k, part) => (el) => {
+    refs.current[k] = { ...(refs.current[k] || {}), [part]: el };
+  };
   return (
-    <Section id="story-finale">
-      <Box sx={{ ...frameWide, px: { xs: 2, sm: 3, md: '128px' }, display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'minmax(0,14vw) minmax(0,1fr) minmax(0,14vw)' }, columnGap: { xs: 2, md: 3 }, rowGap: 3, alignItems: 'center', alignContent: 'center' }}>
-        <Box sx={{ order: { xs: 2, md: 1 } }}>{tile(black, 'Black', 'black')}</Box>
-        <Box sx={{ order: { xs: 1, md: 2 }, gridColumn: { xs: '1 / -1', md: 'auto' }, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 3 }}>
-          <LineReveal component="h2" variant="h2" id="story-finale-h" text="Your adventure begins now." progress={progress} inS={[850, 885]} sx={H2_SIZE} />
-          <Typography variant="body1">Order today and pay in cash when it arrives.</Typography>
-          <Button component={RouterLink} to="/shop" variant="contained" size="large">Shop all</Button>
-        </Box>
-        <Box sx={{ order: { xs: 3, md: 3 } }}>{tile(olive, 'Olive', 'olive')}</Box>
+    <Box aria-hidden="true" sx={{ position: 'fixed', inset: 0, zIndex: 1, pointerEvents: 'none', color: p.ink }}>
+      {LABEL_ORDER.map((k, i) => {
+        const part = STORY_MODEL.parts[k];
+        return (
+          <Box key={k} ref={set(k, 'root')} sx={{ position: 'absolute', inset: 0, opacity: 0, visibility: 'hidden' }}>
+            <svg width="100%" height="100%" style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
+              <path ref={set(k, 'line')} d="M0 0" fill="none" stroke={p.accent} strokeWidth="1.5" />
+            </svg>
+            <Box
+              ref={set(k, 'dot')}
+              sx={{ position: 'absolute', left: { xs: -11, md: -6 }, top: { xs: -11, md: -6 }, width: { xs: 22, md: 12 }, height: { xs: 22, md: 12 }, borderRadius: '50%', backgroundColor: p.accent, color: p.bg, boxShadow: `0 0 0 4px rgba(255,194,26,0.25)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800 }}
+            >
+              <Box component="span" sx={{ display: { xs: 'inline', md: 'none' } }}>{i + 1}</Box>
+            </Box>
+            <Box ref={set(k, 'card')} sx={{ position: 'absolute', left: 0, top: 0, width: 'min(19vw, 280px)' }}>
+              <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
+                <Box component="span" sx={{ fontSize: 12, fontWeight: 800, color: p.accent, letterSpacing: '0.1em' }}>{String(i + 1).padStart(2, '0')}</Box>
+                <Box component="span" sx={{ fontSize: 19, fontWeight: 800, ...WIDE, letterSpacing: '-0.01em' }}>{part.label}</Box>
+              </Box>
+              <Box sx={{ fontSize: 14, lineHeight: 1.35, mt: 0.25, color: p.soft }}>{part.detail}</Box>
+            </Box>
+          </Box>
+        );
+      })}
+    </Box>
+  );
+}
+
+// --- Brand finale ------------------------------------------------------------------------------------
+const WORD = 'GOLDSTAR';
+export function FinaleSection() {
+  const p = pal('finale');
+  return (
+    <Box
+      component="section"
+      id="story-finale"
+      aria-labelledby="story-finale-h"
+      sx={{ position: 'relative', height: 'var(--stage-h, 100svh)', minHeight: 520, overflow: 'hidden', color: p.ink, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', px: { xs: 2, md: 4 }, boxSizing: 'border-box' }}
+    >
+      <Box data-glow aria-hidden="true" sx={{ position: 'absolute', left: '50%', top: '46%', width: '120vmax', height: '120vmax', transform: 'translate(-50%, -50%)', background: 'radial-gradient(closest-side, rgba(255,201,60,0.22), rgba(255,201,60,0.06) 45%, transparent 70%)', pointerEvents: 'none' }} />
+      <Box data-star aria-hidden="true" sx={{ width: { xs: 64, md: 112 }, height: { xs: 64, md: 112 }, mb: { xs: 2, md: 3 }, position: 'relative' }}>
+        <svg viewBox="0 0 24 24" width="100%" height="100%" style={{ overflow: 'visible' }}>
+          <path data-star-path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z" fill={p.accent} stroke={p.accent} strokeWidth="0.8" strokeLinejoin="round" />
+        </svg>
       </Box>
-    </Section>
+      <Box
+        component="h2"
+        id="story-finale-h"
+        aria-label="Goldstar"
+        data-word
+        sx={{ m: 0, fontWeight: 900, ...WIDE, lineHeight: 0.86, whiteSpace: 'nowrap', maxWidth: '100%', fontSize: 'min(calc((100vw - 32px) / 6.9), 260px)', '@media (min-width:600px)': { fontSize: 'min(calc((100vw - 120px) / 6.9), 260px)' }, color: p.ink, position: 'relative' }}
+      >
+        {WORD.split('').map((ch, i) => (
+          <Box key={i} component="span" aria-hidden="true" sx={{ display: 'inline-block', overflow: 'hidden', verticalAlign: 'top', pb: '0.04em' }}>
+            <Box component="span" data-letter sx={{ display: 'inline-block', transformOrigin: '0% 100%' }}>{ch}</Box>
+          </Box>
+        ))}
+      </Box>
+      <Box data-sub lang="ne" sx={{ fontFamily: 'Mukta', fontWeight: 600, fontSize: { xs: 34, md: 'clamp(40px, 4.4vw, 72px)' }, lineHeight: 1.1, mt: { xs: 1, md: 1.5 }, color: p.accent, position: 'relative' }}>
+        गोल्डस्टार
+      </Box>
+      <Box data-sub sx={{ mt: { xs: 3, md: 4 }, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', justifyContent: 'center', position: 'relative' }}>
+        <Box component="span" sx={{ fontSize: { xs: 15, md: 17 }, fontWeight: 600, color: p.soft }}>Made in Nepal. Made for every trail.</Box>
+        <PillLink to="/shop" ink={p.ink} bg={p.bg}>Shop all</PillLink>
+      </Box>
+    </Box>
   );
 }

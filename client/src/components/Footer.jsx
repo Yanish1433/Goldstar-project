@@ -1,4 +1,4 @@
-import { Link as RouterLink } from 'react-router';
+import { Link as RouterLink, useLocation } from 'react-router';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
@@ -10,13 +10,15 @@ import { SHOE } from '../three/shoe.config.js';
 
 export default function Footer() {
   const c = SHOE.credit;
+  // Home ends with the animated brand finale, so the footer's big wordmark is left out there.
+  const home = useLocation().pathname === '/';
   return (
     <Box component="footer" sx={{ position: 'relative', zIndex: 1, backgroundColor: 'background.default', pt: { xs: 6, md: 10 }, pb: 4, overflow: 'hidden' }}>
       <PageBox sx={{ display: 'flex', flexDirection: 'column' }}>
         <Box sx={{ order: 2, mt: { xs: 4, md: 5 }, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 2fr' }, gap: { xs: 6, md: 8 } }}>
           <Reveal component="nav" aria-label="Footer" delay={0.07} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0.5 }}>
             <Link component={RouterLink} to="/shop" sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>Shop all</Link>
-            <Link component={RouterLink} to="/#story-callouts" sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>Technology</Link>
+            <Link component={RouterLink} to="/#story-anatomy" sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>Technology</Link>
             <ExternalLink href="https://goldstarshoes.com/about/">About Goldstar</ExternalLink>
             <ExternalLink href="https://goldstarshoes.com/stores/">Stores</ExternalLink>
             <Link href="#credits" onClick={(e) => { e.preventDefault(); document.getElementById('credits')?.scrollIntoView({ block: 'start' }); }} sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center', color: 'text.secondary' }}>Credits</Link>
@@ -32,6 +34,7 @@ export default function Footer() {
             <Typography variant="body1" color="text.secondary">{CONCEPT_NOTE} Demo build, November 2026.</Typography>
           </Reveal>
         </Box>
+          {home ? null : (
           <Reveal role="img" aria-label="Goldstar" sx={{ order: 1, position: 'relative', lineHeight: 0.9 }}>
           <Typography
             aria-hidden="true"
@@ -42,6 +45,7 @@ export default function Footer() {
             गोल्डस्टार
           </Typography>
         </Reveal>
+          )}
       </PageBox>
     </Box>
   );

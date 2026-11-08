@@ -96,14 +96,23 @@ export default function AppBar() {
   const links = (onClick) => (
     <>
       <NavItem to="/shop" onClick={onClick}>Shop</NavItem>
-      <Button component={RouterLink} to="/#story-callouts" onClick={onClick} sx={navSx(false)}>Technology</Button>
+      <Button component={RouterLink} to="/#story-anatomy" onClick={onClick} sx={navSx(false)}>Technology</Button>
       {me.data ? <NavItem to="/account" onClick={onClick}>Account</NavItem> : <NavItem to="/login" onClick={onClick}>Log in</NavItem>}
       {isAdmin ? <NavItem to="/admin" onClick={onClick}>Admin</NavItem> : null}
     </>
   );
 
   return (
-    <MuiAppBar component="header" sx={{ zIndex: 1200 }}>
+    <MuiAppBar
+      component="header"
+      sx={{
+        zIndex: 1200,
+        // Home: the header floats over the story and takes the current section's ink.
+        ...(loc.pathname === '/'
+          ? { backgroundColor: 'transparent', color: 'var(--story-ink, #F2EDE3)', transition: 'color 300ms ease', '& .MuiButton-root, & .MuiIconButton-root, & .MuiTypography-root, & a': { color: 'inherit' }, '& svg path[fill]': { fill: 'currentColor' } }
+          : null),
+      }}
+    >
       <Toolbar sx={{ px: PAGE_PX, maxWidth: 1440, width: '100%', mx: 'auto', boxSizing: 'border-box', gap: 1 }} disableGutters>
         <Box component={RouterLink} to="/" aria-label="Goldstar, home" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.primary', textDecoration: 'none', minHeight: 44 }}>
           <Star />

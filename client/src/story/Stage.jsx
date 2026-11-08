@@ -1,0 +1,295 @@
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { ContactShadows, Environment, Lightformer, PerformanceMonitor, useGLTF } from '@react-three/drei';
+import * as THREE from 'three';
+import { gsap } from 'gsap';
+import { STORY_MODEL, LABEL_ORDER, partColours } from './model.config.js';
+import { buildParts, disposeParts } from './splitModel.js';
+import { labelAt, makePose, samplePose } from './storyline.js';
+import { live, touch, useStoryUi } from './state.js';
+
+const FOV = 30;
+const IDLE_MS = 900; // stop rendering this long after the last change
+
+// Renders exactly once per GSAP tick (after Lenis + ScrollTrigger have updated `live.T`), so the 3D is
+// frame-locked to the scroll. Idle frames are skipped.
+function Driver({ active }) {
+  const advance = useThree((s) => s.advance);
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    live.invalidate = () => touch();
+    const tick = () => {
+      if (!active.current) return;
+      if (performance.now() - live.lastMove > IDLE_MS && !live.drag.active) return;
+      advance(performance.now());
+    };
+    gsap.ticker.add(tick);
+    touch();
+    return () => {
+      gsap.ticker.remove(tick);
+      live.invalidate = null;
+    };
+  }, [advance, invalidate, active]);
+  // Resizes change the framing: render again.
+  const size = useThree((s) => s.size);
+  useEffect(() => touch(), [size]);
+  return null;
+}
+
+// Neutral product-studio light: a big soft key, two white strip rims, a low fill. Baked once.
+function StudioLights() {
+  return (
+    <Environment resolution={256} frames={1} environmentIntensity={1}>
+      <Lightformer form="rect" intensity={2.4} color="#ffffff" scale={[10, 6, 1]} position={[-3, 5, 5]} target={[0, 0, 0]} />
+      <Lightformer form="rect" intensity={3.2} color="#ffffff" scale={[1.4, 7, 1]} position={[-5, 1.5, -4]} target={[0, 0, 0]} />
+      <Lightformer form="rect" intensity={2.6} color="#ffffff" scale={[1.4, 7, 1]} position={[5, 1.5, -4]} target={[0, 0, 0]} />
+      <Lightformer form="rect" intensity={0.6} color="#ffffff" scale={[10, 3, 1]} position={[0, -3, 6]} target={[0, 0, 0]} />
+    </Environment>
+  );
+}
+
+const damp = (a, b, lambda, dt) => THREE.MathUtils.damp(a, b, lambda, dt);
+const EXPLODE_DELAY = { laces: 0, tongue: 0.07, upper: 0.14, insole: 0.2, midsole: 0.1, outsole: 0 };
+
+function ShoeRig({ url, colourways, onReady, shadowRef, tier }) {
+  const gltf = useGLTF(url, false, true);
+  const built = useMemo(() => buildParts(gltf.scene, STORY_MODEL), [gltf]);
+  const rig = useRef();
+  const pose = useMemo(() => makePose(), []);
+  const camera = useThree((s) => s.camera);
+  const sizeRef = useRef({ w: 1, h: 1 });
+  const size = useThree((s) => s.size);
+  sizeRef.current = { w: size.width, h: size.height };
+  const colourKey = useStoryUi((s) => s.colourKey);
+  const shown = useRef({ yaw: 0, pitch: 0, zoom: 1 });
+  const tmp = useMemo(() => ({ v: new THREE.Vector3(), target: {}, first: true }), []);
+
+  // Target colours per part for the current colourway.
+  useEffect(() => {
+    const cw = colourways.find((c) => c.key === colourKey) || colourways[0];
+    const pc = partColours(cw?.key, cw?.hex);
+    Object.entries(built.parts).forEach(([name, p]) => {
+      const [d, l] = pc[name] || pc.upper;
+      tmp.target[name] = [new THREE.Color(d), new THREE.Color(l)];
+      if (tmp.first) {
+        p.uniforms.uDark.value.copy(tmp.target[name][0]);
+        p.uniforms.uLight.value.copy(tmp.target[name][1]);
+      }
+    });
+    tmp.first = false;
+    touch();
+  }, [colourKey, colourways, built, tmp]);
+
+  useLayoutEffect(() => {
+    onReady?.();
+    touch();
+    return () => disposeParts(built);
+  }, [built]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useFrame((state, dtRaw) => {
+    const dt = Math.min(0.1, dtRaw || 0.016);
+    const { w: W, h: H } = sizeRef.current;
+    const layout = useStoryUi.getState().layout;
+    samplePose(live.T, layout, pose);
+
+    // Studio interaction, eased.
+    const s = shown.current;
+    const D = live.drag;
+    s.yaw = damp(s.yaw, D.yaw, 8, dt);
+    s.pitch = damp(s.pitch, D.pitch, 8, dt);
+    s.zoom = damp(s.zoom, D.zoom, 8, dt);
+    const k = pose.studio;
+    const easing = Math.abs(s.yaw - D.yaw) + Math.abs(s.pitch - D.pitch) + Math.abs(s.zoom - D.zoom) > 0.001;
+
+    // Camera: frame the shoe (radius R) inside the stage box, then shift it there with a view offset.
+    const bw = pose.w * W;
+    const bh = pose.h * H;
+    const m = pose.fill * Math.min(bw, bh) * (1 + (s.zoom - 1) * k);
+    const t = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+    const d = (pose.R * H) / (m * t);
+    const el = pose.el + s.pitch * k;
+    camera.position.set(Math.sin(pose.az) * Math.cos(el) * d, Math.sin(el) * d, Math.cos(pose.az) * Math.cos(el) * d);
+    camera.lookAt(0, 0, 0);
+    camera.setViewOffset(W, H, W / 2 - pose.cx * W, H / 2 - pose.cy * H, W, H);
+    camera.near = Math.max(0.05, d - 8);
+    camera.far = d + 12;
+    camera.updateProjectionMatrix();
+
+    // Shoe.
+    const g = rig.current;
+    g.visible = pose.alpha > 0.02;
+    g.position.set(0, pose.lift, 0);
+    g.rotation.set(pose.rx, pose.ry + s.yaw * k, pose.rz, 'YXZ');
+
+    // Exploded view: each part slides along its offset, staggered from the outside in.
+    let colourMoving = false;
+    Object.entries(built.parts).forEach(([name, p]) => {
+      const delay = EXPLODE_DELAY[name] || 0;
+      const e = THREE.MathUtils.smoothstep(Math.min(1, Math.max(0, (pose.explode - delay) / (1 - 0.2))), 0, 1);
+      const o = p.cfg.offset;
+      const r = p.cfg.rot;
+      p.group.position.set(p.base.x + o[0] * e, p.base.y + o[1] * e, p.base.z + o[2] * e);
+      p.group.rotation.set(r[0] * e, r[1] * e, r[2] * e);
+      const tc = tmp.target[name];
+      if (tc) {
+        const u = p.uniforms;
+        if (!u.uDark.value.equals(tc[0]) || !u.uLight.value.equals(tc[1])) {
+          const f = 1 - Math.exp(-7 * dt);
+          u.uDark.value.lerp(tc[0], f);
+          u.uLight.value.lerp(tc[1], f);
+          colourMoving = true;
+        }
+      }
+    });
+
+    // Contact shadow follows the lift (fades as the shoe leaves the floor).
+    const sh = shadowRef.current;
+    if (sh) {
+      const mat = sh.children[0]?.material;
+      if (mat) mat.opacity = 0.55 * pose.shadow * Math.max(0, 1 - pose.lift * 1.2) * pose.alpha;
+    }
+
+    // Anatomy labels: project each part's anchor and lay the label cards out in a column.
+    positionLabels(built, g, camera, W, H, layout, tmp.v);
+
+    if (easing || colourMoving) touch();
+  });
+
+  return (
+    <group ref={rig}>
+      <primitive object={built.root} />
+    </group>
+  );
+}
+
+const _ndc = new THREE.Vector3();
+function positionLabels(built, rigGroup, camera, W, H, layout, v) {
+  const L = live.labels;
+  if (!L) return;
+  const T = live.T;
+  const items = [];
+  LABEL_ORDER.forEach((name, n) => {
+    const el = L.items[name];
+    const p = built.parts[name];
+    if (!el || !p) return;
+    const vis = labelAt(T, n);
+    if (vis <= 0.001) {
+      if (el.shown) {
+        el.root.style.opacity = '0';
+        el.root.style.visibility = 'hidden';
+        el.shown = false;
+      }
+      return;
+    }
+    rigGroup.updateMatrixWorld();
+    v.copy(p.anchor);
+    p.group.localToWorld(v);
+    _ndc.copy(v).project(camera);
+    items.push({ name, el, vis, x: ((_ndc.x + 1) / 2) * W, y: ((1 - _ndc.y) / 2) * H, n });
+  });
+  if (!items.length) return;
+  const phone = layout === 'phone';
+  // Cards: a column right of the stage on desktop, sorted by anchor height, at least `gap` apart.
+  const colX = W * 0.775;
+  const gap = 66;
+  const sorted = [...items].sort((a, b) => a.y - b.y);
+  if (!phone) {
+    let y = H * 0.16;
+    sorted.forEach((it) => {
+      it.cy = Math.max(it.y, y);
+      y = it.cy + gap;
+    });
+    const over = sorted.length ? sorted[sorted.length - 1].cy - H * 0.9 : 0;
+    if (over > 0) sorted.forEach((it) => (it.cy -= over));
+  }
+  items.forEach(({ el, vis, x, y, cy }) => {
+    const r = el.root.style;
+    if (!el.shown) {
+      r.visibility = 'visible';
+      el.shown = true;
+    }
+    r.opacity = String(vis);
+    el.dot.style.transform = `translate(${x}px, ${y}px) scale(${0.4 + 0.6 * vis})`;
+    if (phone) {
+      el.card.style.display = 'none';
+      el.line.style.display = 'none';
+      return;
+    }
+    el.card.style.display = '';
+    el.line.style.display = '';
+    el.card.style.transform = `translate(${colX + (1 - vis) * 16}px, ${cy}px) translateY(-50%)`;
+    const ex = colX - 36;
+    el.line.setAttribute('d', `M${x.toFixed(1)} ${y.toFixed(1)} L${ex.toFixed(1)} ${cy.toFixed(1)} L${(colX - 10).toFixed(1)} ${cy.toFixed(1)}`);
+    const len = Math.hypot(ex - x, cy - y) + (colX - 10 - ex);
+    el.line.style.strokeDasharray = `${len} ${len}`;
+    el.line.style.strokeDashoffset = String(len * (1 - Math.min(1, vis * 1.4)));
+  });
+}
+
+export default function Stage({ colourways, rootRef }) {
+  const tier = useStoryUi((s) => s.tier);
+  const reduced = useStoryUi((s) => s.reduced);
+  const [dpr, setDpr] = useState(tier === 'lite' ? [1, 1.25] : [1, 1.5]);
+  const active = useRef(true);
+  const shadowRef = useRef();
+  const url = tier === 'lite' ? STORY_MODEL.urls.mobile : STORY_MODEL.urls.desktop;
+  const [ready, setReady] = useState(false);
+
+  // Only render while the story is on screen and the tab is visible.
+  useEffect(() => {
+    const el = rootRef.current;
+    let onScreen = true;
+    const upd = () => {
+      active.current = onScreen && document.visibilityState === 'visible';
+      if (active.current) touch();
+    };
+    const io = new IntersectionObserver(([e]) => {
+      onScreen = e.isIntersecting;
+      upd();
+    });
+    if (el) io.observe(el);
+    document.addEventListener('visibilitychange', upd);
+    return () => {
+      io.disconnect();
+      document.removeEventListener('visibilitychange', upd);
+    };
+  }, [rootRef]);
+
+  return (
+    <div
+      aria-hidden="true"
+      data-stage-ready={ready ? 'true' : 'false'}
+      style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: ready ? 1 : 0, transition: reduced ? 'none' : 'opacity 600ms ease' }}
+    >
+      <Canvas
+        frameloop="never"
+        dpr={dpr}
+        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+        camera={{ fov: FOV, position: [0, 0, 10], near: 0.1, far: 100 }}
+        onCreated={({ gl }) => {
+          gl.toneMapping = THREE.NeutralToneMapping;
+          gl.toneMappingExposure = 1.05;
+          gl.setClearColor(0x000000, 0);
+        }}
+        style={{ position: 'absolute', inset: 0 }}
+      >
+        <Driver active={active} />
+        <PerformanceMonitor bounds={() => [45, 60]} flipflops={3} onDecline={() => setDpr(1)} />
+        <StudioLights />
+        <Suspense fallback={null}>
+          <ShoeRig
+            url={url}
+            tier={tier}
+            colourways={colourways}
+            shadowRef={shadowRef}
+            onReady={() => {
+              setReady(true);
+              useStoryUi.getState().set({ canvasReady: true });
+            }}
+          />
+        </Suspense>
+        <ContactShadows ref={shadowRef} position={[0, -0.8, 0]} scale={7} far={2.2} blur={2.6} resolution={tier === 'lite' ? 256 : 512} opacity={0.55} color="#000000" />
+      </Canvas>
+    </div>
+  );
+}

@@ -172,7 +172,7 @@ export default function Product() {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'stretch' }}>
           <Button variant="contained" size="large" fullWidth onClick={add}>Add to cart</Button>
           <ExternalLink href={colour.productUrl} sx={{ alignSelf: 'flex-start' }}>View on goldstarshoes.com</ExternalLink>
-          {slug === 'g10-401' ? <Link component={RouterLink} to="/#story-explode" sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center', alignSelf: 'flex-start' }}>See it come apart</Link> : null}
+          {slug === 'g10-401' ? <Link component={RouterLink} to="/#story-anatomy" sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center', alignSelf: 'flex-start' }}>See it come apart</Link> : null}
         </Box>
         {product.shortSpecs?.length ? (
           <Box component="ul" sx={{ m: 0, pl: 2.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
