@@ -2,7 +2,7 @@ import Link from '@mui/material/Link';
 import { ArrowUpRight } from 'lucide-react';
 import { tokens } from '../theme/tokens.js';
 
-// External links to goldstarshoes.com carry the Goldstar-blue 2px underline (SPEC 5.1).
+// External links to goldstarshoes.com: a quiet gold underline that firms up on hover.
 export default function ExternalLink({ href, children, sx, ...rest }) {
   return (
     <Link
@@ -12,8 +12,8 @@ export default function ExternalLink({ href, children, sx, ...rest }) {
       underline="always"
       sx={{
         display: 'inline-flex', alignItems: 'center', gap: 0.5, minHeight: 44,
-        textDecorationColor: tokens.blue, textDecorationThickness: '2px', textUnderlineOffset: '6px',
-        '&:hover': { textDecorationColor: tokens.blueLight },
+        textDecorationColor: tokens.goldBorder, textDecorationThickness: '2px', textUnderlineOffset: '6px',
+        '&:hover': { textDecorationColor: tokens.gold },
         ...sx,
       }}
       {...rest}

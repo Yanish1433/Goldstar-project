@@ -124,7 +124,7 @@ function useDisplayColour() {
 
 function SwatchRow({ value, onPick, ink, label = 'Colour', compact }) {
   return (
-    <Box role="radiogroup" aria-label={label} sx={{ display: 'flex', gap: { xs: 1, md: 1.5 }, flexWrap: 'wrap' }}>
+    <Box role="radiogroup" aria-label={label} sx={{ display: 'flex', gap: { xs: 0.5, md: 1.5 }, flexWrap: 'wrap' }}>
       {COLOURWAYS.map((c) => {
         const on = c.key === value;
         return (
@@ -140,7 +140,7 @@ function SwatchRow({ value, onPick, ink, label = 'Colour', compact }) {
           >
             <Box component="span" sx={{ width: { xs: 40, md: 52 }, height: { xs: 40, md: 52 }, borderRadius: '12px', backgroundColor: c.hex, boxShadow: on ? `0 0 0 3px ${ink}` : 'inset 0 0 0 2px rgba(255,255,255,0.35)', transition: 'box-shadow 180ms ease' }} />
             {compact ? null : (
-              <Box component="span" sx={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', lineHeight: 1.15, maxWidth: 84, textAlign: 'center', opacity: on ? 1 : 0.8 }}>
+              <Box component="span" sx={{ fontSize: { xs: 10, md: 11 }, fontWeight: 800, letterSpacing: { xs: '0.04em', md: '0.08em' }, textTransform: 'uppercase', lineHeight: 1.15, maxWidth: { xs: 74, md: 84 }, textAlign: 'center', opacity: on ? 1 : 0.8 }}>
                 {c.name}
               </Box>
             )}
@@ -266,7 +266,7 @@ export function AnatomySection() {
     <Panel id="anatomy" side="leftNarrow" phoneTop="64%">
       <Eyebrow>03 · Layers</Eyebrow>
       <Headline id="story-anatomy-h" sx={{ fontSize: { md: 'clamp(46px, 4.4vw, 74px)' }, textTransform: 'uppercase', lineHeight: 0.9 }}>Designed to endure.</Headline>
-      <Body sx={{ display: { xs: 'none', md: 'block' } }}>Seven layers, from the rubber outsole to the padded collar, built to take a beating and keep going.</Body>
+      <Body sx={{ display: { xs: 'none', md: 'block' } }}>Twelve parts, from the rubber outsole to the padded collar, built to take a beating and keep going.</Body>
       <Legend items={BADGES} accent={p.accent} />
       <Box component="ul" sx={srOnly}>
         {LABEL_ORDER.map((k) => <li key={k}>{parts[k].label}: {parts[k].detail}</li>)}
@@ -300,21 +300,17 @@ export function SoleSection() {
 function Rail({ product, display, ink }) {
   const real = productColour(product, display);
   const imgs = (real?.images || []).slice(0, 4);
+  // Colours not in the catalogue yet are shown in 3D only (no photo rail).
+  if (!imgs.length) return null;
   return (
     <Box
       data-copy
-      aria-label={real ? `Photos of the G10-401 in ${real.name}` : undefined}
+      aria-label={`Photos of the G10-401 in ${real.name}`}
       sx={{ display: 'flex', flexDirection: { xs: 'row', md: 'column' }, gap: 1, position: { md: 'absolute' }, left: { md: '-112px' }, top: { md: '50%' }, mt: { md: '-170px' } }}
     >
-      {real
-        ? imgs.map((im) => (
-          <Box key={im.thumb} component="img" src={im.thumb} alt="" loading="lazy" referrerPolicy="no-referrer" sx={{ width: { xs: 48, md: 76 }, height: { xs: 48, md: 76 }, objectFit: 'cover', borderRadius: '10px', backgroundColor: '#EDE7DC', boxShadow: `0 0 0 2px ${ink}33` }} />
-        ))
-        : (
-          <Box sx={{ width: { xs: 'auto', md: 76 }, px: { xs: 1.5, md: 0 }, minHeight: { xs: 48, md: 120 }, borderRadius: '10px', border: `2px dashed ${ink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            Photos soon
-          </Box>
-        )}
+      {imgs.map((im) => (
+        <Box key={im.thumb} component="img" src={im.thumb} alt="" loading="lazy" width={76} height={76} sx={{ width: { xs: 48, md: 76 }, height: { xs: 48, md: 76 }, objectFit: 'cover', borderRadius: '10px', backgroundColor: '#EDE7DC', boxShadow: `0 0 0 2px ${ink}33` }} />
+      ))}
     </Box>
   );
 }

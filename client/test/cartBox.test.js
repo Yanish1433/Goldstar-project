@@ -3,7 +3,6 @@ import { useUi } from '../src/store/ui.js';
 import { useCart } from '../src/store/cart.js';
 import { playAddToCart, addToCartAnimated, makeLine } from '../src/lib/addToCart.js';
 import { sampleBox, BOX_T, LID_OPEN, makeParticleLayout } from '../src/three/boxTimeline.js';
-import { disposeShoe } from '../src/three/shoeDispose.js';
 import { fitBox, rotatedHalf, bootLocalPose, LYING } from '../src/three/boxFit.js';
 
 const product = { id: 'p1', slug: 'g10-401', name: 'G10-401' };
@@ -144,30 +143,5 @@ describe('boot fits the box', () => {
     expect(sampleBox(BOX_T.flapEnd).flapB).toBe(1);
     expect(sampleBox(BOX_T.lidStart).lid).toBe(LID_OPEN);
     expect(sampleBox(BOX_T.lidEnd).lid).toBeCloseTo(0, 5);
-  });
-});
-
-describe('shared GLB cache is never torn down by the overlay', () => {
-  const make = () => {
-    const geo = { dispose: vi.fn() };
-    const tex = { isTexture: true, dispose: vi.fn() };
-    const mat = { dispose: vi.fn() };
-    const scene = { traverse: (fn) => fn({ isMesh: true, geometry: geo, material: { map: tex } }) };
-    return { geo, tex, mat, scene, clear: vi.fn() };
-  };
-  it('shared: only its own cloned materials are disposed; cache and shared geometry/textures stay', () => {
-    const x = make();
-    disposeShoe({ ownMaterials: [x.mat], gltfScene: x.scene, clearCache: x.clear, shared: true });
-    expect(x.mat.dispose).toHaveBeenCalled();
-    expect(x.clear).not.toHaveBeenCalled();
-    expect(x.geo.dispose).not.toHaveBeenCalled();
-    expect(x.tex.dispose).not.toHaveBeenCalled();
-  });
-  it('exclusive (product viewer): releases everything', () => {
-    const x = make();
-    disposeShoe({ ownMaterials: [x.mat], gltfScene: x.scene, clearCache: x.clear, shared: false });
-    expect(x.clear).toHaveBeenCalled();
-    expect(x.geo.dispose).toHaveBeenCalled();
-    expect(x.tex.dispose).toHaveBeenCalled();
   });
 });

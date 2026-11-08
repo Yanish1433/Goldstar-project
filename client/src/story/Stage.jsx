@@ -1,10 +1,11 @@
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { ContactShadows, Environment, Lightformer, PerformanceMonitor, useGLTF } from '@react-three/drei';
+import { ContactShadows, PerformanceMonitor, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
 import { STORY_MODEL, CALLOUTS, BADGES, partColours } from './model.config.js';
-import { buildParts, disposeParts } from './splitModel.js';
+import { buildParts, createTinter, disposeParts } from './splitModel.js';
+import StudioLights from '../three/StudioLights.jsx';
 import { trackAt, makePose, samplePose } from './storyline.js';
 import { live, touch, useStoryUi } from './state.js';
 
@@ -38,25 +39,15 @@ function Driver({ active }) {
   return null;
 }
 
-// Neutral product-studio light: a big soft key, two white strip rims, a low fill. Baked once.
-function StudioLights() {
-  return (
-    <Environment resolution={256} frames={1} environmentIntensity={1}>
-      <Lightformer form="rect" intensity={2.4} color="#ffffff" scale={[10, 6, 1]} position={[-3, 5, 5]} target={[0, 0, 0]} />
-      <Lightformer form="rect" intensity={3.2} color="#ffffff" scale={[1.4, 7, 1]} position={[-5, 1.5, -4]} target={[0, 0, 0]} />
-      <Lightformer form="rect" intensity={2.6} color="#ffffff" scale={[1.4, 7, 1]} position={[5, 1.5, -4]} target={[0, 0, 0]} />
-      <Lightformer form="rect" intensity={0.6} color="#ffffff" scale={[10, 3, 1]} position={[0, -3, 6]} target={[0, 0, 0]} />
-    </Environment>
-  );
-}
-
 const damp = (a, b, lambda, dt) => THREE.MathUtils.damp(a, b, lambda, dt);
-const EXPLODE_DELAY = { collar: 0, tongue: 0.05, laces: 0.1, upper: 0.14, insole: 0.2, midsole: 0.1, outsole: 0 };
+// Exploded view stagger (fraction of the explode track), outside in.
+const EXPLODE_DELAY = { collar: 0, pull_tab: 0.02, laces: 0.04, tongue: 0.07, eyelets: 0.09, toe_cap: 0.12, heel_counter: 0.12, overlays: 0.14, upper: 0.16, insole: 0.2, midsole: 0.1, outsole: 0 };
 const LABEL_SETS = [['callouts', CALLOUTS], ['badges', BADGES]];
 
 function ShoeRig({ url, onReady, shadowRef }) {
   const gltf = useGLTF(url, false, true);
   const built = useMemo(() => buildParts(gltf.scene, STORY_MODEL), [gltf]);
+  const tinter = useMemo(() => createTinter(built.parts), [built]);
   const rig = useRef();
   const pose = useMemo(() => makePose(), []);
   const camera = useThree((s) => s.camera);
@@ -65,22 +56,14 @@ function ShoeRig({ url, onReady, shadowRef }) {
   sizeRef.current = { w: size.width, h: size.height };
   const colourKey = useStoryUi((s) => s.colourKey);
   const shown = useRef({ yaw: 0, pitch: 0, zoom: 1 });
-  const tmp = useMemo(() => ({ v: new THREE.Vector3(), target: {}, first: true }), []);
+  const tmp = useMemo(() => ({ v: new THREE.Vector3(), first: true }), []);
 
-  // Target colours per part for the current colourway.
+  // Colour per part for the current colourway (eased in the frame loop; the first one is instant).
   useEffect(() => {
-    const pc = partColours(colourKey);
-    Object.entries(built.parts).forEach(([name, p]) => {
-      const [d, l] = pc[name] || pc.upper;
-      tmp.target[name] = [new THREE.Color(d), new THREE.Color(l)];
-      if (tmp.first) {
-        p.uniforms.uDark.value.copy(tmp.target[name][0]);
-        p.uniforms.uLight.value.copy(tmp.target[name][1]);
-      }
-    });
+    tinter.set(partColours(colourKey), tmp.first);
     tmp.first = false;
     touch();
-  }, [colourKey, built, tmp]);
+  }, [colourKey, tinter, tmp]);
 
   useLayoutEffect(() => {
     if (shadowRef.current) shadowRef.current.position.y = -built.size.y / 2 - 0.01; // floor under the boot
@@ -126,7 +109,6 @@ function ShoeRig({ url, onReady, shadowRef }) {
     g.rotation.set(pose.rx, pose.ry + s.yaw * k, pose.rz, 'YXZ');
 
     // Exploded view: each part slides along its offset, staggered from the outside in.
-    let colourMoving = false;
     Object.entries(built.parts).forEach(([name, p]) => {
       const delay = EXPLODE_DELAY[name] || 0;
       const e = THREE.MathUtils.smoothstep(Math.min(1, Math.max(0, (pose.explode - delay) / (1 - 0.2))), 0, 1);
@@ -134,22 +116,9 @@ function ShoeRig({ url, onReady, shadowRef }) {
       const r = p.cfg.rot;
       p.group.position.set(p.base.x + o[0] * e, p.base.y + o[1] * e, p.base.z + o[2] * e);
       p.group.rotation.set(r[0] * e, r[1] * e, r[2] * e);
-      const tc = tmp.target[name];
-      if (tc) {
-        const u = p.uniforms;
-        if (!u.uDark.value.equals(tc[0]) || !u.uLight.value.equals(tc[1])) {
-          const f = 1 - Math.exp(-7 * dt);
-          u.uDark.value.lerp(tc[0], f);
-          u.uLight.value.lerp(tc[1], f);
-          const far = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) > 0.003;
-          if (!far(u.uDark.value, tc[0]) && !far(u.uLight.value, tc[1])) {
-            u.uDark.value.copy(tc[0]); // snap, so the idle check can stop rendering
-            u.uLight.value.copy(tc[1]);
-          }
-          colourMoving = true;
-        }
-      }
+      if (p.generated) p.group.visible = e > 0.02;
     });
+    const colourMoving = tinter.step(dt);
 
     // Contact shadow follows the lift (fades as the shoe leaves the floor).
     const sh = shadowRef.current;

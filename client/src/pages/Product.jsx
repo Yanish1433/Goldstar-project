@@ -142,7 +142,7 @@ export default function Product() {
               <Suspense fallback={<Box sx={{ aspectRatio: '1 / 1', width: '100%', backgroundColor: 'background.default' }} />}>
                 <ProductViewer tier={tier === 'lite' ? 'lite' : 'full'} colourKey={colour.key} spots={spots} showSpots={showParts} onSelect={(spot, el) => setPop({ spot, el })} />
               </Suspense>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>3D: a stand-in sneaker. Photos: the real G10-401.</Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Drag to turn. Tap a dot to read about that part.</Typography>
               <Popover open={!!pop} anchorEl={pop?.el} onClose={() => setPop(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} transformOrigin={{ vertical: 'top', horizontal: 'center' }}>
                 <Box sx={{ p: 2.5, maxWidth: 320 }}>
                   <Typography variant="h5" component="p">{pop?.spot.title}</Typography>

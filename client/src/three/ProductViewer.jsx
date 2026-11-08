@@ -4,21 +4,23 @@ import { Html, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import Box from '@mui/material/Box';
 import { tokens } from '../theme/tokens.js';
-import Shoe from './Shoe.jsx';
-import Lights from './Lights.jsx';
-import { SHOE } from './shoe.config.js';
+import Boot, { bootUrl } from './Boot.jsx';
+import StudioLights from './StudioLights.jsx';
 import { TIER_SETTINGS } from './tier.js';
+import { VIEWER_ANCHORS, displayForProduct } from '../story/model.config.js';
+import { partPoint } from '../story/splitModel.js';
 
-// 360-degree viewer of the stand-in sneaker for the G10-401 product page (Addendum B U7). Its own canvas (the Home
-// canvas is not mounted on this route), reusing Shoe, Lights and the tint lerp. Rotate-only orbit, keyboard
-// rotate/zoom, optional hotspots. Frame loop: always while auto-rotating or tinting, demand after the first
-// interaction, never while the tab is hidden.
+// 360-degree viewer of the G10-401 for its product page. Its own canvas (the home canvas is not mounted on this
+// route), the same part rig, tint and studio light as the home story. Rotate-only orbit, keyboard rotate/zoom,
+// optional hotspots on the real parts. Frame loop: always while auto-rotating, demand after the first interaction
+// (colour eases keep asking for frames), never while the tab is hidden.
 
-const RIM = 0.3;
+// A warm studio cream, like the catalogue photography: the charcoal boot reads crisply against it.
+const VIEWER_BG = '#E9E3D8';
 
-function Hotspot({ spot, onSelect }) {
+function Hotspot({ spot, onSelect, wrapRef }) {
   return (
-    <Html position={spot.pos} center zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
+    <Html ref={wrapRef} position={spot.pos} center zIndexRange={[20, 0]} style={{ pointerEvents: 'none', transition: 'opacity 200ms ease' }}>
       <Box
         component="button"
         type="button"
@@ -27,11 +29,11 @@ function Hotspot({ spot, onSelect }) {
         sx={{
           pointerEvents: 'auto', display: 'inline-flex', alignItems: 'center', gap: 1, minWidth: 44, minHeight: 44, p: 0, border: 0, cursor: 'pointer',
           background: 'none', color: tokens.ink, font: 'inherit', fontSize: 14, whiteSpace: 'nowrap',
-          '&:focus-visible': { outline: `2px solid ${tokens.goldLight}`, outlineOffset: 2 },
+          '&:focus-visible': { outline: `2px solid ${tokens.onGold}`, outlineOffset: 2 },
         }}
       >
         <Box component="span" sx={{ width: 44, height: 44, display: 'grid', placeItems: 'center' }}>
-          <Box component="span" sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: tokens.gold, outline: `2px solid ${tokens.gold}`, outlineOffset: 3 }} />
+          <Box component="span" sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: tokens.gold, boxShadow: `0 0 0 3px ${tokens.onGold}` }} />
         </Box>
         <Box component="span" sx={{ backgroundColor: tokens.surface1, px: 1, py: 0.5 }}>{spot.title}</Box>
       </Box>
@@ -39,48 +41,48 @@ function Hotspot({ spot, onSelect }) {
   );
 }
 
-function Scene({ url, physical, colourKey, controlsRef, interacted, spots, showSpots, onSelect, onReady }) {
-  const shoe = useRef();
+function Scene({ url, colourKey, controlsRef, interacted, spots, showSpots, onSelect }) {
+  const boot = useRef();
   const rig = useRef();
   const { invalidate } = useThree();
   const [points, setPoints] = useState({});
 
-  const ready = useCallback(() => {
-    if (!rig.current || !shoe.current) return;
+  const ready = useCallback(({ built }) => {
+    if (!rig.current) return;
     rig.current.updateMatrixWorld(true);
-    const ray = new THREE.Raycaster();
-    const E = SHOE.extents;
     const out = {};
-    const cast = (key, o, d) => {
-      ray.set(o, d);
-      const hit = ray.intersectObject(shoe.current.group, true)[0];
-      if (hit) out[key] = hit.point.clone().add(d.clone().multiplyScalar(-0.03));
-    };
-    Object.entries(SHOE.anchors).forEach(([key, a]) => {
-      if (!Array.isArray(a)) return;
-      const top = SHOE.anchorRays[key] === 'top';
-      cast(key, top ? new THREE.Vector3(a[0] * E.u, 3, a[2] * E.w) : new THREE.Vector3(a[0] * E.u, a[1] * E.v, 3), top ? new THREE.Vector3(0, -1, 0) : new THREE.Vector3(0, 0, -1));
+    Object.entries(VIEWER_ANCHORS).forEach(([key, a]) => {
+      const p = partPoint(built, a.part, a.anchor, rig.current);
+      if (p) out[key] = p;
     });
-    Object.entries(SHOE.viewerLayerAnchors).forEach(([key, [u, v]]) => cast(key, new THREE.Vector3(u * E.u, v * E.v, 3), new THREE.Vector3(0, 0, -1)));
     setPoints(out);
-    onReady?.();
     invalidate();
-  }, [invalidate, onReady]);
+  }, [invalidate]);
 
-  useFrame((_, dt) => {
-    if (!shoe.current) return;
-    const animating = shoe.current.apply(0, Math.min(dt, 0.05), colourKey, false, RIM);
-    if (animating) invalidate();
+  // Hotspots on the far side of the boot fade out (each spot faces outwards from the boot's centre line).
+  const wraps = useRef({});
+  useFrame(({ camera }, dt) => {
+    if (boot.current?.step(Math.min(dt, 0.05))) invalidate();
+    Object.entries(points).forEach(([key, p]) => {
+      const el = wraps.current[key];
+      if (!el) return;
+      const facing = p.z * camera.position.z + (p.y > 0.6 ? 1 : 0) * camera.position.y > -0.3;
+      const o = facing ? '1' : '0';
+      if (el.style.opacity !== o) {
+        el.style.opacity = o;
+        el.style.visibility = facing ? 'visible' : 'hidden';
+      }
+    });
   });
 
   return (
     <>
-      <color attach="background" args={[tokens.ground]} />
-      <Lights />
-      <group ref={rig}>
-        <Shoe ref={shoe} url={url} physical={physical} onReady={() => setTimeout(ready, 0)} />
+      <color attach="background" args={[VIEWER_BG]} />
+      <StudioLights />
+      <group ref={rig} position={[0, 0.05, 0]}>
+        <Boot ref={boot} url={url} colourKey={colourKey} onReady={(r) => setTimeout(() => ready(r), 0)} />
       </group>
-      {showSpots ? spots.filter((s) => points[s.anchor]).map((s) => <Hotspot key={s.key} spot={{ ...s, pos: points[s.anchor] }} onSelect={onSelect} />) : null}
+      {showSpots ? spots.filter((s) => points[s.anchor]).map((s) => <Hotspot key={s.key} spot={{ ...s, pos: points[s.anchor] }} onSelect={onSelect} wrapRef={(el) => { wraps.current[s.anchor] = el; }} />) : null}
       <OrbitControls
         ref={controlsRef}
         enablePan={false}
@@ -92,18 +94,18 @@ function Scene({ url, physical, colourKey, controlsRef, interacted, spots, showS
         dampingFactor={0.08}
         autoRotate={!interacted}
         autoRotateSpeed={0.6}
-        onStart={() => {}}
       />
     </>
   );
 }
 
 export default function ProductViewer({ tier = 'full', colourKey, spots, showSpots, onSelect }) {
+  const display = displayForProduct(colourKey).key;
   const [interacted, setInteracted] = useState(false);
   const [visible, setVisible] = useState(document.visibilityState === 'visible');
   const controlsRef = useRef(null);
   const settings = TIER_SETTINGS[tier] || TIER_SETTINGS.full;
-  const url = tier === 'lite' ? SHOE.urls.mobile : SHOE.urls.desktop;
+  const url = bootUrl(tier);
   const wrap = useRef(null);
 
   useEffect(() => {
@@ -147,9 +149,9 @@ export default function ProductViewer({ tier = 'full', colourKey, spots, showSpo
       ref={wrap}
       role="group"
       tabIndex={0}
-      aria-label="3D view of the stand-in sneaker. Left and right arrow keys rotate it, plus and minus zoom."
+      aria-label="3D view of the G10-401. Drag or use the left and right arrow keys to turn it, plus and minus to zoom."
       onKeyDown={onKey}
-      sx={{ position: 'relative', aspectRatio: '1 / 1', width: '100%', backgroundColor: tokens.ground, outlineOffset: 2, touchAction: 'pan-y', '& canvas': { display: 'block' } }}
+      sx={{ position: 'relative', aspectRatio: '1 / 1', width: '100%', backgroundColor: VIEWER_BG, outlineOffset: 2, touchAction: 'pan-y', '& canvas': { display: 'block' } }}
     >
       <Canvas
         dpr={settings.dpr}
@@ -157,11 +159,11 @@ export default function ProductViewer({ tier = 'full', colourKey, spots, showSpo
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
         camera={{ fov: 35, position: [0, 1.1, 6.4], near: 0.1, far: 50 }}
         onCreated={({ gl }) => {
-          gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = SHOE.look.exposure;
+          gl.toneMapping = THREE.NeutralToneMapping;
+          gl.toneMappingExposure = 1.05;
         }}
       >
-        <Scene url={url} physical={tier === 'full'} colourKey={colourKey} controlsRef={controlsRef} interacted={interacted} spots={spotsMemo} showSpots={showSpots} onSelect={onSelect} />
+        <Scene url={url} colourKey={display} controlsRef={controlsRef} interacted={interacted} spots={spotsMemo} showSpots={showSpots} onSelect={onSelect} />
       </Canvas>
     </Box>
   );

@@ -1,11 +1,10 @@
-import { Component, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import Shoe from './Shoe.jsx';
-import Lights from './Lights.jsx';
-import { SHOE } from './shoe.config.js';
-import { STORY_MODEL } from '../story/model.config.js';
+import Boot, { bootUrl } from './Boot.jsx';
+import StudioLights from './StudioLights.jsx';
+import { displayForProduct } from '../story/model.config.js';
 import { detectTier } from './tier.js';
 import { advanceFlightClock } from './flight.js';
 import { useUi } from '../store/ui.js';
@@ -23,13 +22,12 @@ const KRAFT_IN = '#a47848';
 const LID_COL = '#1d1b19';
 const TISSUE = '#f7efe2';
 const BOOT_LIFT = '#2e2a26';
-const RIM = 1.1; // gold fresnel edge on the (black) boot
 const TRAIL_N = 44;
 const TILT = 0.98;
 const YAW = -0.5;
 
 // The boot that goes into the box is the real G10-401 (same files as the home story).
-const modelUrl = () => STORY_MODEL.urls[detectTier() === 'full' ? 'desktop' : 'mobile'];
+const modelUrl = () => bootUrl(detectTier());
 try {
   useGLTF.preload(modelUrl(), false, true);
 } catch {
@@ -237,7 +235,7 @@ function Scene({ req }) {
   const clock = useRef({ t: 0, last: null, landed: false, cart: null });
   const sample = useMemo(makeBoxSample, []);
   const dpr = viewport.dpr || 1;
-  const bootTint = req.colour === 'olive' ? 'olive' : 'fallback'; // lighter than the dark story tint so the boot reads inside the box
+  const bootTint = displayForProduct(req.colour).key; // the colourway that was added
   const lite = useMemo(() => detectTier() !== 'full', []);
 
   // Particles (points) and the sparkle trail.
@@ -315,11 +313,11 @@ function Scene({ req }) {
   }, [src, size.width, size.height, boxPx]);
 
   // Box dimensions come from the boot's normalised bounding box once the model is placed.
-  const onShoeReady = useCallback(({ size: sz }) => setFit(fitBox(sz)), []);
-
-  useLayoutEffect(() => {
-    shoe.current?.apply(0, 0, bootTint, true, RIM);
-  }, [req.colour, fit]);
+  // The charcoal boot gets a soft warm emissive lift so it reads against the tissue and the kraft walls.
+  const onShoeReady = useCallback(({ size: sz, built }) => {
+    built.root.traverse((o) => o.isMesh && o.material.emissive?.set(BOOT_LIFT));
+    setFit(fitBox(sz));
+  }, []);
 
   useFrame((_, dtSec) => {
     if (!fit || !form) return; // wait for the model: the clock starts when the box can be built
@@ -384,8 +382,8 @@ function Scene({ req }) {
 
     // Boot. Placed by its bounding-box CENTRE (so rotation never moves it off its path); the group origin follows.
     boxG.current.updateWorldMatrix(true, false);
-    const { sx, sy } = fit.boot;
-    const cOff = SHOE.bottomY + sy / 2; // bbox centre height inside the normalised shoe group
+    const { sx } = fit.boot;
+    const cOff = 0; // the boot rig is centred on its bounding box
     let centre;
     let rot;
     let sc = 1;
@@ -411,9 +409,6 @@ function Scene({ req }) {
     shoeG.current.scale.setScalar(sc);
     const off = new THREE.Vector3(0, cOff, 0).applyEuler(_e).multiplyScalar(sc);
     shoeG.current.position.copy(centre).sub(off);
-    shoe.current?.apply(0, Math.min(dtSec, 0.05), bootTint, true, RIM);
-    // The baked G10 albedo is near-black: a soft warm emissive lifts it so the boot reads against the tissue and walls.
-    shoe.current?.group.traverse((o) => o.isMesh && o.material.emissive?.set(BOOT_LIFT));
 
     const wrap = document.getElementById('gs-cartbox');
     if (wrap) wrap.style.opacity = String(s.opacity);
@@ -426,7 +421,7 @@ function Scene({ req }) {
 
   return (
     <>
-      <Lights />
+      <StudioLights />
       <ambientLight intensity={0.7} />
       <directionalLight position={[-2.5, 3, -3]} intensity={2.4} color="#E2B857" />
       <directionalLight position={[3, 4, 2]} intensity={1.1} color="#fff4e0" />
@@ -448,7 +443,7 @@ function Scene({ req }) {
             </>
           ) : null}
           <group ref={shoeG} visible={!!fit}>
-            <Shoe ref={shoe} url={modelUrl()} onReady={onShoeReady} shared />
+            <Boot ref={shoe} url={modelUrl()} colourKey={bootTint} onReady={onShoeReady} />
           </group>
         </group>
       </group>

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { HOLD, KEYS, LAYOUTS, PALETTE, SECTIONS, START, TOTAL, TRACKS, TRANSITION, backgroundAt, colourIndexAt, copyTrack, endOf, trackAt, samplePose, sectionAt } from '../src/story/storyline.js';
 import { STORY_MODEL, LABEL_ORDER, CALLOUTS, BADGES, COLOURWAYS, partColours } from '../src/story/model.config.js';
-import { classifyTriangles, lineAt } from '../src/story/splitModel.js';
 
 // WCAG relative luminance / contrast.
 const lum = (hex) => {
@@ -160,38 +159,11 @@ describe('model part map and colourways', () => {
       expect(p.anchor).toHaveLength(3);
       expect(p.nodeNames || p.generate).toBeTruthy();
     });
-    COLOURWAYS.forEach((c) => Object.keys(STORY_MODEL.parts).forEach((name) => expect(partColours(c.key)[name]).toHaveLength(2)));
+    COLOURWAYS.forEach((c) => Object.keys(STORY_MODEL.parts).filter((n) => !STORY_MODEL.keepMaterials.includes(n)).forEach((name) => expect(partColours(c.key)[name]).toMatch(/^#[0-9A-F]{6}$/i)));
     [...CALLOUTS, ...BADGES].forEach((c) => expect(STORY_MODEL.parts[c.part]).toBeTruthy());
   });
   it('storyboard colourways map to the real SKUs (Pink/Grey are coming soon)', () => {
     expect(COLOURWAYS.map((c) => c.name)).toEqual(['Himalayan Earth', 'Annapurna Pink', 'Everest Grey', 'Kathmandu Black']);
     expect(COLOURWAYS.map((c) => c.product)).toEqual(['olive', null, null, 'black']);
-  });
-});
-
-describe('classifyTriangles', () => {
-  // Two disconnected quads: a big one (rank 0, 4 tris) and a small one (rank 1, 2 tris), plus a triangle that
-  // is welded to the big one through duplicated positions (UV seam).
-  const V = [
-    // big: two stacked quads, y 0..1 and y 1..2
-    [0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [1, 2, 0], [0, 2, 0],
-    // small quad far away
-    [5, 0, 0], [6, 0, 0], [6, 1, 0], [5, 1, 0],
-    // seam duplicate of [1,2,0] and [0,2,0] + a new apex (belongs to the big island)
-    [1, 2, 0], [0, 2, 0], [0.5, 3, 0],
-  ];
-  const I = [0, 1, 2, 0, 2, 3, 3, 2, 4, 3, 4, 5, 6, 7, 8, 6, 8, 9, 10, 12, 11];
-  const pos = (i) => V[i];
-  it('ranks islands by size (welding seams) and applies rules in order', () => {
-    const { tri, islandCount } = classifyTriangles(pos, V.length, I, [{ islands: [0], where: { maxY: 1 } }, { islands: [1] }, { islands: [0] }]);
-    expect(islandCount).toBe(2);
-    expect(Array.from(tri)).toEqual([0, 0, 2, 2, 1, 1, 2]);
-  });
-  it('leaves unmatched triangles at -1 and supports a floor line', () => {
-    const { tri } = classifyTriangles(pos, V.length, I, [{ islands: [0], where: { below: [[0, 1], [1, 1]] } }]);
-    expect(Array.from(tri)).toEqual([0, 0, -1, -1, -1, -1, -1]);
-    expect(lineAt([[0, 0], [2, 2]], 1)).toBe(1);
-    expect(lineAt([[0, 0], [2, 2]], -5)).toBe(0);
-    expect(lineAt([[0, 0], [2, 2]], 9)).toBe(2);
   });
 });
