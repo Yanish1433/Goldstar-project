@@ -13,7 +13,7 @@ export const routes = [
   {
     path: '/',
     Component: Layout,
-    // First load resolves the lazy page before the first render (the inline loader covers it): render nothing meanwhile.
+    // First load resolves the lazy page before the first render: render nothing meanwhile (the page ground is already painted).
     HydrateFallback: () => null,
     ErrorBoundary: RouteError,
     children: [

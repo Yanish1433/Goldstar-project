@@ -75,8 +75,7 @@ export default function Home() {
 
   useStoryEngine({ rootRef, bgRef, reduced: flow, onTime: (T) => onTimeRef.current?.(T) });
 
-  // The canvas mounts after the first paint (idle) and, on a first visit, after the loader has wiped away (its GLB
-  // download is already done by then), so WebGL setup never stutters the loader. The hero poster covers the wait.
+  // The canvas mounts after the first paint (idle), so the hero poster paints first and the 3D fades in over it.
   useEffect(() => {
     if (tier === 'static') return undefined;
     let id = null;
@@ -84,11 +83,8 @@ export default function Home() {
       if ('requestIdleCallback' in window) id = window.requestIdleCallback(() => setMountStage(true), { timeout: 800 });
       else id = setTimeout(() => setMountStage(true), 200);
     };
-    const loading = window.gsLoader && !window.gsLoader.done && document.getElementById('gs-loader');
-    if (loading) window.addEventListener('gs:loader-done', idle, { once: true });
-    else idle();
+    idle();
     return () => {
-      window.removeEventListener('gs:loader-done', idle);
       if (id != null) ('cancelIdleCallback' in window ? window.cancelIdleCallback(id) : clearTimeout(id));
     };
   }, [tier]);
