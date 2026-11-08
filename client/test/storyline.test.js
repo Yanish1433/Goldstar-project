@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ANATOMY, HOLD, KEYS, LAYOUTS, PALETTE, SECTIONS, START, TOTAL, TRANSITION, backgroundAt, colourIndexAt, copyTrack, endOf, labelAt, samplePose, sectionAt } from '../src/story/storyline.js';
-import { STORY_MODEL, LABEL_ORDER, partColours } from '../src/story/model.config.js';
+import { HOLD, KEYS, LAYOUTS, PALETTE, SECTIONS, START, TOTAL, TRACKS, TRANSITION, backgroundAt, colourIndexAt, copyTrack, endOf, trackAt, samplePose, sectionAt } from '../src/story/storyline.js';
+import { STORY_MODEL, LABEL_ORDER, CALLOUTS, BADGES, COLOURWAYS, partColours } from '../src/story/model.config.js';
 import { classifyTriangles, lineAt } from '../src/story/splitModel.js';
 
 // WCAG relative luminance / contrast.
@@ -26,9 +26,9 @@ describe('sections and timing', () => {
     });
     expect(TOTAL).toBe(endOf('finale'));
   });
-  it('has 7 sections with distinct colours, ending on the brand blue', () => {
-    expect(SECTIONS).toHaveLength(7);
-    expect(new Set(SECTIONS.map((s) => s.colour)).size).toBe(7);
+  it('follows the storyboard order with distinct colours, ending on the brand blue', () => {
+    expect(SECTIONS.map((s) => s.id)).toEqual(['hero', 'performance', 'callouts', 'anatomy', 'sole', 'colour', 'studio', 'finale']);
+    expect(new Set(SECTIONS.map((s) => s.colour)).size).toBe(SECTIONS.length);
     expect(SECTIONS.at(-1).colour).toBe('goldstar');
   });
   it('every hold lies inside its own pin', () => {
@@ -85,8 +85,8 @@ describe('samplePose', () => {
     expect(samplePose(TOTAL + 500).lift).toBe(samplePose(TOTAL).lift);
     expect(Number.isFinite(samplePose(NaN).fill)).toBe(true);
   });
-  it('reveal turns a full 360 during its pin', () => {
-    expect(samplePose(endOf('reveal')).ry - samplePose(START.reveal).ry).toBeCloseTo(Math.PI * 2, 6);
+  it('performance turns a full 360 during its pin', () => {
+    expect(samplePose(endOf('performance')).ry - samplePose(START.performance).ry).toBeCloseTo(Math.PI * 2, 6);
   });
   it('explodes only in the anatomy chapter, fully at its hold, and reassembles before it ends', () => {
     expect(samplePose(START.anatomy - 1).explode).toBe(0);
@@ -94,8 +94,9 @@ describe('samplePose', () => {
     expect(samplePose(endOf('anatomy')).explode).toBe(0);
     expect(samplePose(HOLD.sole).explode).toBe(0);
   });
-  it('shows the outsole in the grip chapter and leaves the frame in the finale', () => {
-    expect(samplePose(HOLD.sole).rx).toBeLessThan(-1.2);
+  it('tilts to the side tread in the grip chapter (never sole-up) and leaves the frame in the finale', () => {
+    expect(samplePose(HOLD.sole).rx).toBeLessThan(-0.3);
+    expect(samplePose(HOLD.sole).rx).toBeGreaterThan(-0.7);
     expect(samplePose(HOLD.finale).alpha).toBe(0);
     expect(samplePose(HOLD.finale).lift).toBeGreaterThan(3);
   });
@@ -113,7 +114,7 @@ describe('samplePose', () => {
   });
   it('desktop stage never covers the copy column', () => {
     // copy left (hero, colour): stage starts right of 36vw + 6vw; copy right (reveal, sole): stage ends before 60vw
-    [['hero', 'left'], ['colour', 'left'], ['reveal', 'right'], ['sole', 'right']].forEach(([id, copy]) => {
+    [['hero', 'left'], ['colour', 'left'], ['performance', 'right'], ['sole', 'right']].forEach(([id, copy]) => {
       const o = samplePose(HOLD[id], 'desktop');
       if (copy === 'left') expect(o.cx - o.w / 2).toBeGreaterThanOrEqual(0.4);
       else expect(o.cx + o.w / 2).toBeLessThanOrEqual(0.6 + 1e-9);
@@ -122,14 +123,18 @@ describe('samplePose', () => {
 });
 
 describe('labels, background, colour', () => {
-  it('labels appear one by one after the explode and all go before reassembly', () => {
-    LABEL_ORDER.forEach((_, n) => {
-      const s = ANATOMY.labelsFrom + n * ANATOMY.labelStep;
-      expect(labelAt(s - 0.01, n)).toBe(0);
-      expect(labelAt(s + ANATOMY.labelFade, n)).toBe(1);
-      expect(labelAt(ANATOMY.labelsOut[1], n)).toBe(0);
+  it('callouts and badges appear one by one and leave before the chapter ends', () => {
+    [['callouts', CALLOUTS, 'callouts'], ['badges', BADGES, 'anatomy']].forEach(([key, list, sec]) => {
+      const tr = TRACKS[key];
+      list.forEach((_, n) => {
+        const s0 = tr.from + n * tr.step;
+        expect(trackAt(key, s0 - 0.01, n)).toBe(0);
+        expect(trackAt(key, s0 + tr.fade, n)).toBe(1);
+        expect(trackAt(key, tr.out[1], n)).toBe(0);
+        expect(trackAt(key, HOLD[sec], n)).toBe(1);
+      });
+      expect(tr.out[1]).toBeLessThanOrEqual(endOf(sec));
     });
-    expect(LABEL_ORDER.every((_, n) => labelAt(HOLD.anatomy, n) === 1)).toBe(true);
   });
   it('background is solid during pins and blends during transitions', () => {
     SECTIONS.forEach((s, i) => expect(backgroundAt(HOLD[s.id])).toEqual([i, i, 0]));
@@ -138,29 +143,29 @@ describe('labels, background, colour', () => {
     expect(m).toBeCloseTo(0.5, 6);
   });
   it('scroll walks through the colourways in the colour chapter', () => {
-    expect(colourIndexAt(START.colour, 2)).toBe(0);
-    expect(colourIndexAt(endOf('colour'), 2)).toBe(1);
+    expect(colourIndexAt(START.colour, 4)).toBe(0);
+    expect(colourIndexAt(endOf('colour'), 4)).toBe(3);
+    expect(colourIndexAt(HOLD.colour, 4)).toBe(0);
     expect(colourIndexAt(START.colour + 10, 1)).toBe(0);
   });
 });
 
-describe('model part map', () => {
-  it('every part has a label, detail, offset, anchor and colours for each colourway', () => {
-    expect(LABEL_ORDER.sort()).toEqual(Object.keys(STORY_MODEL.parts).sort());
+describe('model part map and colourways', () => {
+  it('every part has a label, detail, offset and anchor, and every colourway colours every part', () => {
+    expect([...LABEL_ORDER].sort()).toEqual(Object.keys(STORY_MODEL.parts).sort());
     Object.values(STORY_MODEL.parts).forEach((p) => {
       expect(p.label).toBeTruthy();
       expect(p.detail).toBeTruthy();
       expect(p.offset).toHaveLength(3);
       expect(p.anchor).toHaveLength(3);
+      expect(p.nodeNames || p.generate).toBeTruthy();
     });
-    Object.keys(STORY_MODEL.colourways).forEach((k) => {
-      const pc = partColours(k);
-      Object.keys(STORY_MODEL.parts).forEach((name) => expect(pc[name]).toHaveLength(2));
-    });
+    COLOURWAYS.forEach((c) => Object.keys(STORY_MODEL.parts).forEach((name) => expect(partColours(c.key)[name]).toHaveLength(2)));
+    [...CALLOUTS, ...BADGES].forEach((c) => expect(STORY_MODEL.parts[c.part]).toBeTruthy());
   });
-  it('unknown colourways fall back to the swatch hex', () => {
-    const pc = partColours('sunset', '#cc6600');
-    expect(pc.upper[0]).toMatch(/^#[0-9a-f]{6}$/);
+  it('storyboard colourways map to the real SKUs (Pink/Grey are coming soon)', () => {
+    expect(COLOURWAYS.map((c) => c.name)).toEqual(['Himalayan Earth', 'Annapurna Pink', 'Everest Grey', 'Kathmandu Black']);
+    expect(COLOURWAYS.map((c) => c.product)).toEqual(['olive', null, null, 'black']);
   });
 });
 

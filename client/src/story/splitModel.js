@@ -114,7 +114,7 @@ export function classifyTriangles(pos, vertexCount, index, rules, weld = 2000) {
 // Gradient-map material: the greyscale albedo is remapped from uDark to uLight per part, so a colourway
 // is two colours per part and stays crisp (no muddy multiply). Maps (normal, ORM) are kept.
 // ---------------------------------------------------------------------------------------------
-export function gradientMaterial(src, uniforms, roughness) {
+export function gradientMaterial(src, uniforms, roughness, gain = 1) {
   const m = new THREE.MeshStandardMaterial();
   THREE.MeshStandardMaterial.prototype.copy.call(m, src);
   m.color.set('#ffffff');
@@ -123,18 +123,21 @@ export function gradientMaterial(src, uniforms, roughness) {
   m.onBeforeCompile = (shader) => {
     shader.uniforms.uDark = uniforms.uDark;
     shader.uniforms.uLight = uniforms.uLight;
+    shader.uniforms.uGain = { value: gain };
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform vec3 uDark;\nuniform vec3 uLight;')
+      .replace('#include <common>', '#include <common>\nuniform vec3 uDark;\nuniform vec3 uLight;\nuniform float uGain;')
       .replace(
         '#include <map_fragment>',
         `#ifdef USE_MAP
   vec4 sampledDiffuseColor = texture2D( map, vMapUv );
   float gLum = dot( sampledDiffuseColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
-  gLum = clamp( pow( gLum, 0.4545 ), 0.0, 1.0 );
+  gLum = clamp( pow( gLum, 0.4545 ) * uGain, 0.0, 1.0 );
   diffuseColor.rgb *= mix( uDark, uLight, gLum );
 #else
   diffuseColor.rgb *= uLight;
-#endif`,
+#endif
+  // Parts are open shells: the inside reads as a dark lining, so cut edges look clean.
+  if ( ! gl_FrontFacing ) diffuseColor.rgb *= 0.16;`,
       );
   };
   m.customProgramCacheKey = () => 'gs-gradient-map';
@@ -199,6 +202,12 @@ export function buildParts(scene, model) {
     });
   });
 
+  // Modelled footbed: an extruded slab from the midsole's outline, sitting on top of it.
+  names.filter((n) => model.parts[n].generate === 'footbed').forEach((name) => {
+    const geometry = makeFootbed(pieces.midsole || [], N);
+    if (geometry) pieces[name].push({ geometry, material: new THREE.MeshStandardMaterial({ roughness: 0.95 }), M: new THREE.Matrix4(), shared: false, rig: true });
+  });
+
   const root = new THREE.Group();
   const parts = {};
   names.forEach((name) => {
@@ -208,8 +217,9 @@ export function buildParts(scene, model) {
     const group = new THREE.Group();
     group.name = `part:${name}`;
     const pbox = new THREE.Box3();
-    list.forEach(({ geometry, M }) => {
-      _m.multiplyMatrices(N, M);
+    list.forEach(({ geometry, M, rig }) => {
+      if (rig) _m.identity();
+      else _m.multiplyMatrices(N, M);
       const p = geometry.attributes.position;
       const idx = geometry.index ? geometry.index.array : null;
       const n = idx ? idx.length : p.count;
@@ -219,15 +229,16 @@ export function buildParts(scene, model) {
     const half = pbox.isEmpty() ? new THREE.Vector3() : pbox.getSize(new THREE.Vector3()).multiplyScalar(0.5);
     const materials = new Map();
     const geometries = [];
-    list.forEach(({ geometry, material, M, shared }) => {
+    list.forEach(({ geometry, material, M, shared, rig }) => {
       let mat = materials.get(material);
       if (!mat) {
-        mat = gradientMaterial(material, uniforms, cfg.roughness);
+        mat = gradientMaterial(material, uniforms, cfg.roughness, model.albedoGain || 1);
         materials.set(material, mat);
       }
       const mesh = new THREE.Mesh(geometry, mat);
       mesh.matrixAutoUpdate = false;
-      mesh.matrix.copy(new THREE.Matrix4().makeTranslation(-base.x, -base.y, -base.z).multiply(N).multiply(M));
+      const local = new THREE.Matrix4().makeTranslation(-base.x, -base.y, -base.z);
+      mesh.matrix.copy(rig ? local : local.multiply(N).multiply(M));
       mesh.frustumCulled = false;
       group.add(mesh);
       if (!shared) geometries.push(geometry);
@@ -235,9 +246,47 @@ export function buildParts(scene, model) {
     group.position.copy(base);
     root.add(group);
     const a = cfg.anchor || [0, 0, 0];
-    parts[name] = { group, base, anchor: new THREE.Vector3(a[0] * half.x, a[1] * half.y, a[2] * half.z), uniforms, materials: [...materials.values()], geometries, cfg };
+    parts[name] = { group, base, half, anchor: new THREE.Vector3(a[0] * half.x, a[1] * half.y, a[2] * half.z), uniforms, materials: [...materials.values()], geometries, cfg };
   });
   return { root, parts, size: size.multiplyScalar(k) };
+}
+
+// Footbed slab from the midsole's footprint: max radius per angle around the centroid (a foot outline is
+// star-shaped from its centre), smoothed, inset, extruded and laid on the midsole top. Rig-space geometry.
+function makeFootbed(midsolePieces, N, bins = 72, inset = 0.86, thickness = 0.07) {
+  const pts = [];
+  let top = -Infinity;
+  midsolePieces.forEach(({ geometry, M }) => {
+    _m.multiplyMatrices(N, M);
+    const p = geometry.attributes.position;
+    for (let i = 0; i < p.count; i += 1) {
+      _v.fromBufferAttribute(p, i).applyMatrix4(_m);
+      pts.push([_v.x, _v.z]);
+      top = Math.max(top, _v.y);
+    }
+  });
+  if (pts.length < 10) return null;
+  const cx = pts.reduce((a, q) => a + q[0], 0) / pts.length;
+  const cz = pts.reduce((a, q) => a + q[1], 0) / pts.length;
+  const r = new Float32Array(bins);
+  pts.forEach(([x, z]) => {
+    const b = Math.floor(((Math.atan2(z - cz, x - cx) + Math.PI) / (2 * Math.PI)) * bins) % bins;
+    r[b] = Math.max(r[b], Math.hypot(x - cx, z - cz));
+  });
+  const shape = new THREE.Shape();
+  for (let b = 0; b < bins; b += 1) {
+    const rr = ((r[(b + bins - 1) % bins] + 2 * r[b] + r[(b + 1) % bins]) / 4) * inset;
+    const a = ((b + 0.5) / bins) * 2 * Math.PI - Math.PI;
+    const x = cx + Math.cos(a) * rr;
+    const z = cz + Math.sin(a) * rr;
+    if (b === 0) shape.moveTo(x, -z);
+    else shape.lineTo(x, -z);
+  }
+  const g = new THREE.ExtrudeGeometry(shape, { depth: thickness, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.03, bevelSegments: 2, curveSegments: 4 });
+  g.rotateX(-Math.PI / 2); // shape (x, -z) in XY -> lies in XZ, extrusion goes +y
+  g.translate(0, top - thickness - 0.03, 0);
+  g.computeVertexNormals();
+  return g;
 }
 
 export function disposeParts(built) {

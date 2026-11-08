@@ -7,7 +7,8 @@ import { detectTier, layoutFor } from '../three/tier.js';
 import { PALETTE, SECTIONS, START, colourIndexAt, endOf, pinOf, sectionAt } from '../story/storyline.js';
 import { useStoryUi } from '../story/state.js';
 import { useStoryEngine } from '../story/useStoryEngine.js';
-import { AnatomyLabels, AnatomySection, ColourSection, FinaleSection, HeroSection, RevealSection, SoleSection, StudioSection } from '../story/Sections.jsx';
+import { AnatomySection, CalloutsSection, ColourSection, FinaleSection, HeroSection, PerformanceSection, SoleSection, StageLabels, StudioSection } from '../story/Sections.jsx';
+import { COLOURWAYS, DEFAULT_COLOUR } from '../story/model.config.js';
 
 const Stage = lazy(() => import('../story/Stage.jsx'));
 
@@ -48,11 +49,10 @@ export default function Home() {
   productRef.current = product;
   const [mountStage, setMountStage] = useState(false);
 
-  // Default colourway once the product is known.
+  // Default display colourway.
   useEffect(() => {
-    const first = product?.colourways?.[0]?.key;
-    if (first && !useStoryUi.getState().colourKey) useStoryUi.getState().set({ colourKey: first });
-  }, [product]);
+    if (!useStoryUi.getState().colourKey) useStoryUi.getState().set({ colourKey: DEFAULT_COLOUR });
+  }, []);
 
   // Low-frequency side effects of story time (called by the engine on every scroll update).
   const onTimeRef = useRef(null);
@@ -61,13 +61,12 @@ export default function Home() {
     const i = sectionAt(T);
     if (ui.section !== i) ui.set({ section: i });
     if (degRef.current) {
-      const f = Math.min(1, Math.max(0, (T - START.reveal) / pinOf('reveal')));
+      const f = Math.min(1, Math.max(0, (T - START.performance) / pinOf('performance')));
       const txt = `${Math.round(f * 360)}°`;
       if (degRef.current.textContent !== txt) degRef.current.textContent = txt;
     }
-    const cws = productRef.current?.colourways || [];
-    if (!ui.userColour && cws.length && T >= START.colour - 40 && T <= endOf('colour')) {
-      const k = cws[colourIndexAt(T, cws.length)].key;
+    if (!ui.userColour && T >= START.colour - 40 && T <= endOf('colour')) {
+      const k = COLOURWAYS[colourIndexAt(T, COLOURWAYS.length)].key;
       if (k !== ui.colourKey) ui.set({ colourKey: k });
     }
   };
@@ -109,12 +108,13 @@ export default function Home() {
       />
       {mountStage ? (
         <Suspense fallback={null}>
-          <Stage colourways={product?.colourways || []} rootRef={rootRef} />
+          <Stage rootRef={rootRef} />
         </Suspense>
       ) : null}
-      {tier !== 'static' ? <AnatomyLabels /> : null}
+      {tier !== 'static' ? <StageLabels /> : null}
       <HeroSection product={product} />
-      <RevealSection ref={degRef} />
+      <PerformanceSection ref={degRef} />
+      <CalloutsSection />
       <AnatomySection />
       <SoleSection />
       <ColourSection product={product} />

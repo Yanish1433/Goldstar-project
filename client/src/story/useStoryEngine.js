@@ -94,6 +94,10 @@ export function useStoryEngine({ rootRef, bgRef, reduced, onTime }) {
         if (tr.out) tl.fromTo(els, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -60, duration: tr.out[1] - tr.out[0], stagger: 3, ease: 'power2.in', immediateRender: false }, tr.out[0]);
       });
 
+      // Grip: the real sole photo slides in beside the boot.
+      const slide = root.querySelector('#story-sole [data-slide]');
+      if (slide) tl.fromTo(slide, { xPercent: 60, rotate: 8, autoAlpha: 0 }, { xPercent: 0, rotate: 0, autoAlpha: 1, duration: 90, ease: 'power3.out' }, START.sole - 70);
+
       // Brand finale.
       const fin = root.querySelector('#story-finale');
       if (fin) {
@@ -103,6 +107,8 @@ export function useStoryEngine({ rootRef, bgRef, reduced, onTime }) {
         const sub = fin.querySelectorAll('[data-sub]');
         const glow = fin.querySelector('[data-glow]');
         const word = fin.querySelector('[data-word]');
+        const line = fin.querySelector('[data-line]');
+        if (line) tl.fromTo(line, { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: FINALE.line[1] - FINALE.line[0], ease: 'power3.out' }, FINALE.line[0]);
         const [l0, l1] = FINALE.letters;
         tl.fromTo(letters, { yPercent: 115, rotate: 6 }, { yPercent: 0, rotate: 0, duration: (l1 - l0) * 0.55, stagger: ((l1 - l0) * 0.45) / Math.max(1, letters.length - 1), ease: 'power4.out' }, l0);
         if (star && starPath) {

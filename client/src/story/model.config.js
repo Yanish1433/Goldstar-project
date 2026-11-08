@@ -1,129 +1,75 @@
-// The one file that knows the story model's parts. To swap the model:
-//   1. drop the GLBs in client/public/models and point `urls` at them;
-//   2. fill each part's `nodeNames` with the GLB node (or mesh) names that make up that part;
-//   3. delete `islands` / `where` (they only exist to cut up the current single-mesh stand-in);
-//   4. tune `offset` / `rot` (exploded pose, rig units: the shoe is normalised to `length` along +x, toe +x)
-//      and `anchor` (label point, as fractions -1..1 of the part's own bounding box).
-// Parts are matched in `order`; anything unmatched falls into `fallbackPart`.
+// The one file that knows the story model's parts.
 //
-// The current GLB ('Materials Variants Shoe', Shopify, CC BY 4.0, see SHOE.credit) is ONE mesh made of
-// 25 disconnected islands. splitModel.js welds and ranks them by triangle count (0 = largest), which is
-// stable for this file. Island map (desktop and mobile files are identical):
-//   0 upper shell (incl. the floor = insole, eyelet panels), 1 long lace, 2 sole unit (midsole + outsole),
-//   3 tongue, 4 heel pull loop, 5/10-13/22/23 lace crossings, 6-9 side overlays, 14-21 eyelets, 24 heel tab.
-// `where` rules cut an island by triangle centroid (mesh-local units, model is -1..1 long) and face normal;
-// `below` is a floor line [[x, y], ...] under which the centroid must sit.
-import { SHOE } from '../three/shoe.config.js';
+// Model: Goldstar G10-401 trek boot, reconstructed from Goldstar product photography (multi-view photo-to-3D,
+// see .firstmate/reports/img3d-mv.md), built by `node scripts/build-g10.mjs <dir>` into g10-desktop.glb /
+// g10-mobile.glb with a greyscale albedo that the story recolours per part (gradient map).
+//
+// To swap the model: point `urls` at the new GLBs, list each part's node names in `nodeNames`, tune `offset` /
+// `rot` (exploded pose, rig units: the boot is normalised to `length` along +x, toe +x, centred) and `anchor`
+// (fractions -1..1 of the part's own bounding box). `islands` / `where` rules (see splitModel.js) are only for
+// single-mesh models. A part with `generate: 'footbed'` is modelled at load from the midsole outline.
 
 export const STORY_MODEL = {
-  urls: SHOE.urls,
-  credit: SHOE.credit,
+  urls: { desktop: '/models/g10-desktop.glb', mobile: '/models/g10-mobile.glb' },
+  credit: 'G10-401 3D model reconstructed from Goldstar product photography.',
   length: 3.0,
-  yawOffset: 0, // Math.PI if the new model's toe points -X
-  order: ['insole', 'outsole', 'laces', 'tongue', 'midsole', 'upper'],
+  yawOffset: 0,
+  frame: 1.18, // framing radius multiplier vs the storyline (a mid-cut boot is taller than a sneaker)
+  albedoGain: 2.3, // the baked greyscale albedo is dark: stretch it before the gradient map
+  order: ['outsole', 'midsole', 'insole', 'upper', 'laces', 'tongue', 'collar'],
   fallbackPart: 'upper',
   parts: {
-    laces: {
-      nodeNames: ['Laces', 'laces'],
-      islands: [1, 5, 10, 11, 12, 13, 22, 23],
-      offset: [0.15, 1.85, 0],
-      rot: [0, 0, 0.1],
-      anchor: [0.35, 0.7, 0],
-      label: 'Laces',
-      detail: 'Flat laces through metal eyelets',
-      roughness: 0.85,
-    },
-    tongue: {
-      nodeNames: ['Tongue', 'tongue'],
-      islands: [3],
-      offset: [0.3, 1.25, 0],
-      rot: [0, 0, 0.16],
-      anchor: [0.2, 0.85, 0],
-      label: 'Tongue',
-      detail: 'High-density foam padding',
-      roughness: 0.9,
-    },
-    upper: {
-      nodeNames: ['Upper', 'upper'],
-      islands: [0, 4, 6, 7, 8, 9, 14, 15, 16, 17, 18, 19, 20, 21, 24],
-      offset: [0, 0.62, 0],
-      rot: [0, 0, 0],
-      anchor: [0.55, 0.1, 1],
-      label: 'Upper',
-      detail: 'Canvas mesh with PU synthetic leather overlays',
-      roughness: null, // keep the texture's roughness
-    },
-    insole: {
-      nodeNames: ['Insole', 'insole', 'Footbed'],
-      islands: [0],
-      where: { minNormalY: 0.6, below: [[-1, -0.2], [0.05, -0.24], [0.15, -0.29], [1, -0.29]] }, // floor only, not the toe box
-      offset: [0, 0.02, 0],
-      rot: [0, 0, 0],
-      anchor: [-0.55, 0, 0.6],
-      label: 'Insole',
-      detail: 'Arch support and a cushioned footbed',
-      roughness: 0.95,
-    },
-    midsole: {
-      nodeNames: ['Midsole', 'midsole'],
-      islands: [2],
-      offset: [0, -0.5, 0],
-      rot: [0, 0, 0],
-      anchor: [-0.6, 0.2, 1],
-      label: 'Midsole',
-      detail: 'EVA foam for bounce',
-      roughness: 0.7,
-    },
-    outsole: {
-      nodeNames: ['Outsole', 'outsole'],
-      islands: [2],
-      where: { maxY: -0.405 },
-      offset: [0, -1.0, 0],
-      rot: [0, 0, 0],
-      anchor: [0.65, -0.4, 1],
-      label: 'Outsole',
-      detail: 'Rubber for durability and slip resistance',
-      roughness: 0.92,
-    },
-  },
-  // Gradient map per part and colourway: the greyscale albedo is remapped from `dark` (texture black)
-  // to `light` (texture white). Keys follow the product's colourway keys.
-  colourways: {
-    black: {
-      upper: ['#101012', '#86868E'],
-      tongue: ['#121214', '#7A7A82'],
-      laces: ['#141416', '#6A6A72'],
-      insole: ['#4A4038', '#B8A68C'],
-      midsole: ['#1A1A1C', '#6E6E74'],
-      outsole: ['#121212', '#7A7A80'],
-    },
-    olive: {
-      upper: ['#22241A', '#8A8C5E'],
-      tongue: ['#25271B', '#7E8056'],
-      laces: ['#2C2D22', '#C9C3A6'],
-      insole: ['#4A4038', '#B4A386'],
-      midsole: ['#56523F', '#E2DBC4'],
-      outsole: ['#161613', '#5E5B50'],
-    },
+    outsole: { nodeNames: ['outsole'], offset: [0, -0.72, 0], rot: [0, 0, 0], anchor: [0.5, -0.4, 1], label: 'Outsole', detail: 'Rubber lugs for traction', roughness: 0.92 },
+    midsole: { nodeNames: ['midsole'], offset: [0, -0.36, 0], rot: [0, 0, 0], anchor: [-0.5, 0, 1], label: 'Midsole', detail: 'EVA foam for bounce', roughness: 0.75 },
+    insole: { generate: 'footbed', offset: [0, 0.06, 0], rot: [0, 0, 0], anchor: [-0.35, 1, 0.3], label: 'Insole', detail: 'Arch support and a cushioned footbed', roughness: 0.95 },
+    upper: { nodeNames: ['upper'], offset: [0, 0.42, 0], rot: [0, 0, 0], anchor: [-0.25, 0, 1], label: 'Upper', detail: 'Premium synthetic, abrasion resistant', roughness: null },
+    laces: { nodeNames: ['laces'], offset: [0.1, 0.74, 0], rot: [0, 0, 0.05], anchor: [-0.1, 0.1, 1], label: 'Laces + hardware', detail: 'Reinforced metal lace locks', roughness: 0.8 },
+    tongue: { nodeNames: ['tongue'], offset: [0.2, 1.0, 0], rot: [0, 0, 0.1], anchor: [0.7, 0.45, 0], label: 'Tongue', detail: 'Padded, with the Goldstar logo', roughness: 0.85 },
+    collar: { nodeNames: ['collar'], offset: [-0.08, 1.2, 0], rot: [0, 0, -0.04], anchor: [0, 0.8, 0.8], label: 'Collar', detail: 'High-density foam padding', roughness: 0.85 },
   },
 };
 
-// Order of the anatomy labels (top of the exploded stack first).
-export const LABEL_ORDER = ['laces', 'tongue', 'upper', 'insole', 'midsole', 'outsole'];
+// Storyboard callouts on the assembled boot (chapter "callouts"). Anchors: part + fraction of its bounding box.
+export const CALLOUTS = [
+  { key: 'logo', part: 'tongue', anchor: [0.75, 0.35, 0], title: 'Goldstar Nepal', sub: 'Goldstar Trek' },
+  { key: 'upper', part: 'upper', anchor: [0.45, -0.25, 1], title: 'Premium synthetic upper', sub: 'Abrasion resistant' },
+  { key: 'hardware', part: 'laces', anchor: [-0.15, 0.25, 1], title: 'Reinforced metal hardware', sub: 'Secure lace locks' },
+  { key: 'grip', part: 'outsole', anchor: [0.45, -0.3, 1], title: 'Traction grip', sub: 'Engineered for Nepal’s terrain' },
+];
 
-// Colours for a colourway key; unknown keys are derived from the swatch hex.
-export function partColours(key, hex = '#777777') {
-  const cw = STORY_MODEL.colourways[key];
-  if (cw) return cw;
-  const out = {};
-  Object.keys(STORY_MODEL.parts).forEach((p) => {
-    out[p] = [shade(hex, 0.25), shade(hex, 1.25)];
-  });
-  return out;
-}
+// Icon badges in the exploded "Designed to endure" chapter.
+export const BADGES = [
+  { key: 'water', part: 'upper', anchor: [0.6, -0.2, 1], title: 'Water repellent', icon: 'droplets' },
+  { key: 'cushion', part: 'insole', anchor: [-0.4, 1, 0.4], title: 'Cushioned insole', icon: 'layers' },
+];
 
-function shade(hex, k) {
-  const n = parseInt(hex.replace('#', ''), 16);
-  const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => Math.max(0, Math.min(255, Math.round(v * k))));
-  return `#${c.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+// Order of the exploded layers (top of the stack first), for the phone legend and screen readers.
+export const LABEL_ORDER = ['collar', 'tongue', 'laces', 'upper', 'insole', 'midsole', 'outsole'];
+
+// Display colourways (storyboard names). `product` maps to the real SKU's colourway key for the cart;
+// null = not sold yet ("Coming soon").
+export const COLOURWAYS = [
+  {
+    key: 'earth', name: 'Himalayan Earth', hex: '#6E5236', product: 'olive',
+    parts: { upper: ['#2A1C11', '#BC8D5E'], collar: ['#21170E', '#9A7150'], tongue: ['#2A1C11', '#C99C70'], laces: ['#120D09', '#6A4F3A'], insole: ['#5A4632', '#C9AA86'], midsole: ['#33332A', '#8E8C70'], outsole: ['#101010', '#4A4A46'] },
+  },
+  {
+    key: 'pink', name: 'Annapurna Pink', hex: '#E8628E', product: null,
+    parts: { upper: ['#A99DA4', '#FAF5F7'], collar: ['#6E1E3A', '#EE6E98'], tongue: ['#A99DA4', '#FAF5F7'], laces: ['#3E3A40', '#B4AEB6'], insole: ['#6E1E3A', '#EE6E98'], midsole: ['#8E2049', '#F27CA3'], outsole: ['#17151A', '#4A4650'] },
+  },
+  {
+    key: 'grey', name: 'Everest Grey', hex: '#A3A8AE', product: null,
+    parts: { upper: ['#34383C', '#BFC4C9'], collar: ['#272A2D', '#8E9399'], tongue: ['#34383C', '#C9CDD1'], laces: ['#1B1D20', '#6A6E73'], insole: ['#3E4246', '#ADB2B7'], midsole: ['#7E8286', '#E6E8EA'], outsole: ['#151618', '#45474A'] },
+  },
+  {
+    key: 'black', name: 'Kathmandu Black', hex: '#1E1E20', product: 'black',
+    parts: { upper: ['#0B0B0C', '#6E6E74'], collar: ['#09090A', '#58585E'], tongue: ['#0B0B0C', '#9A9AA0'], laces: ['#0D0D0F', '#606066'], insole: ['#3A332C', '#A0907C'], midsole: ['#141416', '#5A5A60'], outsole: ['#0A0A0A', '#3E3E42'] },
+  },
+];
+export const DEFAULT_COLOUR = 'earth';
+export const colourwayOf = (key) => COLOURWAYS.find((c) => c.key === key) || COLOURWAYS[0];
+
+// Per-part [dark, light] for a display colourway key.
+export function partColours(key) {
+  return colourwayOf(key).parts;
 }

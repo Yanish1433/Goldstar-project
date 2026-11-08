@@ -16,6 +16,7 @@ export const PALETTE = {
   tangerine: { bg: '#FF5A1F', ink: '#1A0B05', soft: '#3A1608', accent: '#FFFFFF' },
   lilac: { bg: '#A996FF', ink: '#140F33', soft: '#2B2266', accent: '#FFFFFF' },
   pine: { bg: '#0F4D42', ink: '#F4F0E6', soft: '#B9D8CF', accent: '#FFC21A' },
+  glacier: { bg: '#9ED6E6', ink: '#0A2430', soft: '#123A4A', accent: '#0A2430' },
   saffron: { bg: '#FFC21A', ink: '#1A1405', soft: '#4A3A08', accent: '#0F4D42' },
   raspberry: { bg: '#D0175A', ink: '#FFFFFF', soft: '#FFD3E2', accent: '#FFC21A' },
   aubergine: { bg: '#24163F', ink: '#FFFFFF', soft: '#C9BEEA', accent: '#FFC21A' },
@@ -23,13 +24,14 @@ export const PALETTE = {
 };
 
 export const SECTIONS = [
-  { id: 'hero', pin: 40, colour: 'tangerine', title: 'Built for every trail' },
-  { id: 'reveal', pin: 140, colour: 'lilac', title: '360° of craft' },
-  { id: 'anatomy', pin: 260, colour: 'pine', title: 'Anatomy' },
-  { id: 'sole', pin: 100, colour: 'saffron', title: 'Grip' },
-  { id: 'colour', pin: 140, colour: 'raspberry', title: 'Colourways' },
-  { id: 'studio', pin: 90, colour: 'aubergine', title: 'Studio' },
-  { id: 'finale', pin: 130, colour: 'goldstar', title: 'Goldstar' },
+  { id: 'hero', pin: 40, colour: 'tangerine', title: 'Explore further' },
+  { id: 'performance', pin: 120, colour: 'lilac', title: 'Performance, redefined' },
+  { id: 'callouts', pin: 180, colour: 'pine', title: 'Built in' },
+  { id: 'anatomy', pin: 220, colour: 'glacier', title: 'Designed to endure' },
+  { id: 'sole', pin: 110, colour: 'saffron', title: 'Traction grip' },
+  { id: 'colour', pin: 200, colour: 'raspberry', title: 'Colour customisation' },
+  { id: 'studio', pin: 90, colour: 'aubergine', title: 'Add to cart' },
+  { id: 'finale', pin: 130, colour: 'goldstar', title: 'Your adventure begins now' },
 ];
 
 export const TRANSITION = 100;
@@ -53,10 +55,11 @@ export const at = (id, frac) => START[id] + frac * pinOf(id);
 // The "hold" pose of each section: what reduced motion and the static screenshots show.
 export const HOLD = {
   hero: at('hero', 0),
-  reveal: at('reveal', 0.18),
+  performance: at('performance', 0.2),
+  callouts: at('callouts', 0.6),
   anatomy: at('anatomy', 0.55),
   sole: at('sole', 0.5),
-  colour: at('colour', 0.25),
+  colour: at('colour', 0.12),
   studio: at('studio', 0.3),
   finale: at('finale', 1),
 };
@@ -86,49 +89,55 @@ const BASE = { box: 'right', fill: 0.92, R: 1.6, az: 0, el: 0.14, rx: 0, ry: 0, 
 
 // Keyframes. `t` is absolute vh; `ease` is how we arrive at this key from the previous one.
 // Values not given are carried over from the previous key.
-const HERO_Y = 3.6; // 3/4 front: toe toward the copy and slightly toward the camera
-const REVEAL_Y0 = HERO_Y + Math.PI; // half a turn during the flight
-const REVEAL_Y1 = REVEAL_Y0 + TAU; // a full 360 in the pin
-const ANAT_Y = 2 * TAU - 0.42; // lateral 3/4, toe right
-const SOLE_Y = 2 * TAU + 0.1;
-const COLOUR_Y = 2 * TAU + 2.7;
-const STUDIO_Y = 3 * TAU - 0.55;
+// Yaw is unwrapped (it only ever accumulates), so every flight spins the short or deliberate way.
+const HERO_Y = -0.65; // 3/4 front, toe to the right (storyboard)
+const PERF_Y0 = HERO_Y + 0.2 + Math.PI; // half a turn during the flight
+const PERF_Y1 = PERF_Y0 + TAU; // a full 360 in the pin
+const CALL_Y = 2 * TAU - 0.9; // toe toward the camera: logo on the tongue + lateral side
+const ANAT_Y = 2 * TAU - 0.5;
+const SOLE_Y = 3 * TAU + 0.12; // side profile, tilted to show the side tread (never from below)
+const COLOUR_Y = 3 * TAU - 0.65;
+const STUDIO_Y = 4 * TAU - 0.5;
 
+// Label tracks (DOM cards positioned by the canvas): start, step between items, fade length, out window.
+export const TRACKS = {
+  callouts: { from: at('callouts', 0.08), step: 10, fade: 8, out: [at('callouts', 0.84), at('callouts', 0.92)] },
+  badges: { from: at('anatomy', 0.32), step: 12, fade: 8, out: [at('anatomy', 0.76), at('anatomy', 0.8)] },
+};
 export const ANATOMY = {
   explodeIn: [at('anatomy', 0.02), at('anatomy', 0.3)],
-  labelsFrom: at('anatomy', 0.3),
-  labelStep: 9,
-  labelFade: 8,
-  labelsOut: [at('anatomy', 0.76), at('anatomy', 0.8)],
   explodeOut: [at('anatomy', 0.8), at('anatomy', 1)],
 };
 
 export const KEYS = [
-  { t: 0, ...BASE, box: 'right', fill: 0.94, ry: HERO_Y, rz: 0.1, el: 0.16 },
-  { t: endOf('hero'), ry: HERO_Y + 0.25, ease: 'linear' },
-  // flight hero -> reveal: lift and bank mid-air, half turn
-  { t: endOf('hero') + 50, box: 'mid', lift: 0.35, rz: -0.18, ry: HERO_Y + 0.25 + Math.PI / 2 + 0.1, fill: 0.8, shadow: 0.2, ease: 'in' },
-  { t: START.reveal, box: 'left', lift: 0, rz: 0.04, ry: REVEAL_Y0, fill: 0.92, el: 0.1, shadow: 1, ease: 'out' },
-  { t: endOf('reveal'), ry: REVEAL_Y1, ease: 'linear' },
-  // reveal -> anatomy: dolly back for the exploded stack, look down a little
-  { t: START.anatomy, box: 'mid', R: 2.45, fill: 0.95, el: 0.3, ry: ANAT_Y, rz: 0, ease: 'inOut' },
+  { t: 0, ...BASE, box: 'right', fill: 0.9, ry: HERO_Y, rz: 0.04, el: 0.14 },
+  { t: endOf('hero'), ry: HERO_Y + 0.2, ease: 'linear' },
+  // flight hero -> performance: lift and bank mid-air, half turn
+  { t: endOf('hero') + 50, box: 'mid', lift: 0.3, rz: -0.16, ry: HERO_Y + 0.2 + Math.PI / 2, fill: 0.8, shadow: 0.2, ease: 'in' },
+  { t: START.performance, box: 'left', lift: 0, rz: 0.02, ry: PERF_Y0, fill: 0.9, el: 0.1, shadow: 1, ease: 'out' },
+  { t: endOf('performance'), ry: PERF_Y1, ease: 'linear' },
+  // performance -> callouts: come forward, toe to the camera
+  { t: START.callouts, box: 'mid', fill: 0.92, el: 0.16, ry: CALL_Y, rz: 0, ease: 'inOut' },
+  { t: endOf('callouts'), ry: CALL_Y + 0.25, ease: 'linear' },
+  // callouts -> anatomy: dolly back for the exploded stack, look down a little
+  { t: START.anatomy, box: 'mid', R: 2.4, fill: 0.95, el: 0.26, ry: ANAT_Y, ease: 'inOut' },
   { t: ANATOMY.explodeIn[0], explode: 0, ease: 'linear' },
   { t: ANATOMY.explodeIn[1], explode: 1, ry: ANAT_Y + 0.12, shadow: 0.35, ease: 'inOut' },
   { t: ANATOMY.explodeOut[0], explode: 1, ry: ANAT_Y + 0.3, ease: 'linear' },
   { t: ANATOMY.explodeOut[1], explode: 0, ry: ANAT_Y + 0.36, shadow: 1, ease: 'inOut' },
-  // anatomy -> sole: roll over to show the outsole
-  { t: endOf('anatomy') + 50, box: 'centre', R: 1.8, lift: 0.5, rx: -0.7, rz: 0.15, ry: SOLE_Y + TAU, el: 0.12, shadow: 0, ease: 'in' },
-  { t: START.sole, box: 'left', R: 1.6, fill: 0.98, lift: 0, rx: -1.32, rz: 0.12, ry: SOLE_Y + TAU, el: 0.04, shadow: 0, ease: 'out' },
-  { t: endOf('sole'), fill: 1.06, rz: 0.2, ease: 'linear' },
-  // sole -> colour: land back on its feet, spin into a 3/4 hero pose
-  { t: START.colour, box: 'right', fill: 0.94, rx: 0, rz: 0.06, ry: COLOUR_Y + TAU, el: 0.16, shadow: 1, ease: 'inOut' },
-  { t: endOf('colour'), ry: COLOUR_Y + TAU + 0.35, ease: 'linear' },
+  // anatomy -> grip: a full spin into a tilted side profile
+  { t: endOf('anatomy') + 50, box: 'centre', R: 1.7, lift: 0.4, rx: -0.25, rz: 0.1, ry: SOLE_Y - 1.2, el: 0.1, shadow: 0.2, ease: 'in' },
+  { t: START.sole, box: 'left', R: 1.6, fill: 0.95, lift: 0, rx: -0.42, rz: 0.06, ry: SOLE_Y, el: 0.02, shadow: 0.5, ease: 'out' },
+  { t: endOf('sole'), fill: 1.02, rz: 0.1, ease: 'linear' },
+  // grip -> colour: land on its feet, 3/4 hero pose
+  { t: START.colour, box: 'right', fill: 0.9, rx: 0, rz: 0.04, ry: COLOUR_Y, el: 0.14, shadow: 1, ease: 'inOut' },
+  { t: endOf('colour'), ry: COLOUR_Y + 0.35, ease: 'linear' },
   // colour -> studio: centre stage, hands over to the user
-  { t: START.studio, box: 'centre', fill: 0.92, ry: STUDIO_Y + TAU, rz: 0, el: 0.2, studio: 1, ease: 'inOut' },
+  { t: START.studio, box: 'centre', fill: 1.12, ry: STUDIO_Y, rz: 0, el: 0.18, studio: 1, ease: 'inOut' },
   { t: endOf('studio'), studio: 1, ease: 'linear' },
-  // studio -> finale: the shoe takes off and leaves the frame upward while the wordmark rises
+  // studio -> finale: the boot takes off and leaves the frame upward while the wordmark rises
   { t: endOf('studio') + 30, studio: 0, lift: 0.25, ease: 'in' },
-  { t: START.finale, lift: 4.2, ry: STUDIO_Y + TAU + 1.6, rz: -0.35, shadow: 0, alpha: 0, ease: 'in' },
+  { t: START.finale, lift: 4.4, ry: STUDIO_Y + 1.6, rz: -0.35, shadow: 0, alpha: 0, ease: 'in' },
   { t: TOTAL, ease: 'linear' },
 ];
 
@@ -182,10 +191,11 @@ export function samplePose(T, layout = 'desktop', out = makePose()) {
   return out;
 }
 
-// Anatomy label visibility (0..1) for the n-th part in the label order.
-export function labelAt(T, n) {
-  const s = ANATOMY.labelsFrom + n * ANATOMY.labelStep;
-  return Math.min(smooth(s, s + ANATOMY.labelFade, T), 1 - smooth(ANATOMY.labelsOut[0], ANATOMY.labelsOut[1], T));
+// Label visibility (0..1) for the n-th item of a track.
+export function trackAt(track, T, n) {
+  const tr = typeof track === 'string' ? TRACKS[track] : track;
+  const s = tr.from + n * tr.step;
+  return Math.min(smooth(s, s + tr.fade, T), 1 - smooth(tr.out[0], tr.out[1], T));
 }
 
 // Which section is "current" at T: the one whose panel covers most of the viewport.
@@ -212,7 +222,7 @@ export function backgroundAt(T) {
 export function colourIndexAt(T, count) {
   if (count < 2) return 0;
   const f = clamp01((T - START.colour) / pinOf('colour'));
-  return Math.min(count - 1, Math.floor(f * count * 0.999 + (T < START.colour ? 0 : 0)));
+  return Math.min(count - 1, Math.floor(f * count * 0.999));
 }
 
 // Copy (DOM text) tracks, used to build the GSAP master timeline. Times are absolute vh.
@@ -227,8 +237,9 @@ export function copyTrack(id) {
 
 // Brand finale tracks (letters rise one by one, star draws and spins, Devanagari line fades up).
 export const FINALE = {
-  letters: [START.finale - 45, START.finale + 55],
-  star: [START.finale - 60, START.finale + 45],
+  line: [START.finale - 80, START.finale - 10], // "Your adventure begins now."
+  letters: [START.finale - 40, START.finale + 55],
+  star: [START.finale - 55, START.finale + 45],
   sub: [START.finale + 40, START.finale + 80],
   settle: [START.finale + 70, TOTAL],
 };

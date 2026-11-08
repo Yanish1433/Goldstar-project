@@ -28,7 +28,7 @@ const T = { timeout: 15000 };
 describe('route smoke renders with the mock API', () => {
   it('/ renders the story copy when WebGL is missing', async () => {
     renderAt('/');
-    expect(await screen.findByRole('heading', { level: 1, name: /Built for every trail/i }, T)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: /Explore further/i }, T)).toBeInTheDocument();
   });
   it('/shop lists products', async () => {
     renderAt('/shop');

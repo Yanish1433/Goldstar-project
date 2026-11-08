@@ -3,9 +3,9 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { ContactShadows, Environment, Lightformer, PerformanceMonitor, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
-import { STORY_MODEL, LABEL_ORDER, partColours } from './model.config.js';
+import { STORY_MODEL, CALLOUTS, BADGES, partColours } from './model.config.js';
 import { buildParts, disposeParts } from './splitModel.js';
-import { labelAt, makePose, samplePose } from './storyline.js';
+import { trackAt, makePose, samplePose } from './storyline.js';
 import { live, touch, useStoryUi } from './state.js';
 
 const FOV = 30;
@@ -51,9 +51,10 @@ function StudioLights() {
 }
 
 const damp = (a, b, lambda, dt) => THREE.MathUtils.damp(a, b, lambda, dt);
-const EXPLODE_DELAY = { laces: 0, tongue: 0.07, upper: 0.14, insole: 0.2, midsole: 0.1, outsole: 0 };
+const EXPLODE_DELAY = { collar: 0, tongue: 0.05, laces: 0.1, upper: 0.14, insole: 0.2, midsole: 0.1, outsole: 0 };
+const LABEL_SETS = [['callouts', CALLOUTS], ['badges', BADGES]];
 
-function ShoeRig({ url, colourways, onReady, shadowRef, tier }) {
+function ShoeRig({ url, onReady, shadowRef }) {
   const gltf = useGLTF(url, false, true);
   const built = useMemo(() => buildParts(gltf.scene, STORY_MODEL), [gltf]);
   const rig = useRef();
@@ -68,8 +69,7 @@ function ShoeRig({ url, colourways, onReady, shadowRef, tier }) {
 
   // Target colours per part for the current colourway.
   useEffect(() => {
-    const cw = colourways.find((c) => c.key === colourKey) || colourways[0];
-    const pc = partColours(cw?.key, cw?.hex);
+    const pc = partColours(colourKey);
     Object.entries(built.parts).forEach(([name, p]) => {
       const [d, l] = pc[name] || pc.upper;
       tmp.target[name] = [new THREE.Color(d), new THREE.Color(l)];
@@ -80,9 +80,10 @@ function ShoeRig({ url, colourways, onReady, shadowRef, tier }) {
     });
     tmp.first = false;
     touch();
-  }, [colourKey, colourways, built, tmp]);
+  }, [colourKey, built, tmp]);
 
   useLayoutEffect(() => {
+    if (shadowRef.current) shadowRef.current.position.y = -built.size.y / 2 - 0.01; // floor under the boot
     onReady?.();
     touch();
     return () => disposeParts(built);
@@ -109,7 +110,7 @@ function ShoeRig({ url, colourways, onReady, shadowRef, tier }) {
     const bh = pose.h * H;
     const m = pose.fill * Math.min(bw, bh) * (1 + (s.zoom - 1) * k);
     const t = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
-    const d = (pose.R * H) / (m * t);
+    const d = (pose.R * (STORY_MODEL.frame || 1) * H) / (m * t);
     const el = pose.el + s.pitch * k;
     camera.position.set(Math.sin(pose.az) * Math.cos(el) * d, Math.sin(el) * d, Math.cos(pose.az) * Math.cos(el) * d);
     camera.lookAt(0, 0, 0);
@@ -171,70 +172,73 @@ function ShoeRig({ url, colourways, onReady, shadowRef, tier }) {
 }
 
 const _ndc = new THREE.Vector3();
+// Label cards (callouts on the assembled boot, badges on the exploded stack): project each anchor and lay the
+// cards out in a column right of the stage (desktop); phones show numbered dots only (legend in the copy).
 function positionLabels(built, rigGroup, camera, W, H, layout, v) {
   const L = live.labels;
   if (!L) return;
   const T = live.T;
-  const items = [];
-  LABEL_ORDER.forEach((name, n) => {
-    const el = L.items[name];
-    const p = built.parts[name];
-    if (!el || !p) return;
-    const vis = labelAt(T, n);
-    if (vis <= 0.001) {
-      if (el.shown) {
-        el.root.style.opacity = '0';
-        el.root.style.visibility = 'hidden';
-        el.shown = false;
-      }
-      return;
-    }
-    rigGroup.updateMatrixWorld();
-    v.copy(p.anchor);
-    p.group.localToWorld(v);
-    _ndc.copy(v).project(camera);
-    items.push({ name, el, vis, x: ((_ndc.x + 1) / 2) * W, y: ((1 - _ndc.y) / 2) * H, n });
-  });
-  if (!items.length) return;
   const phone = layout === 'phone';
-  // Cards: a column right of the stage on desktop, sorted by anchor height, at least `gap` apart.
-  const colX = W * 0.775;
-  const gap = 66;
-  const sorted = [...items].sort((a, b) => a.y - b.y);
-  if (!phone) {
-    let y = H * 0.16;
+  rigGroup.updateMatrixWorld();
+  LABEL_SETS.forEach(([setKey, list]) => {
+    const els = L[setKey];
+    if (!els) return;
+    const items = [];
+    list.forEach((item, n) => {
+      const el = els[item.key];
+      const p = built.parts[item.part];
+      if (!el || !p) return;
+      const vis = trackAt(setKey, T, n);
+      if (vis <= 0.001) {
+        if (el.shown) {
+          el.root.style.opacity = '0';
+          el.root.style.visibility = 'hidden';
+          el.shown = false;
+        }
+        return;
+      }
+      v.set(item.anchor[0] * p.half.x, item.anchor[1] * p.half.y, item.anchor[2] * p.half.z);
+      p.group.localToWorld(v);
+      _ndc.copy(v).project(camera);
+      items.push({ el, vis, x: ((_ndc.x + 1) / 2) * W, y: ((1 - _ndc.y) / 2) * H });
+    });
+    if (!items.length) return;
+    const colX = W * 0.775;
+    const gap = setKey === 'badges' ? 96 : 76;
+    const sorted = [...items].sort((a, b) => a.y - b.y);
+    let y = H * 0.18;
     sorted.forEach((it) => {
       it.cy = Math.max(it.y, y);
       y = it.cy + gap;
     });
-    const over = sorted.length ? sorted[sorted.length - 1].cy - H * 0.9 : 0;
+    const over = sorted[sorted.length - 1].cy - H * 0.88;
     if (over > 0) sorted.forEach((it) => (it.cy -= over));
-  }
-  items.forEach(({ el, vis, x, y, cy }) => {
-    const r = el.root.style;
-    if (!el.shown) {
-      r.visibility = 'visible';
-      el.shown = true;
-    }
-    r.opacity = String(vis);
-    el.dot.style.transform = `translate(${x}px, ${y}px) scale(${0.4 + 0.6 * vis})`;
-    if (phone) {
-      el.card.style.display = 'none';
-      el.line.style.display = 'none';
-      return;
-    }
-    el.card.style.display = '';
-    el.line.style.display = '';
-    el.card.style.transform = `translate(${colX + (1 - vis) * 16}px, ${cy}px) translateY(-50%)`;
-    const ex = colX - 36;
-    el.line.setAttribute('d', `M${x.toFixed(1)} ${y.toFixed(1)} L${ex.toFixed(1)} ${cy.toFixed(1)} L${(colX - 10).toFixed(1)} ${cy.toFixed(1)}`);
-    const len = Math.hypot(ex - x, cy - y) + (colX - 10 - ex);
-    el.line.style.strokeDasharray = `${len} ${len}`;
-    el.line.style.strokeDashoffset = String(len * (1 - Math.min(1, vis * 1.4)));
+    items.forEach(({ el, vis, x, y: ay, cy }) => {
+      const r = el.root.style;
+      if (!el.shown) {
+        r.visibility = 'visible';
+        el.shown = true;
+      }
+      r.opacity = String(vis);
+      el.dot.style.transform = `translate(${x}px, ${ay}px) scale(${0.4 + 0.6 * vis})`;
+      if (phone) {
+        el.card.style.display = 'none';
+        el.line.style.display = 'none';
+        return;
+      }
+      el.card.style.display = '';
+      el.line.style.display = '';
+      el.card.style.transform = `translate(${colX + (1 - vis) * 16}px, ${cy}px) translateY(-50%)`;
+      const ex = colX - 36;
+      el.line.setAttribute('d', `M${x.toFixed(1)} ${ay.toFixed(1)} L${ex.toFixed(1)} ${cy.toFixed(1)} L${(colX - 10).toFixed(1)} ${cy.toFixed(1)}`);
+      const len = Math.hypot(ex - x, cy - ay) + (colX - 10 - ex);
+      el.line.style.strokeDasharray = `${len} ${len}`;
+      el.line.style.strokeDashoffset = String(len * (1 - Math.min(1, vis * 1.4)));
+    });
   });
 }
 
-export default function Stage({ colourways, rootRef }) {
+export default function Stage({ rootRef }) {
   const tier = useStoryUi((s) => s.tier);
   const reduced = useStoryUi((s) => s.reduced);
   const [dpr, setDpr] = useState(tier === 'lite' ? [1, 1.25] : [1, 1.5]);
@@ -287,8 +291,6 @@ export default function Stage({ colourways, rootRef }) {
         <Suspense fallback={null}>
           <ShoeRig
             url={url}
-            tier={tier}
-            colourways={colourways}
             shadowRef={shadowRef}
             onReady={() => {
               setReady(true);

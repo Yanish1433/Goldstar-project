@@ -20,12 +20,13 @@ export default function Footer() {
             <Link component={RouterLink} to="/shop" sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>Shop all</Link>
             <Link component={RouterLink} to="/#story-anatomy" sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center' }}>Technology</Link>
             <ExternalLink href="https://goldstarshoes.com/about/">About Goldstar</ExternalLink>
-            <ExternalLink href="https://goldstarshoes.com/stores/">Stores</ExternalLink>
+            <ExternalLink href="https://goldstarshoes.com/stores/">Locations</ExternalLink>
             <Link href="#credits" onClick={(e) => { e.preventDefault(); document.getElementById('credits')?.scrollIntoView({ block: 'start' }); }} sx={{ minHeight: 44, display: 'inline-flex', alignItems: 'center', color: 'text.secondary' }}>Credits</Link>
           </Reveal>
           <Reveal id="credits" delay={0.14} sx={{ scrollMarginTop: 160, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: '62ch' }}>
+            <Typography variant="body1" color="text.primary">3D boot on the home page: the G10-401, reconstructed from Goldstar product photography.</Typography>
             <Typography variant="body1" color="text.primary">
-              3D shoe: &lsquo;{c.title}&rsquo; &copy; {c.year} {c.author}, licensed{' '}
+              3D shoe on product pages: &lsquo;{c.title}&rsquo; &copy; {c.year} {c.author}, licensed{' '}
               <Link href={c.licenceUrl} target="_blank" rel="noopener noreferrer">{c.licence}</Link>, from the{' '}
               <Link href={c.source} target="_blank" rel="noopener noreferrer">Khronos glTF Sample Assets</Link>. Recoloured and compressed. Logos and trademarks excluded. The 3D model is a stand-in sneaker, not the Goldstar G10-401.
             </Typography>
