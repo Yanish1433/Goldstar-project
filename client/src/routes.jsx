@@ -49,6 +49,7 @@ export const routes = [
               { path: 'products/:id', lazy: lazyPage(() => import('./pages/admin/AdminProductEdit.jsx')) },
               { path: 'orders', lazy: lazyPage(() => import('./pages/admin/AdminOrders.jsx')) },
               { path: 'orders/:id', lazy: lazyPage(() => import('./pages/admin/AdminOrder.jsx')) },
+              { path: 'orders/:id/slip', lazy: lazyPage(() => import('./pages/admin/AdminOrderSlip.jsx')) },
               { path: 'customers', lazy: lazyPage(() => import('./pages/admin/AdminCustomers.jsx')) },
               { path: 'customers/:id', lazy: lazyPage(() => import('./pages/admin/AdminCustomer.jsx')) },
               { path: 'settings', lazy: lazyPage(() => import('./pages/admin/AdminSettings.jsx')) },
