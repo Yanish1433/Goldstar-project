@@ -3,6 +3,8 @@ import { useUi } from '../src/store/ui.js';
 import { useCart } from '../src/store/cart.js';
 import { playAddToCart, addToCartAnimated, makeLine } from '../src/lib/addToCart.js';
 import { sampleBox, BOX_T, LID_OPEN, makeParticleLayout } from '../src/three/boxTimeline.js';
+import { disposeShoe } from '../src/three/shoeDispose.js';
+import { fitBox, rotatedHalf, bootLocalPose, LYING } from '../src/three/boxFit.js';
 
 const product = { id: 'p1', slug: 'g10-401', name: 'G10-401' };
 const colourway = { key: 'olive', name: 'Olive', price: 2775, images: [] };
@@ -67,7 +69,7 @@ describe('box timeline', () => {
   });
   it('total runs about 2s', () => {
     expect(BOX_T.end).toBeGreaterThanOrEqual(1800);
-    expect(BOX_T.end).toBeLessThanOrEqual(2100);
+    expect(BOX_T.end).toBeLessThanOrEqual(2400);
   });
   it('particles form, then crossfade into the solid box before the lid closes', () => {
     expect(sampleBox(0).form).toBe(0);
@@ -84,6 +86,7 @@ describe('box timeline', () => {
     const mid = sampleBox((BOX_T.solidStart + BOX_T.solidEnd) / 2);
     expect(mid.solid + mid.pfade).toBeCloseTo(1);
     expect(BOX_T.solidEnd).toBeLessThanOrEqual(BOX_T.lidStart);
+    expect(BOX_T.formEnd).toBeLessThanOrEqual(520);
     expect(sampleBox(BOX_T.solidStart).lid).toBe(LID_OPEN);
   });
   it('particle layout is deterministic and on the box surface', () => {
@@ -100,5 +103,71 @@ describe('box timeline', () => {
       const onFace = Math.abs(Math.abs(x) - 1.2) < 1e-6 || Math.abs(Math.abs(z) - 0.7) < 1e-6 || y < 1e-6 || Math.abs(y - 1) < 1e-6;
       expect(onFace).toBe(true);
     }
+  });
+});
+
+describe('boot fits the box', () => {
+  const size = [3, 2.16, 1.34]; // normalised G10-401: length, height, width
+  const fit = fitBox(size);
+
+  it('box is sized from the boot: inner length = boot + 8%', () => {
+    expect(fit.inner.L / size[0]).toBeCloseTo(1.08);
+    expect(fit.outer.L).toBeGreaterThan(fit.inner.L);
+  });
+  it('lying boot AABB at settle is inside the inner box', () => {
+    const half = rotatedHalf(size, [LYING, 0, 0]);
+    expect(half[0]).toBeCloseTo(size[0] / 2);
+    expect(half[1]).toBeCloseTo(size[2] / 2); // width became height
+    expect(half[2]).toBeCloseTo(size[1] / 2); // height became depth
+    expect(half[0]).toBeLessThan(fit.inner.L / 2);
+    expect(half[2]).toBeLessThan(fit.inner.Z / 2);
+    expect(fit.restCY - half[1]).toBeGreaterThanOrEqual(fit.floorTop - 1e-9);
+    expect(fit.restCY + half[1]).toBeLessThan(fit.flapY); // flaps and lid close above the boot
+  });
+  it('never clips a wall: whenever any part is below the rim the boot is inside the inner footprint', () => {
+    for (let t = BOX_T.arcEnd; t <= BOX_T.flapEnd; t += 4) {
+      const p = bootLocalPose(sampleBox(t), fit);
+      const h = rotatedHalf(size, p.rot);
+      if (p.cy - h[1] < fit.rim) {
+        expect(h[0]).toBeLessThanOrEqual(fit.inner.L / 2);
+        expect(h[2]).toBeLessThanOrEqual(fit.inner.Z / 2);
+      }
+      expect(p.cy - h[1]).toBeGreaterThanOrEqual(fit.floorTop - 1e-6);
+      if (t >= BOX_T.flapStart) expect(p.cy + h[1]).toBeLessThan(fit.flapY);
+    }
+  });
+  it('boot is lying before it reaches the rim; flaps fold before the lid drops', () => {
+    expect(sampleBox(BOX_T.lieEnd).lie).toBe(1);
+    expect(sampleBox(BOX_T.dropEnd).drop).toBe(1);
+    expect(BOX_T.flapEnd).toBeLessThanOrEqual(BOX_T.lidStart);
+    expect(sampleBox(BOX_T.flapEnd).flapA).toBe(1);
+    expect(sampleBox(BOX_T.flapEnd).flapB).toBe(1);
+    expect(sampleBox(BOX_T.lidStart).lid).toBe(LID_OPEN);
+    expect(sampleBox(BOX_T.lidEnd).lid).toBeCloseTo(0, 5);
+  });
+});
+
+describe('shared GLB cache is never torn down by the overlay', () => {
+  const make = () => {
+    const geo = { dispose: vi.fn() };
+    const tex = { isTexture: true, dispose: vi.fn() };
+    const mat = { dispose: vi.fn() };
+    const scene = { traverse: (fn) => fn({ isMesh: true, geometry: geo, material: { map: tex } }) };
+    return { geo, tex, mat, scene, clear: vi.fn() };
+  };
+  it('shared: only its own cloned materials are disposed; cache and shared geometry/textures stay', () => {
+    const x = make();
+    disposeShoe({ ownMaterials: [x.mat], gltfScene: x.scene, clearCache: x.clear, shared: true });
+    expect(x.mat.dispose).toHaveBeenCalled();
+    expect(x.clear).not.toHaveBeenCalled();
+    expect(x.geo.dispose).not.toHaveBeenCalled();
+    expect(x.tex.dispose).not.toHaveBeenCalled();
+  });
+  it('exclusive (product viewer): releases everything', () => {
+    const x = make();
+    disposeShoe({ ownMaterials: [x.mat], gltfScene: x.scene, clearCache: x.clear, shared: false });
+    expect(x.clear).toHaveBeenCalled();
+    expect(x.geo.dispose).toHaveBeenCalled();
+    expect(x.tex.dispose).toHaveBeenCalled();
   });
 });

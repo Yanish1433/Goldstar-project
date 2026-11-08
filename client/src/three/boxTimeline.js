@@ -5,20 +5,24 @@
 import { cubicBezier } from './flight.js';
 
 export const BOX_T = {
-  pop: 300, // box group eases to full size
+  pop: 200,
   arcStart: 40,
-  arcEnd: 680, // shoe reaches the hover point above the box
-  formStart: 120, // particles start converging
-  formEnd: 980, // ...and have settled on the box edges/faces
-  dropEnd: 900, // shoe has hit the bottom of the box
-  bounceEnd: 1040,
-  solidStart: 860, // crossfade particles -> solid box
-  solidEnd: 1160,
-  lidStart: 1180,
-  lidEnd: 1460, // lid shut
-  flyStart: 1500,
-  flyEnd: 1920, // box reaches the cart icon: onLand fires here
-  end: 2000,
+  arcEnd: 760, // boot reaches the hover point above the open box
+  formStart: 0, // sparkles converge on the box outline (quick: the fitting is the hero moment)
+  formEnd: 500,
+  solidStart: 380, // crossfade sparkles -> solid box
+  solidEnd: 640,
+  lieStart: 340, // boot rotates to its lying pose (done while still above the rim)
+  lieEnd: 860,
+  dropEnd: 1020, // boot has landed on the tissue
+  bounceEnd: 1170, // small settle
+  flapStart: 1200, // two tissue flaps fold over the boot
+  flapEnd: 1500,
+  lidStart: 1520, // lid drops shut, with a soft double bounce
+  lidEnd: 1830,
+  flyStart: 1880,
+  flyEnd: 2270, // box reaches the cart icon: onLand fires here
+  end: 2360,
 };
 
 export const LID_OPEN = -1.95; // radians about the hinge at the back top edge (negative = front edge lifts)
@@ -35,7 +39,7 @@ const easeOutBack = (x) => {
 export const easeFly = cubicBezier(0.45, 0, 0.7, 0.25);
 
 export function makeBoxSample() {
-  return { t: 0, pop: 0, arc: 0, drop: 0, bounce: 0, impact: 0, form: 0, solid: 0, pfade: 1, lid: LID_OPEN, fly: 0, landed: false, done: false, shoeVisible: true, opacity: 1 };
+  return { t: 0, pop: 0, arc: 0, drop: 0, bounce: 0, impact: 0, lie: 0, flapA: 0, flapB: 0, form: 0, solid: 0, pfade: 1, lid: LID_OPEN, fly: 0, landed: false, done: false, shoeVisible: true, opacity: 1 };
 }
 
 export function sampleBox(t, out = makeBoxSample()) {
@@ -49,11 +53,20 @@ export function sampleBox(t, out = makeBoxSample()) {
   out.bounce = Math.sin(Math.PI * bu) * (1 - bu) * (t >= T.dropEnd ? 1 : 0); // one small damped hop
   const iu = clamp01((t - T.dropEnd) / 160);
   out.impact = t < T.dropEnd ? 0 : Math.sin(Math.PI * iu) * (1 - iu);
+  out.lie = easeInOutCubic(clamp01((t - T.lieStart) / (T.lieEnd - T.lieStart)));
+  out.flapA = easeInOutCubic(clamp01((t - T.flapStart) / 220));
+  out.flapB = easeInOutCubic(clamp01((t - T.flapStart - 90) / 210));
   out.form = easeOutCubic(clamp01((t - T.formStart) / (T.formEnd - T.formStart)));
   out.solid = easeInOutCubic(clamp01((t - T.solidStart) / (T.solidEnd - T.solidStart)));
   out.pfade = 1 - out.solid; // particle alpha
+  // Lid falls shut under gravity (open -> 0 with ~t^2), then hops twice, smaller each time.
   const lu = clamp01((t - T.lidStart) / (T.lidEnd - T.lidStart));
-  out.lid = LID_OPEN * (1 - easeInOutCubic(lu)) + (lu > 0.92 ? 0.05 * Math.sin(Math.PI * ((lu - 0.92) / 0.08)) : 0);
+  const FALL = 0.6;
+  if (lu < FALL) out.lid = LID_OPEN * (1 - (lu / FALL) ** 2);
+  else {
+    const v = (lu - FALL) / (1 - FALL);
+    out.lid = -0.3 * Math.abs(Math.sin(2 * Math.PI * v)) * (1 - v) ** 1.2;
+  }
   out.fly = easeFly(clamp01((t - T.flyStart) / (T.flyEnd - T.flyStart)));
   out.landed = t >= T.flyEnd;
   out.done = t >= T.end;
