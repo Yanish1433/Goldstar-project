@@ -24,6 +24,14 @@ function LazyCart() {
   ) : null;
 }
 
+const BoxIntoCart = lazy(() => import('../three/BoxIntoCart.jsx'));
+
+// The overlay chunk loads the first time an add-to-cart animation is requested.
+function CartBoxHost() {
+  const active = useUi((s) => !!s.cartBox);
+  return active ? <Suspense fallback={null}><BoxIntoCart /></Suspense> : null;
+}
+
 const RouteTransition = lazy(() => import('./RouteTransition.jsx'));
 
 function Toasts() {
@@ -103,6 +111,7 @@ export default function Layout() {
       </Box>
       <Footer />
       <CartDrawer />
+      <CartBoxHost />
       <Toasts />
       <Announcer />
       <ScrollRestoration getKey={(l) => l.pathname + l.search} />

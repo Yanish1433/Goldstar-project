@@ -2,12 +2,12 @@ import { forwardRef, useEffect, useRef, useState } from 'react';
 import { Link as RouterLink } from 'react-router';
 import Box from '@mui/material/Box';
 import { Minus, Plus, RotateCcw, ArrowDown, MoveHorizontal, Droplets, Layers } from 'lucide-react';
-import { PALETTE, SECTIONS } from './storyline.js';
+import { PALETTE, SECTIONS, samplePose } from './storyline.js';
 import { STORY_MODEL, LABEL_ORDER, CALLOUTS, BADGES, COLOURWAYS, colourwayOf } from './model.config.js';
 import { live, touch, useStoryUi } from './state.js';
 import { scrollToSection } from './useStoryEngine.js';
 import { formatNPR } from '../lib/format.js';
-import { makeLine, addToCartNow } from '../lib/addToCart.js';
+import { makeLine, addToCartAnimated } from '../lib/addToCart.js';
 
 const pal = (id) => PALETTE[SECTIONS.find((s) => s.id === id).colour];
 const WIDE = { fontVariationSettings: '"wdth" 112', fontStretch: '112%' };
@@ -151,14 +151,19 @@ function SwatchRow({ value, onPick, ink, label = 'Colour', compact }) {
   );
 }
 
-// Add to cart from the story. `source` is the button (the cart-box animation starts from it).
-function addFromStory(product, display, size, source) {
+// Add to cart from the story: the cart-box animation (fm/cart-box) starts from the boot's current stage box,
+// so the box forms around the 3D boot and flies to the cart icon.
+function stageRect() {
+  const pose = samplePose(live.T, useStoryUi.getState().layout);
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  const s = Math.min(pose.w * W, pose.h * H) * pose.fill * 0.8;
+  return { left: pose.cx * W - s / 2, top: pose.cy * H - s / 2, width: s, height: s, right: pose.cx * W + s / 2, bottom: pose.cy * H + s / 2, x: pose.cx * W - s / 2, y: pose.cy * H - s / 2 };
+}
+function addFromStory(product, display, size) {
   const real = productColour(product, display);
   if (!product || !real) return false;
-  const line = makeLine(product, real, size, 1);
-  // TODO(fm/cart-box): replaced by addToCartAnimated once that branch is merged.
-  void source;
-  addToCartNow(line);
+  addToCartAnimated(makeLine(product, real, size, 1), { sourceRect: stageRect() });
   return true;
 }
 
@@ -406,7 +411,7 @@ export function StudioSection({ product }) {
       setErr(true);
       return;
     }
-    addFromStory(product, display, size, addRef.current);
+    addFromStory(product, display, size);
   };
   const iconBtn = { width: 44, height: 44, borderRadius: '50%', border: `2px solid ${p.ink}`, background: 'transparent', color: p.ink, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', '&:focus-visible': { outline: `3px solid ${p.ink}`, outlineOffset: 2 } };
   return (
