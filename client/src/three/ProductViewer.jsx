@@ -36,7 +36,8 @@ function Hotspot({ spot, onSelect, wrapRef }) {
         <Box component="span" sx={{ width: 44, height: 44, display: 'grid', placeItems: 'center' }}>
           <Box component="span" sx={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: tokens.gold, boxShadow: `0 0 0 3px ${tokens.onGold}` }} />
         </Box>
-        <Box component="span" sx={{ backgroundColor: tokens.surface1, px: 1, py: 0.5 }}>{spot.title}</Box>
+        {/* Phones: dots only (labels would overlap at this size); the name is on the button and in the popover. */}
+        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' }, backgroundColor: tokens.surface1, px: 1, py: 0.5 }}>{spot.title}</Box>
       </Box>
     </Html>
   );
