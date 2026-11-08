@@ -52,6 +52,9 @@ export const theme = createTheme({
         body: { backgroundColor: t.ground, color: t.ink, WebkitFontSmoothing: 'antialiased', MozOsxFontSmoothing: 'grayscale', overflowX: 'clip' },
         '::selection': { backgroundColor: t.gold, color: t.onGold },
         ':focus-visible': { outline: `2px solid ${t.goldLight}`, outlineOffset: 2 },
+        // Headings only receive focus programmatically (RouteTransition moves focus to the page h1 for screen readers):
+        // no ring on those, they are not controls.
+        '[tabindex="-1"]:focus, [tabindex="-1"]:focus-visible': { outline: 'none' },
         'img, svg, canvas': { display: 'block' },
         'input:-webkit-autofill': { WebkitBoxShadow: `0 0 0 100px ${t.surface2} inset`, WebkitTextFillColor: t.ink, caretColor: t.ink },
         '@media (prefers-reduced-motion: reduce)': {
