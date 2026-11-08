@@ -12,18 +12,10 @@ export default defineConfig({
   server: { port: 5173, strictPort: true, proxy },
   preview: { port: 4173, strictPort: true, proxy },
   build: {
-    // three.js is one ~700 kB module graph: split it from react-three/drei so no chunk passes the limit.
-    chunkSizeWarningLimit: 800,
-    rolldownOptions: {
-      output: {
-        codeSplitting: {
-          groups: [
-            { name: 'three', test: /node_modules[\\/]three[\\/]/ },
-            { name: 'r3f', test: /node_modules[\\/](@react-three|three-stdlib|three-mesh-bvh|troika|maath|camera-controls)/ },
-          ],
-        },
-      },
-    },
+    // The 3D chunk (three + react-three + drei, ~1.05 MB / 285 kB gzip) is one lazy chunk that only 3D routes load,
+    // after first paint. Manual chunk groups were tried and rejected: they pulled shared modules (react, zustand) into
+    // the 3D chunks and so preloaded three.js on every page.
+    chunkSizeWarningLimit: 1100,
   },
   test: { environment: 'jsdom', globals: true, setupFiles: ['./test/setup.js'], testTimeout: 20000 },
 });

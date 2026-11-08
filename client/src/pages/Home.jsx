@@ -75,16 +75,22 @@ export default function Home() {
 
   useStoryEngine({ rootRef, bgRef, reduced: flow, onTime: (T) => onTimeRef.current?.(T) });
 
-  // The canvas mounts after the first paint (idle), so the copy is the first thing on screen.
+  // The canvas mounts after the first paint (idle) and, on a first visit, after the loader has wiped away (its GLB
+  // download is already done by then), so WebGL setup never stutters the loader. The hero poster covers the wait.
   useEffect(() => {
     if (tier === 'static') return undefined;
-    const go = () => setMountStage(true);
-    if ('requestIdleCallback' in window) {
-      const id = window.requestIdleCallback(go, { timeout: 800 });
-      return () => window.cancelIdleCallback(id);
-    }
-    const t = setTimeout(go, 200);
-    return () => clearTimeout(t);
+    let id = null;
+    const idle = () => {
+      if ('requestIdleCallback' in window) id = window.requestIdleCallback(() => setMountStage(true), { timeout: 800 });
+      else id = setTimeout(() => setMountStage(true), 200);
+    };
+    const loading = window.gsLoader && !window.gsLoader.done && document.getElementById('gs-loader');
+    if (loading) window.addEventListener('gs:loader-done', idle, { once: true });
+    else idle();
+    return () => {
+      window.removeEventListener('gs:loader-done', idle);
+      if (id != null) ('cancelIdleCallback' in window ? window.cancelIdleCallback(id) : clearTimeout(id));
+    };
   }, [tier]);
 
   // Hero copy arrives on load (time-based, once). Reduced motion: no movement.

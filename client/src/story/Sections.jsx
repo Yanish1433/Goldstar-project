@@ -336,6 +336,7 @@ function Rail({ product, display, ink }) {
   return (
     <Box
       data-copy
+      role="group"
       aria-label={`Photos of the G10-401 in ${real.name}`}
       sx={{ display: 'flex', flexDirection: { xs: 'row', md: 'column' }, gap: 1, position: { md: 'absolute' }, left: { md: '-112px' }, top: { md: '50%' }, mt: { md: '-170px' } }}
     >

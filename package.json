@@ -2,15 +2,22 @@
   "name": "goldstar-3d",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24" },
-  "workspaces": ["server", "client"],
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "server",
+    "client"
+  ],
   "scripts": {
     "dev": "concurrently -k -n server,client -c yellow,cyan \"npm run dev -w server\" \"npm run dev -w client\"",
+    "demo": "npm run build && npm run preview -w client",
     "build": "npm run build -w client",
     "start": "npm run start -w server",
     "seed": "npm run seed -w server --",
-    "test": "npm run test -w server && npm run test -w client",
-    "model": "npm run model -w client"
+    "test": "npm run test -w server && npm run test -w client"
   },
-  "devDependencies": { "concurrently": "^9" }
+  "devDependencies": {
+    "concurrently": "^9"
+  }
 }
