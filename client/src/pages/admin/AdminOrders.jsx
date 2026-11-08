@@ -185,7 +185,7 @@ export default function AdminOrders() {
               value={s}
               label={(
                 <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
-                  {s === 'all' ? 'All' : statusLabel(s)}
+                  {s === 'all' ? 'All' : statusLabel(s)}{' '}
                   <Box component="span" sx={(th) => ({ fontSize: 12, fontWeight: 700, px: 0.75, minWidth: 22, borderRadius: 999, backgroundColor: status === s ? th.admin.accentWash : th.admin.sunk, color: status === s ? th.admin.accentText : th.admin.ink2, fontVariantNumeric: 'tabular-nums', lineHeight: '20px' })}>
                     {counts ? counts[s] ?? 0 : '–'}
                   </Box>
