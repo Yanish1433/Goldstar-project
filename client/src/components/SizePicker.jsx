@@ -17,7 +17,7 @@ const SizePicker = forwardRef(function SizePicker({ sizes, allSizes, value, onCh
           UK size{value ? <Box component="span" sx={{ fontWeight: 500, color: shop.ink2 }}>{`: ${value}`}</Box> : null}
         </Typography>
         {onGuide ? (
-          <Box component="button" type="button" onClick={onGuide} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, minHeight: 44, px: 0.5, border: 0, background: 'none', cursor: 'pointer', font: 'inherit', fontSize: 14, fontWeight: 700, color: shop.ink, textDecoration: 'underline', textUnderlineOffset: 4, textDecorationThickness: 1.5 }}>
+          <Box component="button" type="button" onClick={onGuide} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, minHeight: 44, px: 0.5, border: 0, borderRadius: '8px', background: 'none', cursor: 'pointer', font: 'inherit', fontSize: 14, fontWeight: 700, color: shop.ink, textDecoration: 'underline', textUnderlineOffset: 4, textDecorationThickness: 1.5 }}>
             <Ruler size={16} strokeWidth={2} aria-hidden="true" /> Size guide
           </Box>
         ) : null}
