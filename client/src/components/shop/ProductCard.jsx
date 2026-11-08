@@ -17,6 +17,11 @@ const EASE = [0.22, 1, 0.36, 1];
 export default function ProductCard({ p, index = 0, eager = false, sizes = '(min-width:1200px) 30vw, (min-width:900px) 33vw, 50vw' }) {
   const firstKey = (p.colourways.find((c) => c.inStock) || p.colourways[0])?.key;
   const [key, setKey] = useState(firstKey);
+  const [swapped, setSwapped] = useState(false); // crossfade only after a swatch tap, not on first paint
+  const pick = (k) => {
+    setSwapped(true);
+    setKey(k);
+  };
   const colour = p.colourways.find((c) => c.key === key) || p.colourways[0];
   const hover = colour?.secondImage || null;
   const photoRef = useRef(null);
@@ -55,7 +60,7 @@ export default function ProductCard({ p, index = 0, eager = false, sizes = '(min
         }}
       >
         <Box ref={photoRef} className="tile" sx={{ position: 'relative', borderRadius: `${shop.radius.lg}px`, overflow: 'hidden', backgroundColor: shop.tile }}>
-          <ProductPhoto key={colour?.key} image={colour?.image} alt={`${p.name} in ${colour?.name}`} hoverImage={hover} eager={eager} sizes={sizes} sx={{ aspectRatio: '4 / 5', '& > img': { p: { xs: 1, md: 2 }, boxSizing: 'border-box' } }} />
+          <ProductPhoto key={colour?.key} image={colour?.image} alt={`${p.name} in ${colour?.name}`} hoverImage={hover} eager={eager} sizes={sizes} sx={{ aspectRatio: '4 / 5', '& > img': { p: { xs: 1, md: 2 }, boxSizing: 'border-box' }, ...(swapped ? { '& > img:first-of-type': { animation: 'gsFade 320ms cubic-bezier(0.22,1,0.36,1)' } } : null) }} />
           {badges.length ? (
             <Box sx={{ position: 'absolute', top: { xs: 10, sm: 14 }, left: { xs: 10, sm: 14 }, display: 'flex', flexWrap: 'wrap', gap: 0.75, maxWidth: 'calc(100% - 72px)', '& > :nth-of-type(n+2)': { display: { xs: 'none', sm: 'inline-flex' } } }}>
               {badges.map((b) => <ShopBadge key={b} kind={b} />)}
@@ -71,7 +76,7 @@ export default function ProductCard({ p, index = 0, eager = false, sizes = '(min
         </Box>
       </Box>
       <Box sx={{ px: 0.5, mt: 0.5, minHeight: 36, display: 'flex', alignItems: 'center' }}>
-        <CardSwatches product={p} value={colour?.key} onChange={setKey} />
+        <CardSwatches product={p} value={colour?.key} onChange={pick} />
       </Box>
       <QuickAdd product={p} photoRef={photoRef} colourKey={colour?.key} />
     </Box>

@@ -160,7 +160,7 @@ function Gallery({ images, index, setIndex, alt, onZoom, top }) {
       <Box sx={{ flex: 1, minWidth: 0 }}>
         {/* Desktop: one big photo with arrows */}
         <Box sx={{ ...tile, display: { xs: 'none', md: 'block' } }}>
-          <ProductPhoto key={main?.src} image={main} alt={main?.alt || alt} eager sizes="(min-width:900px) 55vw, 100vw" onClick={onZoom} sx={{ cursor: 'zoom-in', '& > img': { p: 3, boxSizing: 'border-box', animation: 'gsFade 360ms cubic-bezier(0.22,1,0.36,1)' }, '@keyframes gsFade': { from: { opacity: 0 }, to: { opacity: 1 } } }} />
+          <ProductPhoto key={main?.src} image={main} alt={main?.alt || alt} eager sizes="(min-width:900px) 55vw, 100vw" onClick={onZoom} sx={{ cursor: 'zoom-in', '& > img': { p: 3, boxSizing: 'border-box' }, '& > img:first-of-type': { animation: 'gsFade 360ms cubic-bezier(0.22,1,0.36,1)' } }} />
           {top}
           {images.length > 1 ? (
             <Box sx={{ position: 'absolute', right: 16, bottom: 16, display: 'flex', gap: 1 }}>

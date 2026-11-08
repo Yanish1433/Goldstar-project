@@ -65,6 +65,8 @@ const lightGlobals = (
       '::selection': { backgroundColor: shop.blue, color: '#FFFFFF' },
       ':focus-visible': { outline: `3px solid ${shop.blue}`, outlineOffset: 2 },
       'input:-webkit-autofill': { WebkitBoxShadow: `0 0 0 100px ${shop.surface} inset`, WebkitTextFillColor: shop.ink, caretColor: shop.ink },
+      '@keyframes gsFade': { from: { opacity: 0 }, to: { opacity: 1 } },
+      '@keyframes gsRise': { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'none' } },
     }}
   />
 );

@@ -7,6 +7,7 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Alert from '@mui/material/Alert';
 import { ArrowRight, Lock, ShoppingBag, X } from 'lucide-react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useCart, lineId, cartSubtotal, cartCount } from '../store/cart.js';
 import { useUi } from '../store/ui.js';
 import { useQuote } from '../api/hooks.js';
@@ -26,6 +27,7 @@ export default function CartDrawer() {
   const count = useCart(cartCount);
   const navigate = useNavigate();
   const [priceChanged, setPriceChanged] = useState(false);
+  const reduced = useReducedMotion();
 
   const items = useMemo(() => lines.map((l) => ({ productId: l.productId, colourwayKey: l.colourwayKey, size: l.size, qty: l.qty })), [lines]);
   // Re-price from the server whenever the drawer opens (queryKey changes with the lines; staleTime 0).
@@ -77,11 +79,21 @@ export default function CartDrawer() {
       ) : (
         <>
           <Box component="ul" aria-label="Items in your cart" sx={{ listStyle: 'none', m: 0, flex: 1, overflowY: 'auto', px: 3, py: 1 }}>
+            <AnimatePresence initial={false}>
             {lines.map((l, i) => {
               const id = lineId(l);
               const prob = problemFor(i);
               return (
-                <Box component="li" key={id} sx={{ display: 'flex', gap: 2, py: 2, borderBottom: `1px solid ${shop.line}`, '&:last-of-type': { borderBottom: 0 } }}>
+                <Box
+                  component={motion.li}
+                  key={id}
+                  layout={!reduced}
+                  initial={reduced ? false : { opacity: 0, x: 24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={reduced ? { opacity: 0 } : { opacity: 0, x: 40, transition: { duration: 0.22 } }}
+                  transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                  sx={{ display: 'flex', gap: 2, py: 2, borderBottom: `1px solid ${shop.line}`, '&:last-of-type': { borderBottom: 0 } }}
+                >
                   <Box component={RouterLink} to={`/product/${l.slug}?colour=${l.colourwayKey}`} onClick={close} tabIndex={-1} aria-hidden="true" sx={{ display: 'block' }}>
                     <Thumb src={imageFor(l)} size={92} />
                   </Box>
@@ -102,6 +114,7 @@ export default function CartDrawer() {
                 </Box>
               );
             })}
+            </AnimatePresence>
           </Box>
           <Box sx={{ p: 3, pt: 2.5, display: 'flex', flexDirection: 'column', gap: 1.25, backgroundColor: shop.surface, boxShadow: `0 -1px 0 ${shop.line}, 0 -12px 32px rgba(22,18,14,0.05)` }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 15 }}>
