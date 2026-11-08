@@ -97,7 +97,7 @@ export function KpiCard({ label, value, delta, icon: Icon, foot, loading }) {
           </Box>
         ) : null}
       </Box>
-      {loading ? <Skeleton width="60%" height={36} /> : <Typography variant="kpi">{value}</Typography>}
+      {loading ? <Skeleton width="60%" height={36} /> : <Typography variant="kpi" sx={{ whiteSpace: 'nowrap', fontSize: { xs: 22, sm: 28 } }}>{value}</Typography>}
       <Box sx={{ mt: 1, minHeight: 20 }}>{loading ? <Skeleton width="80%" /> : delta || foot}</Box>
     </Panel>
   );

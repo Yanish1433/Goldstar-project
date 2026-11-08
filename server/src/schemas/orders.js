@@ -54,9 +54,15 @@ export const statusSchema = z.strictObject({
 
 export const mineQuery = z.object({ page, limit: limit(50, 10) });
 
+const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a date like 2026-11-08.');
+
 export const adminOrderListQuery = z.object({
   status: z.enum(['all', 'placed', 'confirmed', 'shipped', 'delivered', 'cancelled']).default('all'),
   q: z.string().trim().max(60).optional(),
+  from: isoDay.optional(),
+  to: isoDay.optional(),
+  sort: z.enum(['newest', 'oldest', 'total_desc', 'total_asc']).default('newest'),
+  customer: z.string().regex(/^[0-9a-fA-F]{24}$/).optional(),
   page,
   limit: limit(100, 20),
 });

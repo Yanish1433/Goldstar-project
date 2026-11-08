@@ -40,6 +40,8 @@ const colourwaySchema = new mongoose.Schema(
       validate: { validator: (v) => v.length >= 1, message: 'at least one size is required' },
     },
     inStock: { type: Boolean, default: true },
+    // Optional pairs on hand per size ({ "8": 12 }); absent when the product does not track stock.
+    stock: { type: Map, of: Number, default: undefined },
     images: { type: [imageSchema], default: [] },
     productUrl: { type: String, required: true, match: /^https:\/\/goldstarshoes\.com\// },
     wooIds: { type: [Number], default: [] },

@@ -2,6 +2,8 @@
 import seed from './products.json';
 import { ApiError } from '../client.js';
 import { canTransition } from '../../lib/orders.js';
+import { computeStats, customerRollup, matchCustomer, orderMatches, sortCustomers, sortOrders, statusCounts } from '../../lib/adminStats.js';
+import { makeDemo, rng } from './demoData.js';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const now = () => new Date().toISOString();
@@ -10,11 +12,18 @@ const fail = (status, code, message, details) => {
 };
 const delay = (ms = 120) => new Promise((r) => setTimeout(r, ms));
 
+const demo = makeDemo();
 let seq = 1;
-const products = clone(seed).map((p) => ({ ...p, id: `mock-p${seq++}`, updatedAt: now() }));
+const products = clone(seed).map((p, i) => ({
+  ...p,
+  id: `mock-p${seq++}`,
+  updatedAt: demo.daysAgo(3 + i * 4).toISOString(),
+  colourways: p.colourways.map((c) => ({ ...c, stock: demo.stockFor(c) })),
+}));
 const users = [
-  { id: 'mock-u1', name: 'Demo Shopper', email: 'demo@goldstar.test', phone: '9841234567', role: 'user', createdAt: now() },
-  { id: 'mock-u2', name: 'Demo Admin', email: 'admin@goldstar.test', phone: null, role: 'admin', createdAt: now() },
+  { id: 'mock-u1', name: 'Demo Shopper', email: 'demo@goldstar.test', phone: '9841234567', role: 'user', createdAt: demo.daysAgo(58).toISOString() },
+  { id: 'mock-u2', name: 'Demo Admin', email: 'admin@goldstar.test', phone: null, role: 'admin', createdAt: demo.daysAgo(120).toISOString() },
+  ...demo.users,
 ];
 const orders = [];
 let session = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('gs-mock-user')) || null;
@@ -82,17 +91,17 @@ const orderOut = (o, admin) => {
   return out;
 };
 
-const code4 = () => Array.from({ length: 4 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
-const orderNumber = () => {
-  const d = new Date();
+const code4 = (r = Math.random) => Array.from({ length: 4 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(r() * 32)]).join('');
+const orderNumber = (at = new Date(), r = Math.random) => {
+  const d = new Date(at);
   const yy = String(d.getFullYear()).slice(2);
-  return `GS-${yy}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${code4()}`;
+  return `GS-${yy}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${code4(r)}`;
 };
 
 function makeOrder(userId, items, shipping, status = 'placed', createdAt = now()) {
   const q = quote(items);
   const o = {
-    id: `mock-o${seq++}`, userId, orderNumber: orderNumber(), status, paymentMethod: 'cod', paymentStatus: status === 'delivered' ? 'paid' : 'unpaid',
+    id: `mock-o${seq++}`, userId, orderNumber: orderNumber(createdAt), status, paymentMethod: 'cod', paymentStatus: status === 'delivered' ? 'paid' : 'unpaid',
     items: q.lines, subtotal: q.subtotal, deliveryFee: 0, total: q.total, currency: 'NPR', shipping,
     statusHistory: [{ status: 'placed', at: createdAt, note: '' }], createdAt, updatedAt: createdAt,
   };
@@ -103,8 +112,18 @@ function makeOrder(userId, items, shipping, status = 'placed', createdAt = now()
 
 const g10 = products.find((p) => p.slug === 'g10-401');
 const demoShip = { fullName: 'Demo Shopper', phone: '9841234567', addressLine: 'House 12, Tole Marg', area: 'Maharajgunj', city: 'Kathmandu', landmark: '', notes: '' };
-makeOrder('mock-u1', [{ productId: g10.id, colourwayKey: 'olive', size: '8', qty: 1 }], demoShip, 'delivered', '2026-10-21T09:00:00.000Z');
+const numberRand = rng(7);
+demo.plans(products.flatMap((p) => p.colourways.filter((c) => c.inStock).map((c) => ({ p, c })))).forEach((pl) => {
+  const o = makeOrder(pl.userId, pl.items, pl.shipping, 'placed', pl.at);
+  o.orderNumber = orderNumber(pl.at, numberRand);
+  o.status = pl.status;
+  o.statusHistory = pl.history;
+  o.paymentStatus = pl.status === 'delivered' ? 'paid' : 'unpaid';
+  o.updatedAt = pl.history[pl.history.length - 1].at;
+});
+makeOrder('mock-u1', [{ productId: g10.id, colourwayKey: 'olive', size: '8', qty: 1 }], demoShip, 'delivered', demo.daysAgo(18, 9).toISOString());
 makeOrder('mock-u1', [{ productId: g10.id, colourwayKey: 'black', size: '9', qty: 2 }], demoShip, 'placed', now());
+orders.sort((x, y) => y.createdAt.localeCompare(x.createdAt));
 
 const PHONE = /^(\+977)?9[678]\d{8}$/;
 
@@ -240,11 +259,13 @@ export async function mockRequest(method, path, body, query = {}) {
     }
     if (b === 'orders') {
       if (!c) {
-        let list = [...orders];
+        const nameOf = (o) => users.find((u) => u.id === o.userId)?.name;
+        const filtered = orders.filter((o) => orderMatches({ ...o, customerName: nameOf(o) }, query));
+        const counts = statusCounts(filtered);
+        let list = filtered;
         if (query.status && query.status !== 'all') list = list.filter((o) => o.status === query.status);
-        if (query.q) list = list.filter((o) => o.orderNumber.includes(String(query.q).toUpperCase()) || o.shipping.phone.includes(String(query.q)));
-        const pg = paginate(list, query, 100, 20);
-        return { ...pg, items: pg.items.map((o) => orderOut(o, true)) };
+        const pg = paginate(sortOrders(list, query.sort), query, 100, 20);
+        return { ...pg, items: pg.items.map((o) => orderOut(o, true)), counts };
       }
       const o = orders.find((x) => x.id === c);
       if (!o) fail(404, 'NOT_FOUND', 'Order not found.');
@@ -257,6 +278,18 @@ export async function mockRequest(method, path, body, query = {}) {
         o.updatedAt = now();
         return { order: orderOut(o, true) };
       }
+    }
+    if (b === 'stats' && method === 'GET' && !c) {
+      const days = [7, 30, 90].includes(Number(query.days)) ? Number(query.days) : 30;
+      return computeStats(orders, products, { days, recent: orders.slice(0, 6).map((o) => orderOut(o, true)) });
+    }
+    if (b === 'customers' && method === 'GET') {
+      const rows = customerRollup(users.filter((u) => u.role === 'user'), orders);
+      if (!c) return paginate(sortCustomers(rows.filter((r) => matchCustomer(r, query.q)), query.sort, query.dir), query, 100, 20);
+      const row = rows.find((r) => r.id === c);
+      if (!row) fail(404, 'NOT_FOUND', 'Customer not found.');
+      const theirs = orders.filter((o) => o.userId === c);
+      return { customer: { ...row, address: theirs[0] ? clone(theirs[0].shipping) : null }, orders: theirs.map((o) => orderOut(o, true)) };
     }
   }
   fail(404, 'NOT_FOUND', 'Not found.');

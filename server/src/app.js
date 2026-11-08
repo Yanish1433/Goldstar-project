@@ -12,6 +12,7 @@ import { jsonOnly } from './middleware/jsonOnly.js';
 import { createLimiters } from './middleware/rateLimit.js';
 import { adminOrdersRouter } from './routes/admin.orders.js';
 import { adminProductsRouter } from './routes/admin.products.js';
+import { adminCustomersRouter, adminStatsRouter } from './routes/admin.insights.js';
 import { authRouter } from './routes/auth.js';
 import { cartRouter } from './routes/cart.js';
 import { healthRouter } from './routes/health.js';
@@ -65,6 +66,8 @@ export function createApp({ limits, serveClient = env.isProd } = {}) {
   app.use('/api/orders', ordersRouter);
   app.use('/api/admin/products', adminProductsRouter);
   app.use('/api/admin/orders', adminOrdersRouter);
+  app.use('/api/admin/stats', adminStatsRouter);
+  app.use('/api/admin/customers', adminCustomersRouter);
   app.use('/api', notFoundHandler);
 
   // Optional: serve the built client (never builds it). SPA fallback for non-API GETs.

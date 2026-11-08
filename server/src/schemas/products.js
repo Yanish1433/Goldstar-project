@@ -51,6 +51,9 @@ const colourway = z
         [...new Set(arr)].sort((a, b) => parseFloat(a) - parseFloat(b) || a.localeCompare(b)),
       ),
     inStock: z.boolean().default(true),
+    stock: z
+      .record(z.string().max(8), z.number({ error: 'Stock must be a whole number.' }).int('Stock must be a whole number.').min(0, 'Stock cannot be negative.').max(99_999))
+      .optional(),
     images: z.array(image).max(30).default([]),
     productUrl: httpsUrl('Product URL').refine(
       (v) => v.startsWith('https://goldstarshoes.com/'),
@@ -58,7 +61,12 @@ const colourway = z
     ),
     wooIds: z.array(z.number().int().min(0)).max(20).default([]),
   })
-  .transform((c) => ({ ...c, regularPrice: c.regularPrice ?? c.price }))
+  .transform((c) => ({
+    ...c,
+    regularPrice: c.regularPrice ?? c.price,
+    // Keep stock only for sizes this colourway has.
+    ...(c.stock ? { stock: Object.fromEntries(Object.entries(c.stock).filter(([size]) => c.sizes.includes(size))) } : {}),
+  }))
   .refine((c) => c.regularPrice >= c.price, {
     path: ['regularPrice'],
     message: 'Regular price must be equal to or higher than the price.',
