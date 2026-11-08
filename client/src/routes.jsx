@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router';
 import Layout from './components/Layout.jsx';
 import { RequireAuth, RequireAdmin, GuestOnly } from './components/Guards.jsx';
 import NotFound from './pages/NotFound.jsx';
+import RouteError from './pages/RouteError.jsx';
 
 const lazyPage = (loader, name = 'default') => async () => {
   const mod = await loader();
@@ -12,6 +13,9 @@ export const routes = [
   {
     path: '/',
     Component: Layout,
+    // First load resolves the lazy page before the first render (the inline loader covers it): render nothing meanwhile.
+    HydrateFallback: () => null,
+    ErrorBoundary: RouteError,
     children: [
       { index: true, lazy: lazyPage(() => import('./pages/Home.jsx')) },
       { path: 'shop', lazy: lazyPage(() => import('./pages/Shop.jsx')) },

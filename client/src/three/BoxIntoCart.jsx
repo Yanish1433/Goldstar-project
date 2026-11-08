@@ -2,6 +2,7 @@ import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState 
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import './quiet.js';
 import Boot, { bootUrl } from './Boot.jsx';
 import StudioLights from './StudioLights.jsx';
 import { displayForProduct } from '../story/model.config.js';

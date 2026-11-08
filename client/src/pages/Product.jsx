@@ -27,6 +27,7 @@ import SizePicker from '../components/SizePicker.jsx';
 import QtyStepper from '../components/QtyStepper.jsx';
 import ExternalLink from '../components/ExternalLink.jsx';
 import NotFound from './NotFound.jsx';
+import Quiet3D from '../components/Quiet3D.jsx';
 import { useProduct } from '../api/hooks.js';
 import { makeLine, addToCartAnimated, pickSourceRect, warmCartBox } from '../lib/addToCart.js';
 import { ApiError } from '../api/client.js';
@@ -139,9 +140,11 @@ export default function Product() {
           ) : null}
           {can3d && view === '3d' ? (
             <>
-              <Suspense fallback={<Box sx={{ aspectRatio: '1 / 1', width: '100%', backgroundColor: 'background.default' }} />}>
+              <Quiet3D fallback={<ProductPhoto image={main} alt={main?.alt || `${product.name} in ${colour.name}`} sizes="(min-width:900px) 55vw, 100vw" />}>
+              <Suspense fallback={<Box sx={{ aspectRatio: '1 / 1', width: '100%', backgroundColor: '#E9E3D8' }} />}>
                 <ProductViewer tier={tier === 'lite' ? 'lite' : 'full'} colourKey={colour.key} spots={spots} showSpots={showParts} onSelect={(spot, el) => setPop({ spot, el })} />
               </Suspense>
+              </Quiet3D>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Drag to turn. Tap a dot to read about that part.</Typography>
               <Popover open={!!pop} anchorEl={pop?.el} onClose={() => setPop(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} transformOrigin={{ vertical: 'top', horizontal: 'center' }}>
                 <Box sx={{ p: 2.5, maxWidth: 320 }}>

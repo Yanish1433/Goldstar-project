@@ -2,6 +2,7 @@ import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { ContactShadows, PerformanceMonitor, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import '../three/quiet.js';
 import { gsap } from 'gsap';
 import { STORY_MODEL, CALLOUTS, BADGES, partColours } from './model.config.js';
 import { buildParts, createTinter, disposeParts } from './splitModel.js';

@@ -9,6 +9,7 @@ import { useStoryUi } from '../story/state.js';
 import { useStoryEngine } from '../story/useStoryEngine.js';
 import { AnatomySection, CalloutsSection, ColourSection, FinaleSection, HeroSection, PerformanceSection, SoleSection, StageLabels, StudioSection } from '../story/Sections.jsx';
 import { COLOURWAYS, DEFAULT_COLOUR } from '../story/model.config.js';
+import Quiet3D from '../components/Quiet3D.jsx';
 
 const Stage = lazy(() => import('../story/Stage.jsx'));
 
@@ -16,7 +17,7 @@ function useEnv() {
   // Tier, layout and reduced motion are decided before the first paint (a static device never mounts WebGL).
   useState(() => {
     const reduced = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    useStoryUi.setState({ tier: detectTier(), layout: layoutFor(window.innerWidth), reduced, section: 0, userColour: null });
+    useStoryUi.setState({ tier: detectTier(), layout: layoutFor(window.innerWidth), reduced, section: 0, userColour: null, canvasReady: false, stageFailed: false });
     return null;
   });
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function Home() {
   useEnv();
   const tier = useStoryUi((s) => s.tier);
   const reduced = useStoryUi((s) => s.reduced);
+  const stageFailed = useStoryUi((s) => s.stageFailed);
   const flow = reduced || tier === 'static'; // no pins, no scrub
   const rootRef = useRef(null);
   const bgRef = useRef(null);
@@ -107,11 +109,13 @@ export default function Home() {
         sx={{ position: 'fixed', inset: 0, zIndex: -1, backgroundColor: PALETTE[SECTIONS[0].colour].bg, transition: flow ? 'background-color 500ms ease' : 'none' }}
       />
       {mountStage ? (
-        <Suspense fallback={null}>
-          <Stage rootRef={rootRef} />
-        </Suspense>
+        <Quiet3D onFail={() => useStoryUi.getState().set({ canvasReady: false, stageFailed: true, tier: 'static' })}>
+          <Suspense fallback={null}>
+            <Stage rootRef={rootRef} />
+          </Suspense>
+        </Quiet3D>
       ) : null}
-      {tier !== 'static' ? <StageLabels /> : null}
+      {tier !== 'static' && !stageFailed ? <StageLabels /> : null}
       <HeroSection product={product} />
       <PerformanceSection ref={degRef} />
       <CalloutsSection />

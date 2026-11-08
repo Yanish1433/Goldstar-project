@@ -193,11 +193,42 @@ function Sparkles() {
   );
 }
 
+// LCP poster: a transparent render of the hero pose, placed with the stage-box maths of storyline.js (hero key:
+// box 'right' / phone, fill 0.9; the render is 1.3x / 1.15x that square), so it sits under the live boot and
+// crossfades into it when the canvas is ready. Devices without WebGL keep it as the hero image.
+function HeroPoster() {
+  const ready = useStoryUi((s) => s.canvasReady);
+  const reduced = useStoryUi((s) => s.reduced);
+  return (
+    <Box
+      component="picture"
+      data-hero-poster
+      aria-hidden="true"
+      sx={{
+        '--s': 'min(65.52vw, 86.58vh)',
+        position: 'absolute',
+        left: 'calc(68vw - var(--s) / 2)',
+        top: 'calc(55vh - var(--s) / 2)',
+        width: 'var(--s)',
+        height: 'var(--s)',
+        pointerEvents: 'none',
+        opacity: ready ? 0 : 1,
+        transition: reduced ? 'none' : 'opacity 600ms ease',
+        '@media (max-width:899.95px)': { '--s': 'min(97.29vw, 41.4vh)', left: 'calc(50vw - var(--s) / 2)', top: 'calc(32vh - var(--s) / 2)' },
+        '& img': { display: 'block', width: '100%', height: '100%' },
+      }}
+    >
+      <source media="(max-width: 899.95px)" srcSet="/img/hero/boot-phone.webp" width={720} height={720} />
+      <img src="/img/hero/boot-desktop.webp" alt="" width={1100} height={1100} fetchPriority="high" decoding="async" />
+    </Box>
+  );
+}
+
 export function HeroSection({ product }) {
   const p = pal('hero');
   const from = product?.colourways?.length ? Math.min(...product.colourways.map((c) => c.price)) : null;
   return (
-    <Panel id="hero" side="left" phoneTop="55%" extra={<Sparkles />}>
+    <Panel id="hero" side="left" phoneTop="55%" extra={<><HeroPoster /><Sparkles /></>}>
       <Eyebrow>Goldstar Nepal · G10-401</Eyebrow>
       <Headline component="h1" id="story-hero-h" sx={{ fontSize: { xs: 'clamp(40px, 12vw, 54px)', md: 'clamp(64px, 7vw, 120px)' } }}>
         Explore further.

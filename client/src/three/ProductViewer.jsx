@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
+import './quiet.js';
 import Box from '@mui/material/Box';
 import { tokens } from '../theme/tokens.js';
 import Boot, { bootUrl } from './Boot.jsx';

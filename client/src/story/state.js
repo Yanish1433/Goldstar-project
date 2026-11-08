@@ -28,6 +28,7 @@ export const useStoryUi = create((set) => ({
   reduced: false,
   section: 0, // index of the current section
   canvasReady: false,
+  stageFailed: false, // the 3D could not load: the page carries on without it
   colourKey: null, // current colourway key (scroll or user)
   userColour: null, // set when the user picks a swatch; wins over the scroll
   set: (patch) => set(patch),
