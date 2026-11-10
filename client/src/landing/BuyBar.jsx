@@ -61,8 +61,8 @@ export default function BuyBar({ product }) {
       }}
     >
       <Box sx={{ maxWidth: 1440, mx: 'auto', boxSizing: 'border-box', px: { xs: 2, sm: 3, lg: 4 }, height: { xs: BAR_H, md: 56 }, display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { md: 'baseline' }, columnGap: 2, minWidth: 0, flex: 1 }}>
-          <Box component={RouterLink} to="/product/g10-401" tabIndex={-1} sx={{ color: 'inherit', textDecoration: 'none', fontSize: { xs: 16, md: 18 }, fontWeight: 800, ...WIDE, whiteSpace: 'nowrap' }}>G10-401 Trek</Box>
+        <Box component={RouterLink} to="/product/g10-401" tabIndex={-1} sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'center', alignItems: { md: 'baseline' }, columnGap: 2, minWidth: 0, flex: 1, minHeight: 44, color: 'inherit', textDecoration: 'none' }}>
+          <Box component="span" sx={{ fontSize: { xs: 16, md: 18 }, fontWeight: 800, ...WIDE, whiteSpace: 'nowrap' }}>G10-401 Trek</Box>
           <Box component="span" sx={{ fontSize: { xs: 13, md: 15 }, color: brand.onNight2, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{from ? `From ${formatNPR(from)}` : 'Made in Nepal'}</Box>
         </Box>
         <Box component={RouterLink} to="/g10" sx={{ display: { xs: 'none', md: 'inline-flex' }, alignItems: 'center', minHeight: 44, color: brand.onNight, fontSize: 15, fontWeight: 600, textDecoration: 'none', '&:hover': { color: brand.goldText }, '&:focus-visible': { outline: `3px solid ${brand.goldText}`, outlineOffset: 2 } }}>

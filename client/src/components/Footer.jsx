@@ -58,7 +58,7 @@ export const COLUMNS = [
 ];
 
 const linkSx = {
-  position: 'relative', display: 'inline-flex', alignItems: 'center', minHeight: 44, color: brand.onNight2, fontSize: 15, fontWeight: 500,
+  position: 'relative', display: 'inline-flex', alignItems: 'center', minHeight: 44, minWidth: 44, color: brand.onNight2, fontSize: 15, fontWeight: 500,
   textDecoration: 'none', transition: 'color 180ms ease',
   '@media (pointer:fine)': { minHeight: 36 },
   '&::after': { content: '""', position: 'absolute', left: 0, right: 0, bottom: { xs: 8, md: 6 }, height: '1.5px', backgroundColor: brand.gold, transform: 'scaleX(0)', transformOrigin: 'left', transition: 'transform 220ms cubic-bezier(0.22,1,0.36,1)' },
@@ -175,7 +175,7 @@ export default function Footer() {
             }}
           >
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, gridColumn: { sm: '1 / -1', md: 'auto' } }}>
-              <Box component={RouterLink} to="/" aria-label="Goldstar Shoes, home" sx={{ alignSelf: 'flex-start', '&:focus-visible': { outline: `2px solid ${brand.goldText}`, outlineOffset: 6 } }}>
+              <Box component={RouterLink} to="/" aria-label="Goldstar Shoes, home" sx={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', minHeight: 44, '&:focus-visible': { outline: `2px solid ${brand.goldText}`, outlineOffset: 6 } }}>
                 <Logo tone="white" eager={false} sx={{ height: { xs: 30, md: 34 } }} />
               </Box>
               <Box>
