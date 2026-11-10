@@ -21,7 +21,8 @@
       // No loading screen: the page paints straight away. First paint takes the route's ground: the night navy of the
       // landing (/), the tangerine hero of the G10 story (/g10), the warm shop ground elsewhere. The landing preloads
       // only its hero poster (the 3D loads after first paint, never here). The story preloads its poster and the
-      // boot for this device tier (same rules as src/three/tier.js) so the 3D can fade in over the poster.
+      // boot for this device tier (same rules as src/three/tier.js, fetched once the poster has painted) so the 3D can fade
+      // in over the poster.
       (function () {
         var p = location.pathname;
         var landing = p === '/';
@@ -39,7 +40,13 @@
           if (q === 'static' || mm('(prefers-reduced-motion: reduce)').matches) return;
           if (!q && ((n.connection && n.connection.saveData) || n.deviceMemory <= 2 || n.hardwareConcurrency <= 2)) return;
           var full = q ? q === 'full' : !(mm('(pointer: coarse)').matches || innerWidth < 900);
-          pre(full ? '/models/g10-hd.glb' : '/models/g10-hd-mobile.glb', 'fetch', null, null, true);
+          // The boot starts once the poster has painted (first LCP entry, or 2.5 s at the latest), so the 1.4 to 3.5 MB model
+          // never competes with the poster, the scripts or the styles for the first paint; it is still in flight long
+          // before the first scroll chapter.
+          var glb = full ? '/models/g10-hd.glb' : '/models/g10-hd-mobile.glb', fired = false;
+          var go = function () { if (fired) return; fired = true; pre(glb, 'fetch', null, null, true); };
+          try { new PerformanceObserver(function () { setTimeout(go, 0); }).observe({ type: 'largest-contentful-paint', buffered: true }); } catch (e) {}
+          setTimeout(go, 2500);
         } catch (e) {}
       })();
     </script>
