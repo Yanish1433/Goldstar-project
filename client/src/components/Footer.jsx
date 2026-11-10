@@ -125,6 +125,10 @@ function ContactLine({ icon: Icon, children, href }) {
   );
 }
 
+export function WhatsAppIcon({ size }) {
+  return <BrandIcon name="whatsapp" size={size} />;
+}
+
 function WhatsAppButton() {
   return (
     <Box
@@ -142,6 +146,8 @@ function WhatsAppButton() {
         '&:hover': { transform: 'translateY(-2px) scale(1.04)', backgroundColor: '#0F7A6E' },
         '&:focus-visible': { outline: `3px solid ${brand.navy}`, outlineOffset: 3 },
         '@media print': { display: 'none' },
+        // Landing on phones: the Buy bar carries WhatsApp instead, so nothing floats over the copy or the CTAs.
+        '@media (max-width:899.95px)': { 'html[data-landing] &': { display: 'none' } },
       }}
     >
       <BrandIcon name="whatsapp" size={28} />
@@ -201,7 +207,7 @@ export default function Footer() {
         <Box aria-hidden="true" sx={{ height: { xs: 120, sm: 150, md: 200 }, mt: { xs: 2, md: 0 } }}>
           <Skyline />
         </Box>
-        <Box sx={{ backgroundColor: brand.night, color: brand.onNight2, px: 2.5, py: 2.25, textAlign: 'center' }}>
+        <Box sx={{ backgroundColor: brand.night, color: brand.onNight2, px: 2.5, pt: 2.25, pb: 'calc(18px + var(--gs-bottom-ui, 0px))', textAlign: 'center' }}>
           <Box component="p" sx={{ m: 0, fontSize: { xs: 12, md: 13 }, fontWeight: 600, letterSpacing: '0.12em' }}>
             © 2025 GOLDSTAR SHOES | All Rights Reserved
           </Box>

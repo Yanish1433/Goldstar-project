@@ -22,6 +22,14 @@ export default function Landing() {
   const [reduced, setReduced] = useState(reducedNow);
   const flow = reduced || tier === 'static';
 
+  // Phones: the floating WhatsApp button stands down on the landing (the Buy bar carries it).
+  useEffect(() => {
+    document.documentElement.dataset.landing = '';
+    return () => {
+      delete document.documentElement.dataset.landing;
+    };
+  }, []);
+
   useEffect(() => {
     const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
     const on = () => setReduced(!!mq.matches);

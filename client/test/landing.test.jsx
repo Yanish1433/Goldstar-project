@@ -78,7 +78,7 @@ describe('landing showcase timeline', () => {
   });
   it('the boot fills the screen at the "G10" moment on desktop', () => {
     const o = landingPose(150, 'desktop');
-    expect(bootLengthPx(o, 1440, 900, STORY_MODEL.frame) / 1440).toBeGreaterThan(0.5);
+    expect(bootLengthPx(o, 1440, 900, STORY_MODEL.frame) / 1440).toBeGreaterThan(0.45);
   });
   it('cycles every colourway in the colour beat', () => {
     const seen = new Set();

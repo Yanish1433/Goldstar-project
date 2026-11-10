@@ -186,7 +186,7 @@ function BeatText({ id, activeKey }) {
     <>
       <Eyebrow>{c.eyebrow}</Eyebrow>
       <Box component="h2" sx={{ ...DISPLAY, fontSize: { xs: 'clamp(30px, 8.6vw, 40px)', md: 'clamp(44px, 4vw, 68px)' } }}>{c.title}</Box>
-      <Box component="p" sx={{ m: 0, fontSize: { xs: 16, md: 19 }, lineHeight: 1.5, color: brand.onNight2, maxWidth: '38ch' }}>{c.body}</Box>
+      <Box component="p" data-body sx={{ m: 0, fontSize: { xs: 16, md: 19 }, lineHeight: 1.5, color: brand.onNight2, maxWidth: '38ch' }}>{c.body}</Box>
       {c.specs ? (
         <Box component="ul" aria-label="Specs" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
           {c.specs.map((s) => (
@@ -339,7 +339,7 @@ function MotionShowcase({ product, tier, onT }) {
         <Box
           ref={giantRef}
           aria-hidden="true"
-          sx={{ position: 'absolute', zIndex: 1, left: '50%', top: '47%', transform: 'translate(-50%, -50%) scale(0.9)', opacity: 0, fontWeight: 900, ...WIDE, letterSpacing: '-0.06em', lineHeight: 0.8, whiteSpace: 'nowrap', fontSize: 'min(44cqw, 64cqh)', color: brand.indigo, pointerEvents: 'none', userSelect: 'none' }}
+          sx={{ position: 'absolute', zIndex: 1, left: '50%', top: '44%', transform: 'translate(-50%, -50%) scale(0.9)', opacity: 0, fontWeight: 900, ...WIDE, letterSpacing: '-0.06em', lineHeight: 0.8, whiteSpace: 'nowrap', fontSize: 'min(44cqw, 64cqh)', color: brand.indigo, pointerEvents: 'none', userSelect: 'none' }}
         >
           G10
         </Box>
@@ -369,7 +369,7 @@ function MotionShowcase({ product, tier, onT }) {
             sx={{
               position: 'absolute', zIndex: COPY_Z, opacity: 0, pointerEvents: 'none', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 2.25,
               left: '6cqw', width: 'min(36cqw, 520px)', top: 'var(--appbar-h, 64px)', bottom: 0,
-              [PHONE]: { left: 20, right: 20, width: 'auto', top: 'auto', bottom: 'calc(92px + env(safe-area-inset-bottom))', gap: 1.5, '& [aria-label="Specs"]': { display: 'none' } },
+              [PHONE]: { left: 20, right: 20, width: 'auto', top: 'auto', bottom: 'calc(92px + env(safe-area-inset-bottom))', gap: 1.5, '& [aria-label="Specs"]': { display: 'none' }, '&[data-beat="colour"] [data-body]': { display: 'none' } },
             }}
           >
             <BeatText id={id} activeKey={colourKey} />

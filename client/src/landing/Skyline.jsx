@@ -22,8 +22,8 @@ function pagoda(x, w, tiers, plinth = 3) {
   }
   let rw = w * 0.82;
   for (let t = 0; t < tiers; t += 1) {
-    const body = 9 - t;
-    const roof = 12 - t;
+    const body = ((9 - t) * w) / 70;
+    const roof = ((12 - t) * w) / 70;
     const bw = rw * 0.55;
     parts.push(`M${r(x - bw / 2)} ${r(y)}V${r(y - body)}H${r(x + bw / 2)}V${r(y)}Z`);
     y -= body;
@@ -129,13 +129,13 @@ function Skyline({ sx }) {
       <g fill={brand.night}>
         <path d={houses(0, 1440, 7)} opacity="0.55" transform="translate(0 -6)" />
         <path d={houses(0, 1440, 3)} />
-        <Pagoda x={180} w={70} tiers={3} />
-        <Tower x={318} h={150} />
-        <Pagoda x={470} w={96} tiers={5} />
-        <Stupa x={720} s={1.05} />
-        <Shikhara x={940} h={98} />
-        <Pagoda x={1080} w={80} tiers={3} plinth={2} />
-        <Pagoda x={1270} w={62} tiers={2} />
+        <Pagoda x={170} w={104} tiers={3} />
+        <Tower x={330} h={168} />
+        <Pagoda x={480} w={128} tiers={5} />
+        <Stupa x={720} s={1.55} />
+        <Shikhara x={960} h={128} />
+        <Pagoda x={1110} w={112} tiers={3} plinth={2} />
+        <Pagoda x={1290} w={84} tiers={2} />
       </g>
     </svg>
   );

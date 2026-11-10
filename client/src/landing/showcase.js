@@ -14,7 +14,7 @@ const TAU = Math.PI * 2;
 export const BOXES = {
   desktop: {
     hero: { cx: 0.68, cy: 0.55, w: 0.56, h: 0.74, fill: 0.9 },
-    big: { cx: 0.5, cy: 0.5, w: 0.9, h: 0.8, fill: 1.3 },
+    big: { cx: 0.5, cy: 0.44, w: 0.9, h: 0.78, fill: 1.25 },
     side: { cx: 0.66, cy: 0.54, w: 0.6, h: 0.8, fill: 1.05 },
   },
   phone: {

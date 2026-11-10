@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import { brand, WIDE } from '../theme/tokens.js';
 import { formatNPR } from '../lib/format.js';
 import { Pill } from './ui.jsx';
+import { CONTACT, WhatsAppIcon } from '../components/Footer.jsx';
 
 // Sticky mini product bar (Apple's product nav), shown once the hero has scrolled away. Desktop: a slim glass bar
 // under the header. Phones: a thumb-reachable bar on the bottom edge (safe-area aware); while it shows it publishes
@@ -66,6 +67,16 @@ export default function BuyBar({ product }) {
         </Box>
         <Box component={RouterLink} to="/g10" sx={{ display: { xs: 'none', md: 'inline-flex' }, alignItems: 'center', minHeight: 44, color: brand.onNight, fontSize: 15, fontWeight: 600, textDecoration: 'none', '&:hover': { color: brand.goldText }, '&:focus-visible': { outline: `3px solid ${brand.goldText}`, outlineOffset: 2 } }}>
           Explore in 3D
+        </Box>
+        <Box
+          component="a"
+          href={CONTACT.whatsapp}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Chat with Goldstar on WhatsApp"
+          sx={{ display: 'none', [PHONE]: { display: 'grid' }, placeItems: 'center', width: 44, height: 44, flex: '0 0 auto', borderRadius: '50%', backgroundColor: brand.whatsapp, color: '#FFFFFF', '&:focus-visible': { outline: `3px solid ${brand.goldText}`, outlineOffset: 2 } }}
+        >
+          <WhatsAppIcon size={22} />
         </Box>
         <Pill to="/product/g10-401" size="sm" variant="gold" sx={{ minWidth: 96 }}>Buy</Pill>
       </Box>
