@@ -30,7 +30,7 @@
         if (p.indexOf('/admin') === 0) { try { if ((JSON.parse(localStorage.getItem('gs-admin-prefs')) || {}).mode === 'dark') admin = '#100F0D'; } catch (e) {} }
         document.documentElement.style.background = landing ? '#0A0C28' : story ? '#FF5A1F' : p.indexOf('/admin') === 0 ? admin : '#F6F2EA';
         if (!landing && !story) return;
-        function pre(href, as, type, media) { var l = document.createElement('link'); l.rel = 'preload'; l.as = as; l.href = href; if (type) l.type = type; if (media) l.media = media; if (as === 'fetch') l.crossOrigin = 'anonymous'; if (as === 'image') l.fetchPriority = 'high'; document.head.appendChild(l); }
+        function pre(href, as, type, media, low) { var l = document.createElement('link'); l.rel = 'preload'; l.as = as; l.href = href; if (type) l.type = type; if (media) l.media = media; if (as === 'fetch') l.crossOrigin = 'anonymous'; if (as === 'image') l.fetchPriority = 'high'; if (low) l.fetchPriority = 'low'; document.head.appendChild(l); }
         pre('/img/hero/boot-phone.webp', 'image', 'image/webp', '(max-width: 899.95px)');
         pre('/img/hero/boot-desktop.webp', 'image', 'image/webp', '(min-width: 900px)');
         if (landing) { try { document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0A0C28'); } catch (e) {} return; }
@@ -39,7 +39,7 @@
           if (q === 'static' || mm('(prefers-reduced-motion: reduce)').matches) return;
           if (!q && ((n.connection && n.connection.saveData) || n.deviceMemory <= 2 || n.hardwareConcurrency <= 2)) return;
           var full = q ? q === 'full' : !(mm('(pointer: coarse)').matches || innerWidth < 900);
-          pre(full ? '/models/g10-hd.glb' : '/models/g10-hd-mobile.glb', 'fetch');
+          pre(full ? '/models/g10-hd.glb' : '/models/g10-hd-mobile.glb', 'fetch', null, null, true);
         } catch (e) {}
       })();
     </script>

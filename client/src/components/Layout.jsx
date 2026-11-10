@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Outlet, ScrollRestoration, useLocation } from 'react-router';
 import Box from '@mui/material/Box';
 import Snackbar from '@mui/material/Snackbar';
@@ -16,6 +16,21 @@ import { visuallyHidden } from './Page.jsx';
 import { isStoryPath } from '../lib/paths.js';
 
 const CartDrawer = lazy(() => import('./CartDrawer.jsx'));
+
+// The cart drawer (with motion and the MUI drawer/modal) is not part of first paint: it mounts on the first sign of
+// intent (touch, press, key) or when the cart opens, so it is ready by the time anyone reaches for the bag.
+function LazyCartDrawer() {
+  const cartOpen = useUi((s) => s.cartOpen);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (ready) return undefined;
+    const evs = ['pointerdown', 'touchstart', 'keydown'];
+    const go = () => setReady(true);
+    evs.forEach((e) => window.addEventListener(e, go, { once: true, passive: true }));
+    return () => evs.forEach((e) => window.removeEventListener(e, go));
+  }, [ready]);
+  return ready || cartOpen ? <Suspense fallback={null}><CartDrawer /></Suspense> : null;
+}
 
 const RouteTransition = lazy(() => import('./RouteTransition.jsx'));
 
@@ -141,7 +156,7 @@ export default function Layout() {
       </Themed>
       <Footer />
       <ThemeProvider theme={shopTheme}>
-        <Suspense fallback={null}><CartDrawer /></Suspense>
+        <LazyCartDrawer />
         <Toasts />
       </ThemeProvider>
       <Announcer />

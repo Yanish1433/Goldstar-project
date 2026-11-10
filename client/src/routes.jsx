@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router';
 import Layout from './components/Layout.jsx';
 import { RequireAuth, RequireAdmin, GuestOnly } from './components/Guards.jsx';
+import Landing from './pages/Landing.jsx';
 import NotFound from './pages/NotFound.jsx';
 import RouteError from './pages/RouteError.jsx';
 
@@ -17,7 +18,8 @@ export const routes = [
     HydrateFallback: () => null,
     ErrorBoundary: RouteError,
     children: [
-      { index: true, lazy: lazyPage(() => import('./pages/Landing.jsx')) },
+      // The landing is in the entry bundle: its first-paint code arrives in the first request wave, not after a second hop.
+      { index: true, Component: Landing },
       // The scroll-driven 3D story of the G10-401 (formerly the home page).
       { path: 'g10', lazy: lazyPage(() => import('./pages/Home.jsx')) },
       { path: 'shop', lazy: lazyPage(() => import('./pages/Shop.jsx')) },

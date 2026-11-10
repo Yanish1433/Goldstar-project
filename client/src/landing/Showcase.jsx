@@ -1,17 +1,12 @@
 import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import { ArrowDown } from 'lucide-react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Lenis from 'lenis';
 import { brand, WIDE } from '../theme/tokens.js';
 import { formatNPR } from '../lib/format.js';
 import { COLOURWAYS, DEFAULT_COLOUR, STORY_MODEL } from '../story/model.config.js';
 import Quiet3D from '../components/Quiet3D.jsx';
 import { DISPLAY, Eyebrow, Pill } from './ui.jsx';
 import { BEATS, BOXES, HERO_OUT, INTER, POSTER_SCALE, RANGE, beatCopy, colourAt, landingPose, layoutOf, showAt, smooth } from './showcase.js';
-
-gsap.registerPlugin(ScrollTrigger);
 
 // The 3D chunk (three + R3F + drei) loads only here, after first paint, and never on the static tier or with
 // reduced motion.
@@ -218,13 +213,34 @@ function MotionShowcase({ product, tier, onT }) {
   const [colourKey, setColourKey] = useState(DEFAULT_COLOUR);
   const colourRef = useRef(DEFAULT_COLOUR);
 
-  // Canvas after first paint (idle), so the poster and copy paint first.
+  // The canvas (three chunk + boot) mounts on intent: the first scroll, touch, key or pointer press, a restored scroll
+  // position, or a quiet 6 s after load. Until then the hero poster IS the boot (same pose and framing), so nothing is
+  // missed, and the 285 kB 3D chunk plus the GLB stay off the load path (LCP, TBT) on phones and slow networks.
   useEffect(() => {
-    let id = null;
-    const go = () => setMount(true);
-    if ('requestIdleCallback' in window) id = window.requestIdleCallback(go, { timeout: 1200 });
-    else id = setTimeout(go, 300);
-    return () => ('cancelIdleCallback' in window ? window.cancelIdleCallback(id) : clearTimeout(id));
+    let done = false;
+    let timer = null;
+    const evs = ['scroll', 'wheel', 'touchstart', 'pointerdown', 'keydown'];
+    const off = () => {
+      evs.forEach((e) => window.removeEventListener(e, go));
+      window.removeEventListener('load', arm);
+      clearTimeout(timer);
+    };
+    function go() {
+      if (done) return;
+      done = true;
+      off();
+      setMount(true);
+    }
+    function arm() {
+      timer = setTimeout(go, 6000);
+    }
+    if (window.scrollY > 4) go();
+    else {
+      evs.forEach((e) => window.addEventListener(e, go, { passive: true }));
+      if (document.readyState === 'complete') arm();
+      else window.addEventListener('load', arm, { once: true });
+    }
+    return off;
   }, []);
 
   // Render only while the showcase is on screen and the tab is visible.
@@ -311,24 +327,39 @@ function MotionShowcase({ product, tier, onT }) {
       }
     };
 
-    const lenis = new Lenis({ autoRaf: false, lerp: 0.09, smoothWheel: true });
-    lenis.on('scroll', ScrollTrigger.update);
-    const raf = (time) => lenis.raf(time * 1000);
-    gsap.ticker.add(raf);
-    const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        trigger: showRef.current,
-        start: 'top top',
-        end: 'bottom bottom',
-        onUpdate: (self) => apply(self.progress * RANGE),
-        onRefresh: (self) => apply(self.progress * RANGE),
-      });
-    }, showRef);
     apply(0);
+    // The scroll engine (gsap, ScrollTrigger, Lenis: ~50 kB gzip) loads right after the first render, off the critical
+    // path: the hero is static until the first scroll, and ScrollTrigger's first refresh applies the current progress.
+    let dead = false;
+    let teardown = null;
+    Promise.all([import('gsap'), import('gsap/ScrollTrigger'), import('lenis')]).then(([g, st, l]) => {
+      if (dead) return;
+      const { gsap } = g;
+      const { ScrollTrigger } = st;
+      const Lenis = l.default;
+      gsap.registerPlugin(ScrollTrigger);
+      const lenis = new Lenis({ autoRaf: false, lerp: 0.09, smoothWheel: true });
+      lenis.on('scroll', ScrollTrigger.update);
+      const raf = (time) => lenis.raf(time * 1000);
+      gsap.ticker.add(raf);
+      const ctx = gsap.context(() => {
+        ScrollTrigger.create({
+          trigger: showRef.current,
+          start: 'top top',
+          end: 'bottom bottom',
+          onUpdate: (self) => apply(self.progress * RANGE),
+          onRefresh: (self) => apply(self.progress * RANGE),
+        });
+      }, showRef);
+      teardown = () => {
+        ctx.revert();
+        gsap.ticker.remove(raf);
+        lenis.destroy();
+      };
+    });
     return () => {
-      ctx.revert();
-      gsap.ticker.remove(raf);
-      lenis.destroy();
+      dead = true;
+      teardown?.();
     };
   }, [live, onT]);
 

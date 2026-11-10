@@ -133,11 +133,12 @@ describe('landing page (mock API, no WebGL: static tier)', () => {
     expect(container.querySelector('[data-showcase="flow"]')).not.toBeNull();
     expect(container.querySelector('canvas')).toBeNull();
     expect(screen.getByRole('heading', { name: 'Grip that reads the ground.' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Pick your trail colour.' })).toBeInTheDocument();
+    // Below the showcase the sections are lazy chunks that arrive after load.
+    expect(await screen.findByRole('heading', { name: 'Pick your trail colour.' }, { timeout: 15000 })).toBeInTheDocument();
     expect(await screen.findByRole('link', { name: /Himalayan Earth, in stock/ }, { timeout: 15000 })).toHaveAttribute('href', '/product/g10-401?colour=olive');
-    expect(screen.getByRole('heading', { name: 'Shop the range.' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Shop the range.' }, { timeout: 15000 })).toBeInTheDocument();
     expect(await screen.findByText('AX-3', {}, { timeout: 15000 })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /From Kathmandu/ })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /From Kathmandu/ }, { timeout: 15000 })).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: 'Goldstar Shoes, home' }).length).toBe(2); // header + footer
   }, 30000);
 });
