@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import '../three/quiet.js';
 import { gsap } from 'gsap';
 import { STORY_MODEL, CALLOUTS, BADGES, partColours } from './model.config.js';
-import { buildParts, createTinter, disposeParts } from './splitModel.js';
+import { buildParts, createTinter, disposeParts, sharpenTextures } from './splitModel.js';
 import StudioLights from '../three/StudioLights.jsx';
 import { trackAt, makePose, samplePose } from './storyline.js';
 import { live, touch, useStoryUi } from './state.js';
@@ -47,7 +47,11 @@ const LABEL_SETS = [['callouts', CALLOUTS], ['badges', BADGES]];
 
 function ShoeRig({ url, onReady, shadowRef }) {
   const gltf = useGLTF(url, false, true);
-  const built = useMemo(() => buildParts(gltf.scene, STORY_MODEL), [gltf]);
+  const gl = useThree((s) => s.gl);
+  const built = useMemo(() => {
+    sharpenTextures(gltf.scene, gl, url === STORY_MODEL.urls.mobile ? 8 : 16);
+    return buildParts(gltf.scene, STORY_MODEL);
+  }, [gltf, gl, url]);
   const tinter = useMemo(() => createTinter(built.parts), [built]);
   const rig = useRef();
   const pose = useMemo(() => makePose(), []);

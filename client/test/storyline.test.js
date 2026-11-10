@@ -167,3 +167,22 @@ describe('model part map and colourways', () => {
     expect(COLOURWAYS.map((c) => c.product)).toEqual(['olive', null, null, 'black']);
   });
 });
+
+describe('phone framing from the performance chapter on (captain addendum 4b)', () => {
+  // Side-on boot length on screen: the framing puts R * frame at fill * min(box) / 2 and the boot is 3 long.
+  const lengthPx = (o, W, H) => (o.fill * Math.min(o.w * W, o.h * H) * 1.5) / (o.R * STORY_MODEL.frame);
+  [[375, 667], [390, 844], [320, 568], [414, 896]].forEach(([W, H]) => {
+    it(`the boot fills >= 85% of a ${W}x${H} phone in the feature chapters`, () => {
+      ['performance', 'callouts', 'sole', 'colour'].forEach((id) => {
+        const o = samplePose(HOLD[id], 'phone');
+        expect(lengthPx(o, W, H) / W).toBeGreaterThanOrEqual(0.85);
+      });
+    });
+  });
+  it('the hero keeps its own box (the poster render matches it) and the exploded anatomy keeps R 2.4', () => {
+    expect(samplePose(HOLD.hero, 'phone')).toMatchObject(LAYOUTS.phone.hero);
+    expect(LAYOUTS.phone.hero).toEqual({ cx: 0.5, cy: 0.32, w: 0.94, h: 0.4 });
+    expect(LAYOUTS.desktop.hero).toEqual({ cx: 0.68, cy: 0.55, w: 0.56, h: 0.74 });
+    expect(samplePose(HOLD.anatomy, 'phone').R).toBeCloseTo(2.4, 6);
+  });
+});

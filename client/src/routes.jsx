@@ -17,7 +17,9 @@ export const routes = [
     HydrateFallback: () => null,
     ErrorBoundary: RouteError,
     children: [
-      { index: true, lazy: lazyPage(() => import('./pages/Home.jsx')) },
+      { index: true, lazy: lazyPage(() => import('./pages/Landing.jsx')) },
+      // The scroll-driven 3D story of the G10-401 (formerly the home page).
+      { path: 'g10', lazy: lazyPage(() => import('./pages/Home.jsx')) },
       { path: 'shop', lazy: lazyPage(() => import('./pages/Shop.jsx')) },
       { path: 'product/:slug', lazy: lazyPage(() => import('./pages/Product.jsx')) },
       {

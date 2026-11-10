@@ -13,6 +13,7 @@ import Footer from './Footer.jsx';
 import { useUi } from '../store/ui.js';
 import { useMe } from '../api/hooks.js';
 import { visuallyHidden } from './Page.jsx';
+import { isStoryPath } from '../lib/paths.js';
 
 const CartDrawer = lazy(() => import('./CartDrawer.jsx'));
 
@@ -28,7 +29,8 @@ function Toasts() {
       onClose={(_, reason) => reason !== 'clickaway' && hide()}
       message={snackbar?.message}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      sx={{ '@media (max-width:599.95px)': { left: 0, right: 0, bottom: 0, '& .MuiSnackbarContent-root': { width: '100%', minWidth: 0 } } }}
+      // Phones: full width at the bottom, lifted above the landing's Buy bar when it shows (--gs-bottom-ui).
+      sx={{ '@media (max-width:599.95px)': { left: 0, right: 0, bottom: 'var(--gs-bottom-ui, 0px)', '& .MuiSnackbarContent-root': { width: '100%', minWidth: 0 } } }}
       action={
         snackbar?.actionLabel ? (
           <Button size="small" onClick={() => { snackbar.onAction?.(); hide(); }} sx={{ minHeight: 44, color: shop.saffron, '&:hover': { color: shop.saffron } }}>{snackbar.actionLabel}</Button>
@@ -47,10 +49,11 @@ function Announcer() {
   );
 }
 
-// Commerce routes use the light shop theme; Home keeps the story's own grounds; the admin has its own shell.
+// Commerce routes (and the landing, which paints its own dark and light bands) use the light shop theme; the G10
+// story (/g10) keeps its own grounds; the admin has its own shell.
 export const isAdminPath = (pathname) => pathname === '/admin' || pathname.startsWith('/admin/');
 // (A non-admin on /admin sees the store's light 404 page.)
-export const isLightRoute = (pathname) => pathname !== '/';
+export const isLightRoute = (pathname) => !isStoryPath(pathname);
 
 const lightGlobals = (
   <GlobalStyles
@@ -131,7 +134,8 @@ export default function Layout() {
         <AppBar />
         <Box component="main" id="content" tabIndex={-1} sx={{ outline: 'none', minHeight: '60vh', ...(light ? { backgroundColor: shop.ground, color: shop.ink } : null) }}>
           <Suspense fallback={<Box sx={{ minHeight: '70vh' }} />}>
-            {loc.pathname === '/' ? <Outlet /> : <RouteTransition />}
+            {/* No transformed wrapper on the story or the landing: their fixed/sticky stages must not sit inside one. */}
+            {isStoryPath(loc.pathname) || loc.pathname === '/' ? <Outlet /> : <RouteTransition />}
           </Suspense>
         </Box>
       </Themed>

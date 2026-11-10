@@ -15,6 +15,9 @@ import { PAGE_PX } from './Page.jsx';
 import { useMe } from '../api/hooks.js';
 import { useCart, cartCount, cartVisibleCount } from '../store/cart.js';
 import { useUi } from '../store/ui.js';
+import { isLandingPath, isStoryPath } from '../lib/paths.js';
+import { brand } from '../theme/tokens.js';
+import Logo from '../landing/Logo.jsx';
 
 export function Star({ size = 20 }) {
   return (
@@ -95,25 +98,36 @@ export default function AppBar() {
 
   const links = (onClick) => (
     <>
+      <NavItem to="/g10" onClick={onClick}>G10 in 3D</NavItem>
       <NavItem to="/shop" onClick={onClick}>Shop</NavItem>
-      <Button component={RouterLink} to="/#story-anatomy" onClick={onClick} sx={navSx(false)}>Technology</Button>
+      <Button component={RouterLink} to="/g10#story-anatomy" onClick={onClick} sx={navSx(false)}>Technology</Button>
       {me.data ? <NavItem to="/account" onClick={onClick}>Account</NavItem> : <NavItem to="/login" onClick={onClick}>Log in</NavItem>}
       {isAdmin ? <NavItem to="/admin" onClick={onClick}>Admin</NavItem> : null}
     </>
   );
 
+  const story = isStoryPath(loc.pathname);
+  const landing = isLandingPath(loc.pathname);
   return (
     <MuiAppBar
       component="header"
       sx={{
         zIndex: 1200,
-        // Home: the header floats over the story and takes the current section's ink.
-        ...(loc.pathname === '/'
+        // G10 story: the header floats over the story and takes the current section's ink.
+        ...(story
           ? { backgroundColor: 'transparent', color: 'var(--story-ink, #F2EDE3)', transition: 'color 300ms ease', '& .MuiButton-root, & .MuiIconButton-root, & .MuiTypography-root, & a': { color: 'inherit' }, '& svg path[fill]': { fill: 'currentColor' } }
+          : null),
+        // Landing: a dark glass bar over the night-navy hero (Apple-style product nav), white ink, knockout logo.
+        ...(landing
+          ? {
+            backgroundColor: 'rgba(10,12,40,0.72)', backdropFilter: 'saturate(1.6) blur(18px)', boxShadow: 'inset 0 -1px 0 rgba(255,255,255,0.08)', color: brand.onNight,
+            '& .MuiButton-root, & .MuiIconButton-root, & a': { color: 'inherit' }, '& .MuiButton-root.active': { color: brand.goldText },
+          }
           : null),
       }}
     >
       <Toolbar sx={{ px: PAGE_PX, maxWidth: 1440, width: '100%', mx: 'auto', boxSizing: 'border-box', gap: 1 }} disableGutters>
+        {story ? (
         <Box component={RouterLink} to="/" aria-label="Goldstar, home" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.primary', textDecoration: 'none', minHeight: 44 }}>
           <Star />
           <Typography component="span" sx={{ fontWeight: 600, fontSize: 18, fontStretch: '105%', fontVariationSettings: '"wdth" 105', lineHeight: 1 }}>Goldstar</Typography>
@@ -121,6 +135,11 @@ export default function AppBar() {
             गोल्डस्टार
           </Typography>
         </Box>
+        ) : (
+          <Box component={RouterLink} to="/" aria-label="Goldstar Shoes, home" sx={{ display: 'flex', alignItems: 'center', minHeight: 44, '&:focus-visible': { outlineOffset: 4 } }}>
+            <Logo tone={landing ? 'white' : 'navy'} sx={{ height: { xs: 20, sm: 24 } }} />
+          </Box>
+        )}
         <Box sx={{ flex: 1 }} />
         <Box component="nav" aria-label="Main" sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>{links()}</Box>
         <CartButton />

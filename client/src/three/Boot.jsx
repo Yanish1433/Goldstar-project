@@ -1,7 +1,8 @@
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
 import { STORY_MODEL, partColours } from '../story/model.config.js';
-import { buildParts, createTinter, disposeParts } from '../story/splitModel.js';
+import { buildParts, createTinter, disposeParts, sharpenTextures } from '../story/splitModel.js';
 
 // The G10-401 boot for the smaller canvases (product viewer, cart box): the same part rig as the home story,
 // normalised to STORY_MODEL.length along +x and centred on the origin, tinted per part.
@@ -11,7 +12,11 @@ export const bootUrl = (tier) => (tier === 'full' ? STORY_MODEL.urls.desktop : S
 
 const Boot = forwardRef(function Boot({ url, colourKey, onReady }, ref) {
   const gltf = useGLTF(url, false, true);
-  const built = useMemo(() => buildParts(gltf.scene, STORY_MODEL), [gltf]);
+  const gl = useThree((s) => s.gl);
+  const built = useMemo(() => {
+    sharpenTextures(gltf.scene, gl, url === STORY_MODEL.urls.mobile ? 8 : 16);
+    return buildParts(gltf.scene, STORY_MODEL);
+  }, [gltf, gl, url]);
   const tinter = useMemo(() => createTinter(built.parts), [built]);
   const group = useRef();
   const first = useRef(true);

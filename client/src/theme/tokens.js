@@ -160,3 +160,27 @@ export const adminTones = {
     shadowFloat: '0 16px 48px rgba(0,0,0,0.55)',
   },
 };
+
+// Goldstar brand (landing, footer, header logo): the logo's navy (sampled from the goldstarshoes.com wordmark,
+// #31378F) deepening to a night indigo for the cinematic bands, with the existing gold (tokens.gold) as the accent.
+// Every text pairing used is AA (>= 4.5:1), checked in test/landing.test.jsx.
+export const brand = {
+  navy: '#31378F',
+  navyDeep: '#1B1F5E',
+  night: '#0A0C28',
+  nightRaised: '#12153A',
+  indigo: '#232874',
+  skyline: '#262B78',
+  onNight: '#F5F3EE',
+  onNight2: '#B9BBD8',
+  gold: tokens.gold,
+  goldText: tokens.goldLight,
+  onGold: '#14120C',
+  paper: '#F6F2EA',
+  paper2: '#EDE7DC',
+  ink: '#16120E',
+  ink2: '#4F4840',
+  line: 'rgba(245,243,238,0.12)',
+  lineInk: 'rgba(22,18,14,0.12)',
+  whatsapp: '#128C7E', // WhatsApp teal green: 4.2:1 behind the white glyph (the bright #25D366 is 2:1)
+};

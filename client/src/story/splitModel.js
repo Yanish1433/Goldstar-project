@@ -193,6 +193,27 @@ function makeFootbed(midsolePieces, N, bins = 72, inset = 0.8, thickness = 0.07)
   return g;
 }
 
+// Crisp textures at hero size: anisotropic filtering on every texture of the (shared, cached) glTF, so the nubuck
+// grain, mesh weave and stitching stay sharp at grazing angles instead of smearing into the blurrier mip levels.
+// Capped at 8 on the lite tier (mobile GPUs). Idempotent: only raises the value, and re-uploads a texture once.
+const TEX_KEYS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap', 'sheenColorMap', 'sheenRoughnessMap'];
+export function sharpenTextures(scene, gl, cap = 16) {
+  const max = Math.min(cap, gl?.capabilities?.getMaxAnisotropy?.() || 1);
+  if (max <= 1) return;
+  scene.traverse((o) => {
+    if (!o.isMesh) return;
+    (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => {
+      TEX_KEYS.forEach((k) => {
+        const t = m?.[k];
+        if (t && t.anisotropy < max) {
+          t.anisotropy = max;
+          t.needsUpdate = true;
+        }
+      });
+    });
+  });
+}
+
 // Releases what buildParts created for this consumer (material clones, generated geometry). Textures and glTF
 // geometry belong to the shared useGLTF cache and stay.
 export function disposeParts(built) {

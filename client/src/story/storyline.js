@@ -66,18 +66,22 @@ export const HOLD = {
 
 // Stage boxes: where the shoe lives on screen, as fractions of the viewport (centre x/y, width, height).
 // Copy is laid out in the complementary area, so text never sits on the shoe.
-// Phones: the stage is always the top ~45% and the copy sits below it.
+// Phones: the stage is the top half and the copy sits below it. From the performance chapter on, the phone boxes
+// are near full width and over half the screen tall, so the boot fills >= 85% of the viewport width (the hero keeps
+// its own smaller box, matched by the HeroPoster render in Sections.jsx).
 export const LAYOUTS = {
   desktop: {
+    hero: { cx: 0.68, cy: 0.55, w: 0.56, h: 0.74 },
     right: { cx: 0.68, cy: 0.55, w: 0.56, h: 0.74 },
     left: { cx: 0.32, cy: 0.55, w: 0.56, h: 0.74 },
     mid: { cx: 0.53, cy: 0.55, w: 0.42, h: 0.86 },
     centre: { cx: 0.5, cy: 0.5, w: 0.6, h: 0.58 },
   },
   phone: {
-    right: { cx: 0.5, cy: 0.32, w: 0.94, h: 0.4 },
-    left: { cx: 0.5, cy: 0.32, w: 0.94, h: 0.4 },
-    mid: { cx: 0.5, cy: 0.33, w: 0.94, h: 0.5 },
+    hero: { cx: 0.5, cy: 0.32, w: 0.94, h: 0.4 },
+    right: { cx: 0.5, cy: 0.33, w: 0.98, h: 0.53 },
+    left: { cx: 0.5, cy: 0.33, w: 0.98, h: 0.53 },
+    mid: { cx: 0.5, cy: 0.32, w: 0.98, h: 0.55 },
     centre: { cx: 0.5, cy: 0.36, w: 0.94, h: 0.42 },
   },
 };
@@ -110,14 +114,14 @@ export const ANATOMY = {
 };
 
 export const KEYS = [
-  { t: 0, ...BASE, box: 'right', fill: 0.9, ry: HERO_Y, rz: 0.04, el: 0.14 },
+  { t: 0, ...BASE, box: 'hero', fill: 0.9, ry: HERO_Y, rz: 0.04, el: 0.14 },
   { t: endOf('hero'), ry: HERO_Y + 0.2, ease: 'linear' },
   // flight hero -> performance: lift and bank mid-air, half turn
   { t: endOf('hero') + 50, box: 'mid', lift: 0.3, rz: -0.16, ry: HERO_Y + 0.2 + Math.PI / 2, fill: 0.8, shadow: 0.2, ease: 'in' },
-  { t: START.performance, box: 'left', lift: 0, rz: 0.02, ry: PERF_Y0, fill: 0.9, el: 0.1, shadow: 1, ease: 'out' },
+  { t: START.performance, box: 'left', lift: 0, rz: 0.02, ry: PERF_Y0, fill: 1.15, el: 0.1, shadow: 1, ease: 'out' },
   { t: endOf('performance'), ry: PERF_Y1, ease: 'linear' },
   // performance -> callouts: come forward, toe to the camera
-  { t: START.callouts, box: 'mid', fill: 0.92, el: 0.16, ry: CALL_Y, rz: 0, ease: 'inOut' },
+  { t: START.callouts, box: 'mid', fill: 1.15, el: 0.16, ry: CALL_Y, rz: 0, ease: 'inOut' },
   { t: endOf('callouts'), ry: CALL_Y + 0.25, ease: 'linear' },
   // callouts -> anatomy: dolly back for the exploded stack, look down a little
   { t: START.anatomy, box: 'mid', R: 2.4, fill: 0.95, el: 0.26, ry: ANAT_Y, ease: 'inOut' },
@@ -127,10 +131,10 @@ export const KEYS = [
   { t: ANATOMY.explodeOut[1], explode: 0, ry: ANAT_Y + 0.36, shadow: 1, ease: 'inOut' },
   // anatomy -> grip: a full spin into a tilted side profile
   { t: endOf('anatomy') + 50, box: 'centre', R: 1.7, lift: 0.4, rx: -0.25, rz: 0.1, ry: SOLE_Y - 1.2, el: 0.1, shadow: 0.2, ease: 'in' },
-  { t: START.sole, box: 'left', R: 1.6, fill: 0.95, lift: 0, rx: -0.42, rz: 0.06, ry: SOLE_Y, el: 0.02, shadow: 0.5, ease: 'out' },
-  { t: endOf('sole'), fill: 1.02, rz: 0.1, ease: 'linear' },
+  { t: START.sole, box: 'left', R: 1.6, fill: 1.15, lift: 0, rx: -0.42, rz: 0.06, ry: SOLE_Y, el: 0.02, shadow: 0.5, ease: 'out' },
+  { t: endOf('sole'), fill: 1.18, rz: 0.1, ease: 'linear' },
   // grip -> colour: land on its feet, 3/4 hero pose
-  { t: START.colour, box: 'right', fill: 0.9, rx: 0, rz: 0.04, ry: COLOUR_Y, el: 0.14, shadow: 1, ease: 'inOut' },
+  { t: START.colour, box: 'right', fill: 1.15, rx: 0, rz: 0.04, ry: COLOUR_Y, el: 0.14, shadow: 1, ease: 'inOut' },
   { t: endOf('colour'), ry: COLOUR_Y + 0.35, ease: 'linear' },
   // colour -> studio: centre stage, hands over to the user
   { t: START.studio, box: 'centre', fill: 1.12, ry: STUDIO_Y, rz: 0, el: 0.18, studio: 1, ease: 'inOut' },

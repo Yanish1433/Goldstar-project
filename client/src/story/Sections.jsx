@@ -194,7 +194,7 @@ function Sparkles() {
 }
 
 // LCP poster: a transparent render of the hero pose, placed with the stage-box maths of storyline.js (hero key:
-// box 'right' / phone, fill 0.9; the render is 1.3x / 1.15x that square), so it sits under the live boot and
+// box 'hero' / phone, fill 0.9; the render is 1.3x / 1.15x that square), so it sits under the live boot and
 // crossfades into it when the canvas is ready. Devices without WebGL keep it as the hero image.
 function HeroPoster() {
   const ready = useStoryUi((s) => s.canvasReady);

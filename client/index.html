@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#FF5A1F" />
-    <meta name="description" content="The Goldstar G10-401 Trek: a mid-cut trek boot made in Nepal, told as a scroll-driven 3D story. Explore every layer, pick your colour, and order with cash on delivery." />
+    <meta name="description" content="Goldstar Shoes, made in Nepal. Meet the G10-401 Trek in 3D: a mid-cut trek boot built for every trail. Shop the range and order with cash on delivery." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta property="og:type" content="website" />
@@ -18,18 +18,22 @@
     <meta name="twitter:card" content="summary_large_image" />
     <title>Goldstar — G10-401 Trek</title>
     <script>
-      // No loading screen: the page paints straight away. First paint takes the route's ground (tangerine hero on
-      // Home, the warm shop ground elsewhere), and on Home the hero poster and the boot for this device tier (same
-      // rules as src/three/tier.js) are preloaded so the poster shows at once and the 3D can fade in over it.
+      // No loading screen: the page paints straight away. First paint takes the route's ground: the night navy of the
+      // landing (/), the tangerine hero of the G10 story (/g10), the warm shop ground elsewhere. The landing preloads
+      // only its hero poster (the 3D loads after first paint, never here). The story preloads its poster and the
+      // boot for this device tier (same rules as src/three/tier.js) so the 3D can fade in over the poster.
       (function () {
-        var home = location.pathname === '/';
+        var p = location.pathname;
+        var landing = p === '/';
+        var story = p === '/g10' || p === '/g10/';
         var admin = '#F6F4EF';
-        if (location.pathname.indexOf('/admin') === 0) { try { if ((JSON.parse(localStorage.getItem('gs-admin-prefs')) || {}).mode === 'dark') admin = '#100F0D'; } catch (e) {} }
-        document.documentElement.style.background = home ? '#FF5A1F' : location.pathname.indexOf('/admin') === 0 ? admin : '#F6F2EA';
-        if (!home) return;
+        if (p.indexOf('/admin') === 0) { try { if ((JSON.parse(localStorage.getItem('gs-admin-prefs')) || {}).mode === 'dark') admin = '#100F0D'; } catch (e) {} }
+        document.documentElement.style.background = landing ? '#0A0C28' : story ? '#FF5A1F' : p.indexOf('/admin') === 0 ? admin : '#F6F2EA';
+        if (!landing && !story) return;
         function pre(href, as, type, media) { var l = document.createElement('link'); l.rel = 'preload'; l.as = as; l.href = href; if (type) l.type = type; if (media) l.media = media; if (as === 'fetch') l.crossOrigin = 'anonymous'; if (as === 'image') l.fetchPriority = 'high'; document.head.appendChild(l); }
         pre('/img/hero/boot-phone.webp', 'image', 'image/webp', '(max-width: 899.95px)');
         pre('/img/hero/boot-desktop.webp', 'image', 'image/webp', '(min-width: 900px)');
+        if (landing) { try { document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0A0C28'); } catch (e) {} return; }
         try {
           var n = navigator, q = new URLSearchParams(location.search).get('tier'), mm = window.matchMedia;
           if (q === 'static' || mm('(prefers-reduced-motion: reduce)').matches) return;
