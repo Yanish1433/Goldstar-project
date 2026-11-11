@@ -95,7 +95,7 @@ export const COLOURWAYS = [
     parts: { upper: '#303034', overlays: '#262628', toe_cap: '#1F1F21', heel_counter: '#232325', collar: '#2A2A2D', tongue: '#303034', laces: '#1C1C1E', pull_tab: '#2A2A2D', insole: '#4A4038', midsole: '#38383C', outsole: '#1A1A1B' },
   },
 ];
-export const DEFAULT_COLOUR = 'black';
+export const DEFAULT_COLOUR = 'earth';
 export const colourwayOf = (key) => COLOURWAYS.find((c) => c.key === key) || COLOURWAYS[0];
 // Display colourway for any catalogue colourway key (the boot in the cart box): nearest look, else black.
 const LOOK_ALIKE = { olive: 'earth', coffee: 'earth', brown: 'earth', pink: 'pink', 'grey-pink': 'pink', grey: 'grey', black: 'black' };
