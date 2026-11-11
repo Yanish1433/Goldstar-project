@@ -26,11 +26,11 @@ function renderAt(path) {
 const T = { timeout: 15000 };
 
 describe('route smoke renders with the mock API', () => {
-  it('/ renders the landing (copy and price, no canvas) when WebGL is missing', async () => {
+  it('/ renders the storefront landing (whole range, lowest price, link to the G10 in 3D, no canvas)', async () => {
     const { container } = renderAt('/');
-    expect(await screen.findByRole('heading', { level: 1, name: /G10\.\s*Built for every trail/i }, T)).toBeInTheDocument();
-    expect((await screen.findAllByText(/From NPR 2,775/, {}, T)).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('link', { name: /Explore the G10 in 3D/i })[0]).toHaveAttribute('href', '/g10');
+    expect(await screen.findByRole('heading', { level: 1, name: 'A pair for every road.' }, T)).toBeInTheDocument();
+    expect((await screen.findAllByText(/NPR 2,000/, {}, T)).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('link', { name: /the G10 in 3D/i })[0]).toHaveAttribute('href', '/g10');
     expect(container.querySelector('canvas')).toBeNull();
   });
   it('/g10 renders the story copy when WebGL is missing', async () => {

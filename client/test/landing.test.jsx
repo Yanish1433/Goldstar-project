@@ -123,22 +123,28 @@ describe('footer', () => {
 });
 
 describe('landing page (mock API, no WebGL: static tier)', () => {
-  it('renders the showcase in flow mode, the colourways, the range and the brand band', async () => {
+  it('renders the storefront: hero, categories, shelves, sale, the G10 feature, colours and the brand band', async () => {
     const router = createMemoryRouter(routes, { initialEntries: ['/'] });
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const { container } = render(
       <ThemeProvider theme={shopTheme}><QueryClientProvider client={qc}><RouterProvider router={router} /></QueryClientProvider></ThemeProvider>,
     );
-    expect(await screen.findByRole('heading', { level: 1, name: /Built for every trail/ }, { timeout: 15000 })).toBeInTheDocument();
-    expect(container.querySelector('[data-showcase="flow"]')).not.toBeNull();
+    expect(await screen.findByRole('heading', { level: 1, name: 'A pair for every road.' }, { timeout: 15000 })).toBeInTheDocument();
     expect(container.querySelector('canvas')).toBeNull();
-    expect(screen.getByRole('heading', { name: 'Grip that reads the ground.' })).toBeInTheDocument();
-    // Below the showcase the sections are lazy chunks that arrive after load.
-    expect(await screen.findByRole('heading', { name: 'Pick your trail colour.' }, { timeout: 15000 })).toBeInTheDocument();
-    expect(await screen.findByRole('link', { name: /Himalayan Earth, in stock/ }, { timeout: 15000 })).toHaveAttribute('href', '/product/g10-401?colour=olive');
-    expect(await screen.findByRole('heading', { name: 'Shop the range.' }, { timeout: 15000 })).toBeInTheDocument();
-    expect(await screen.findByText('AX-3', {}, { timeout: 15000 })).toBeInTheDocument();
-    expect(await screen.findByRole('heading', { name: /From Kathmandu/ }, { timeout: 15000 })).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: /Shop all shoes/ })[0]).toHaveAttribute('href', '/shop');
+    expect(screen.getAllByRole('link', { name: 'Women' })[0]).toHaveAttribute('href', '/shop?category=women');
+    // Every colourway shows up on the hero wall.
+    expect((await screen.findAllByRole('link', { name: /AX-3, Coffee/ }, { timeout: 15000 }))[0]).toHaveAttribute('href', '/product/ax-3?colour=coffee');
+    // Below the hero the sections are a lazy chunk that arrives after load.
+    expect(await screen.findByRole('heading', { name: 'Shop by category.' }, { timeout: 15000 })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: /Trek collection, 4 styles/ }, { timeout: 15000 })).toHaveAttribute('href', '/shop?category=trek-collection');
+    expect(screen.getByRole('heading', { name: 'Shop the range.' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /New arrivals/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Save up to NPR 700/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /The G10-401/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Explore in 3D/ })).toHaveAttribute('href', '/g10');
+    expect(screen.getByRole('heading', { name: 'Shop by colour.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /From Kathmandu/ })).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: 'Goldstar Shoes, home' }).length).toBe(2); // header + footer
   }, 30000);
 });

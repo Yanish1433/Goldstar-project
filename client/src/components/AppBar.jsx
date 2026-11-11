@@ -98,9 +98,9 @@ export default function AppBar() {
 
   const links = (onClick) => (
     <>
-      <NavItem to="/g10" onClick={onClick}>G10 in 3D</NavItem>
       <NavItem to="/shop" onClick={onClick}>Shop</NavItem>
-      <Button component={RouterLink} to="/g10#story-anatomy" onClick={onClick} sx={navSx(false)}>Technology</Button>
+      <Button component={RouterLink} to="/shop?category=new-arrival" onClick={onClick} sx={navSx(false)}>New arrivals</Button>
+      <NavItem to="/g10" onClick={onClick}>G10 in 3D</NavItem>
       {me.data ? <NavItem to="/account" onClick={onClick}>Account</NavItem> : <NavItem to="/login" onClick={onClick}>Log in</NavItem>}
       {isAdmin ? <NavItem to="/admin" onClick={onClick}>Admin</NavItem> : null}
     </>
