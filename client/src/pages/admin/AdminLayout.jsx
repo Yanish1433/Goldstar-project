@@ -14,7 +14,7 @@ import Divider from '@mui/material/Divider';
 import Snackbar from '@mui/material/Snackbar';
 import Button from '@mui/material/Button';
 import {
-  LayoutDashboard, ShoppingCart, Package, Users, Settings, ExternalLink, PanelLeftClose, PanelLeftOpen, Menu as MenuIcon,
+  LayoutDashboard, ShoppingCart, Package, Users, Settings, PanelLeftClose, PanelLeftOpen, Menu as MenuIcon,
   Moon, Sun, LogOut, ChevronRight, X, Search,
 } from 'lucide-react';
 import { makeAdminTheme } from '../../theme/adminTheme.js';
@@ -91,19 +91,9 @@ function NavList({ compact, onNavigate }) {
       </li>
     );
   };
-  const store = (
-    <Box component="a" href="/" target="_blank" rel="noopener noreferrer" sx={linkSx} aria-label={compact ? 'View store (opens in a new tab)' : undefined}>
-      <ExternalLink size={19} aria-hidden="true" style={{ flex: 'none' }} />
-      {compact ? null : <Box component="span" sx={{ flex: 1 }}>View store <Box component="span" aria-hidden="true">↗</Box><Box component="span" sx={visuallyHidden}> (opens in a new tab)</Box></Box>}
-    </Box>
-  );
   return (
     <Box component="nav" aria-label="Admin" sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>{NAV.map(item)}</Box>
-      <Box sx={{ flex: 1 }} />
-      <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0 }}>
-        <li>{compact ? <Tooltip title="View store" placement="right">{store}</Tooltip> : store}</li>
-      </Box>
     </Box>
   );
 }
@@ -142,8 +132,8 @@ function AccountMenu() {
   const [anchor, setAnchor] = useState(null);
   const signOut = async () => {
     setAnchor(null);
-    navigate('/login');
     await logout.mutateAsync().catch(() => {});
+    navigate('/login', { replace: true });
   };
   return (
     <>
@@ -159,9 +149,6 @@ function AccountMenu() {
         <MenuItem onClick={() => { toggleMode(); setAnchor(null); }}>
           {mode === 'dark' ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
           {mode === 'dark' ? 'Light theme' : 'Dark theme'}
-        </MenuItem>
-        <MenuItem component="a" href="/" target="_blank" rel="noopener noreferrer" onClick={() => setAnchor(null)}>
-          <ExternalLink size={17} aria-hidden="true" />View store
         </MenuItem>
         <Divider sx={{ my: 0.5 }} />
         <MenuItem onClick={signOut}><LogOut size={17} aria-hidden="true" />Sign out</MenuItem>

@@ -33,6 +33,15 @@ describe('admin console (signed in as admin)', () => {
     await mockRequest('POST', '/auth/logout');
   });
 
+  it('an admin opening a store page is sent to the panel', async () => {
+    renderAt('/shop');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Dashboard' }, T)).toBeInTheDocument();
+  });
+  it('an admin on /login is sent to the panel, not the store', async () => {
+    renderAt('/login');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Dashboard' }, T)).toBeInTheDocument();
+  });
+
   it('/admin shows the dashboard inside its own shell, without the store header or footer', async () => {
     const { container } = renderAt('/admin');
     expect(await screen.findByRole('heading', { level: 1, name: 'Dashboard' }, T)).toBeInTheDocument();
@@ -40,7 +49,7 @@ describe('admin console (signed in as admin)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
     const nav = await screen.findByRole('navigation', { name: 'Admin' }, T);
     for (const name of ['Dashboard', 'Orders', 'Products', 'Customers', 'Settings']) expect(within(nav).getByRole('link', { name: new RegExp(`^${name}`) })).toBeInTheDocument();
-    expect(within(nav).getByRole('link', { name: /View store/ })).toHaveAttribute('target', '_blank');
+    expect(within(nav).queryByRole('link', { name: /View store/ })).toBeNull(); // admins stay in the panel
     fireEvent.click(screen.getByRole('button', { name: 'Close navigation' }));
     expect(await screen.findByRole('article', { name: 'Revenue' }, T)).toBeInTheDocument();
     expect(await screen.findByRole('table', { name: 'Recent orders' }, T)).toBeInTheDocument();

@@ -11,6 +11,7 @@ import { PageBox, useTitle } from '../components/Page.jsx';
 import PasswordField from '../components/PasswordField.jsx';
 import { useRegister } from '../api/hooks.js';
 import { detailsToErrors, focusFirstInvalid, PHONE_RE, cleanPhone } from '../lib/forms.js';
+import { landingFor } from '../lib/paths.js';
 
 const RULE = '8 or more characters, with a letter and a number';
 
@@ -40,8 +41,8 @@ export default function Register() {
     const body = { name: form.name.trim(), email: form.email.trim(), password: form.password };
     if (form.phone) body.phone = cleanPhone(form.phone);
     try {
-      await reg.mutateAsync(body);
-      navigate(next && next.startsWith('/') && !next.startsWith('//') ? next : '/account', { replace: true });
+      const d = await reg.mutateAsync(body);
+      navigate(landingFor(d?.user, next), { replace: true });
     } catch (err) {
       setErrors(detailsToErrors(err));
       setFormError(err.message);

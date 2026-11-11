@@ -24,7 +24,7 @@ import DialogActions from '@mui/material/DialogActions';
 import Alert from '@mui/material/Alert';
 import Skeleton from '@mui/material/Skeleton';
 import CircularProgress from '@mui/material/CircularProgress';
-import { ChevronDown, Plus, Trash2, ArrowLeft, ArrowRight, ExternalLink, ImagePlus, Star } from 'lucide-react';
+import { ChevronDown, Plus, Trash2, ArrowLeft, ArrowRight, ImagePlus, Star } from 'lucide-react';
 import AdminNotFound from './AdminNotFound.jsx';
 import { useAdminProduct, useSaveProduct } from '../../api/hooks.js';
 import { useUi } from '../../store/ui.js';
@@ -509,9 +509,6 @@ export default function AdminProductEdit() {
               <FormControlLabel control={<Switch checked={form.featured} onChange={(e) => set('featured', e.target.checked)} />} label="Featured first in the shop" />
               <TextField size="small" label="Sort order" type="number" value={form.sortOrder} onChange={(e) => set('sortOrder', e.target.value)} sx={{ mt: 1.5 }} {...fp('sortOrder', 'Lower numbers show first.')} />
             </Box>
-            {!isNew && form.active ? (
-              <Button component="a" href={`/product/${form.slug}`} target="_blank" rel="noopener noreferrer" size="small" variant="text" startIcon={<ExternalLink size={15} aria-hidden="true" />} sx={{ mt: 1.5, ml: -1 }}>View in store</Button>
-            ) : null}
           </Panel>
           <Panel title="Preview"><Preview form={form} /></Panel>
         </Box>

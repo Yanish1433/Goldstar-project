@@ -16,7 +16,6 @@ import { useMe } from '../api/hooks.js';
 import { useCart, cartCount, cartVisibleCount } from '../store/cart.js';
 import { useUi } from '../store/ui.js';
 import { isLandingPath, isStoryPath } from '../lib/paths.js';
-import { brand } from '../theme/tokens.js';
 import Logo from '../landing/Logo.jsx';
 
 export function Star({ size = 20 }) {
@@ -117,12 +116,9 @@ export default function AppBar() {
         ...(story
           ? { backgroundColor: 'transparent', color: 'var(--story-ink, #F2EDE3)', transition: 'color 300ms ease', '& .MuiButton-root, & .MuiIconButton-root, & .MuiTypography-root, & a': { color: 'inherit' }, '& svg path[fill]': { fill: 'currentColor' } }
           : null),
-        // Landing: a dark glass bar over the night-navy hero (Apple-style product nav), white ink, knockout logo.
+        // Landing: a light glass bar over the cream hero, ink text, navy logo.
         ...(landing
-          ? {
-            backgroundColor: 'rgba(10,12,40,0.72)', backdropFilter: 'saturate(1.6) blur(18px)', boxShadow: 'inset 0 -1px 0 rgba(255,255,255,0.08)', color: brand.onNight,
-            '& .MuiButton-root, & .MuiIconButton-root, & a': { color: 'inherit' }, '& .MuiButton-root.active': { color: brand.goldText },
-          }
+          ? { backgroundColor: 'rgba(243,237,226,0.82)', backdropFilter: 'saturate(1.4) blur(16px)', boxShadow: 'inset 0 -1px 0 rgba(22,18,14,0.08)' }
           : null),
       }}
     >
@@ -137,7 +133,7 @@ export default function AppBar() {
         </Box>
         ) : (
           <Box component={RouterLink} to="/" aria-label="Goldstar Shoes, home" sx={{ display: 'flex', alignItems: 'center', minHeight: 44, '&:focus-visible': { outlineOffset: 4 } }}>
-            <Logo tone={landing ? 'white' : 'navy'} sx={{ height: { xs: 20, sm: 24 } }} />
+            <Logo tone="navy" sx={{ height: { xs: 20, sm: 24 } }} />
           </Box>
         )}
         <Box sx={{ flex: 1 }} />

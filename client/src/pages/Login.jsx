@@ -11,6 +11,7 @@ import { PageBox, useTitle } from '../components/Page.jsx';
 import PasswordField from '../components/PasswordField.jsx';
 import { useLogin } from '../api/hooks.js';
 import { detailsToErrors, focusFirstInvalid } from '../lib/forms.js';
+import { landingFor } from '../lib/paths.js';
 
 export default function Login() {
   useTitle('Log in');
@@ -33,8 +34,8 @@ export default function Login() {
     setFormError('');
     if (Object.keys(local).length) return focusFirstInvalid(ref.current);
     try {
-      await login.mutateAsync({ email: form.email.trim(), password: form.password });
-      navigate(next && next.startsWith('/') && !next.startsWith('//') ? next : '/account', { replace: true });
+      const d = await login.mutateAsync({ email: form.email.trim(), password: form.password });
+      navigate(landingFor(d?.user, next), { replace: true });
     } catch (err) {
       const fe = detailsToErrors(err);
       setErrors(fe);

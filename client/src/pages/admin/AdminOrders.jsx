@@ -232,7 +232,7 @@ export default function AdminOrders() {
           icon={Inbox}
           title={filtered || status !== 'all' ? 'No orders match' : 'No orders yet'}
           body={filtered || status !== 'all' ? 'Try another status, a wider date range or a different search.' : 'Orders placed in the store will show up here.'}
-          action={filtered ? <Button variant="outlined" onClick={() => { setSearch(''); setParams({}); }}>Clear filters</Button> : <Button component={RouterLink} to="/" target="_blank" variant="outlined">Open the store</Button>}
+          action={filtered ? <Button variant="outlined" onClick={() => { setSearch(''); setParams({}); }}>Clear filters</Button> : <Button component={RouterLink} to="/admin/products" variant="outlined">Go to products</Button>}
         />
       ) : (
         <Box sx={{ overflowX: 'auto', opacity: orders.isPlaceholderData ? 0.6 : 1, transition: 'opacity 160ms ease' }}>

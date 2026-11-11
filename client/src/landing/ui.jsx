@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import { Link as RouterLink } from 'react-router';
 import Box from '@mui/material/Box';
-import { brand, WIDE } from '../theme/tokens.js';
+import { brand, land, WIDE } from '../theme/tokens.js';
 
 // Landing type and buttons. Archivo (wide cut for display) + Mukta for Devanagari; gold is the only accent.
 export const DISPLAY = { fontWeight: 800, ...WIDE, letterSpacing: '-0.035em', lineHeight: 0.92, m: 0, textWrap: 'balance' };
@@ -34,6 +34,11 @@ const pill = (variant, size) => ({
   '&:focus-visible': { outline: `3px solid ${brand.goldText}`, outlineOffset: 3 },
   ...(variant === 'gold'
     ? { backgroundColor: brand.gold, color: brand.onGold, border: `2px solid ${brand.gold}`, '@media (hover:hover)': { '&:hover': { transform: 'translateY(-2px)', backgroundColor: brand.goldText, borderColor: brand.goldText } } }
+    : variant === 'blue' || variant === 'ink' || variant === 'light'
+      ? (() => {
+        const [bg, fg, hover] = variant === 'blue' ? [land.blue, '#FFFFFF', land.blueDeep] : variant === 'ink' ? [land.ink, '#FFFFFF', '#000000'] : [land.paper, land.ink, '#FFFFFF'];
+        return { backgroundColor: bg, color: fg, border: `2px solid ${bg}`, '&:focus-visible': { outline: `3px solid ${variant === 'light' ? land.paper : land.ink}`, outlineOffset: 3 }, '@media (hover:hover)': { '&:hover': { transform: 'translateY(-2px)', backgroundColor: hover, borderColor: hover } } };
+      })()
     : variant === 'navy'
       ? { backgroundColor: brand.navy, color: '#FFFFFF', border: `2px solid ${brand.navy}`, '&:focus-visible': { outline: `3px solid ${brand.navy}`, outlineOffset: 3 }, '@media (hover:hover)': { '&:hover': { transform: 'translateY(-2px)', backgroundColor: brand.navyDeep, borderColor: brand.navyDeep } } }
       : { backgroundColor: 'transparent', color: 'inherit', border: '2px solid currentColor' }),

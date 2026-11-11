@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { formatNPR, formatRange } from '../src/lib/format.js';
 import { canTransition, nextStatuses } from '../src/lib/orders.js';
+import { landingFor } from '../src/lib/paths.js';
 
 describe('formatNPR', () => {
   it('formats with Indian grouping', () => {
@@ -23,5 +24,21 @@ describe('order status mirror', () => {
     expect(nextStatuses('cancelled')).toEqual([]);
     expect(canTransition('placed', 'shipped')).toBe(false);
     expect(canTransition('shipped', 'cancelled')).toBe(false);
+  });
+});
+
+describe('landingFor (where an account lands after login)', () => {
+  const admin = { role: 'admin' };
+  const customer = { role: 'customer' };
+  it('sends customers to the shop, admins to the panel', () => {
+    expect(landingFor(customer)).toBe('/shop');
+    expect(landingFor(admin)).toBe('/admin');
+  });
+  it('honours a safe next, but keeps admins inside /admin', () => {
+    expect(landingFor(customer, '/checkout')).toBe('/checkout');
+    expect(landingFor(admin, '/admin/orders')).toBe('/admin/orders');
+    expect(landingFor(admin, '/checkout')).toBe('/admin');
+    expect(landingFor(customer, '//evil.example')).toBe('/shop');
+    expect(landingFor(customer, 'https://evil.example')).toBe('/shop');
   });
 });

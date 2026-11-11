@@ -3,7 +3,7 @@ import { Link as RouterLink } from 'react-router';
 import Box from '@mui/material/Box';
 import { ArrowRight, Rotate3d } from 'lucide-react';
 import { useProducts } from '../api/hooks.js';
-import { brand, WIDE } from '../theme/tokens.js';
+import { land, WIDE } from '../theme/tokens.js';
 import { formatNPR } from '../lib/format.js';
 import { DISPLAY, Eyebrow, Pill } from './ui.jsx';
 
@@ -46,22 +46,22 @@ function Tile({ t, hidden, eager, sx }) {
       aria-hidden={hidden ? 'true' : undefined}
       aria-label={hidden ? undefined : `${t.name}, ${t.colour}, ${formatNPR(t.price)}`}
       sx={{
-        position: 'relative', display: 'block', flex: '0 0 auto', borderRadius: '22px', overflow: 'hidden', backgroundColor: brand.paper2,
-        textDecoration: 'none', color: brand.ink, aspectRatio: '4 / 5', boxShadow: '0 18px 40px rgba(3,4,20,0.45)',
+        position: 'relative', display: 'block', flex: '0 0 auto', borderRadius: '22px', overflow: 'hidden', backgroundColor: land.white,
+        textDecoration: 'none', color: land.ink, aspectRatio: '4 / 5', boxShadow: '0 10px 24px rgba(10,8,60,0.28)',
         transition: 'transform 260ms cubic-bezier(0.22,1,0.36,1)',
         '& img': { position: 'absolute', inset: '6% 6% 22% 6%', width: '88%', height: '72%', objectFit: 'contain', mixBlendMode: 'multiply', transition: 'transform 400ms cubic-bezier(0.22,1,0.36,1)' },
         '@media (hover:hover)': { '&:hover': { transform: 'translateY(-4px)' }, '&:hover img': { transform: 'scale(1.06) rotate(-3deg)' } },
-        '&:focus-visible': { outline: `3px solid ${brand.goldText}`, outlineOffset: 3 },
+        '&:focus-visible': { outline: `3px solid ${land.saffron}`, outlineOffset: 3 },
         ...sx,
       }}
     >
       <img src={t.image.thumb || t.image.src} alt="" width={800} height={800} loading={eager ? 'eager' : 'lazy'} decoding="async" />
       {t.sale ? (
-        <Box component="span" sx={{ position: 'absolute', top: 12, left: 12, px: 1.1, py: 0.4, borderRadius: '999px', backgroundColor: '#C2124F', color: '#fff', fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Sale</Box>
+        <Box component="span" sx={{ position: 'absolute', top: 12, left: 12, px: 1.1, py: 0.4, borderRadius: '999px', backgroundColor: land.sale, color: '#fff', fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Sale</Box>
       ) : null}
       <Box sx={{ position: 'absolute', left: 14, right: 14, bottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 1 }}>
         <Box component="span" sx={{ fontSize: { xs: 13, md: 15 }, fontWeight: 800, ...WIDE, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.name}</Box>
-        <Box component="span" sx={{ fontSize: { xs: 12, md: 13 }, fontWeight: 700, color: brand.ink2, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{formatNPR(t.price)}</Box>
+        <Box component="span" sx={{ fontSize: { xs: 12, md: 13 }, fontWeight: 700, color: land.ink2, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{formatNPR(t.price)}</Box>
       </Box>
     </Box>
   );
@@ -107,9 +107,7 @@ export default function StoreHero() {
       component="section"
       aria-labelledby="landing-h1"
       sx={{
-        position: 'relative', overflow: 'hidden', color: brand.onNight, minHeight: { md: '100svh' },
-        backgroundColor: brand.night,
-        backgroundImage: `radial-gradient(ellipse 50% 60% at 78% 50%, rgba(58,66,176,0.55) 0%, rgba(35,40,116,0.35) 40%, rgba(10,12,40,0) 78%), linear-gradient(180deg, ${brand.night} 0%, #0D1034 100%)`,
+        position: 'relative', overflow: 'hidden', color: land.ink, minHeight: { md: '100svh' }, backgroundColor: land.cream,
       }}
     >
       <Box sx={{ position: 'relative', maxWidth: 1440, mx: 'auto', boxSizing: 'border-box', px: { xs: 2, sm: 3, lg: 4 }, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 4, md: 6 }, minHeight: { md: '100svh' } }}>
@@ -125,17 +123,17 @@ export default function StoreHero() {
           }}
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: 2 } }}>
-            <Eyebrow>Goldstar Shoes · Made in Nepal</Eyebrow>
+            <Eyebrow tone={land.blue}>Goldstar Shoes · Made in Nepal</Eyebrow>
             <Box component="h1" id="landing-h1" sx={{ ...DISPLAY, fontSize: { xs: 'clamp(44px, 13vw, 64px)', md: 'clamp(64px, 6.4vw, 112px)' } }}>
               A pair for every road.
             </Box>
-            <Box component="p" sx={{ m: 0, fontSize: { xs: 16, md: 19 }, lineHeight: 1.5, color: brand.onNight2, maxWidth: '40ch' }}>
+            <Box component="p" sx={{ m: 0, fontSize: { xs: 16, md: 19 }, lineHeight: 1.5, color: land.ink2, maxWidth: '40ch' }}>
               Trek boots, everyday casuals and new arrivals for men and women. Order online and pay cash on delivery.
             </Box>
           </Box>
 
           <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', [PHONE]: { '& > *': { flex: '1 1 0', px: 1.5 } } }}>
-            <Pill to="/shop" variant="gold">Shop all shoes <ArrowRight size={18} strokeWidth={2.25} aria-hidden="true" /></Pill>
+            <Pill to="/shop" variant="blue">Shop all shoes <ArrowRight size={18} strokeWidth={2.25} aria-hidden="true" /></Pill>
             <Pill to="/shop?category=new-arrival" variant="outline">New arrivals</Pill>
           </Box>
 
@@ -146,9 +144,9 @@ export default function StoreHero() {
                 component={RouterLink}
                 to={`/shop?category=${c.slug}`}
                 sx={{
-                  display: 'inline-flex', alignItems: 'center', minHeight: 44, px: 2, borderRadius: '999px', border: `1px solid ${brand.line}`, backgroundColor: 'rgba(255,255,255,0.05)',
-                  color: brand.onNight, fontSize: 14, fontWeight: 700, textDecoration: 'none', transition: 'background-color 180ms ease, border-color 180ms ease',
-                  '&:hover': { backgroundColor: 'rgba(226,184,87,0.14)', borderColor: brand.gold }, '&:focus-visible': { outline: `3px solid ${brand.goldText}`, outlineOffset: 2 },
+                  display: 'inline-flex', alignItems: 'center', minHeight: 44, px: 2, borderRadius: '999px', border: `1px solid ${land.line}`, backgroundColor: land.white,
+                  color: land.ink, fontSize: 14, fontWeight: 700, textDecoration: 'none', transition: 'background-color 180ms ease, border-color 180ms ease, color 180ms ease',
+                  '&:hover': { backgroundColor: land.saffron, borderColor: land.saffron }, '&:focus-visible': { outline: `3px solid ${land.blue}`, outlineOffset: 2 },
                 }}
               >
                 {c.label}
@@ -156,15 +154,15 @@ export default function StoreHero() {
             ))}
           </Box>
 
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: { xs: 2, md: 3 }, pt: 2.5, borderTop: `1px solid ${brand.line}` }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: { xs: 2, md: 3 }, pt: 2.5, borderTop: `1px solid ${land.line}` }}>
             {products.length ? (
-              <Box component="dl" sx={{ m: 0, display: 'flex', gap: { xs: 3, md: 4 }, '& dd': { m: 0, fontSize: { xs: 22, md: 28 }, fontWeight: 800, ...WIDE, fontVariantNumeric: 'tabular-nums' }, '& dt': { fontSize: 12, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: brand.onNight2 }, '& div': { display: 'flex', flexDirection: 'column-reverse', gap: 0.25 } }}>
+              <Box component="dl" sx={{ m: 0, display: 'flex', gap: { xs: 3, md: 4 }, '& dd': { m: 0, fontSize: { xs: 22, md: 28 }, fontWeight: 800, ...WIDE, fontVariantNumeric: 'tabular-nums' }, '& dt': { fontSize: 12, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: land.ink2 }, '& div': { display: 'flex', flexDirection: 'column-reverse', gap: 0.25 } }}>
                 <div><dt>Styles</dt><dd>{products.length}</dd></div>
                 <div><dt>Colourways</dt><dd>{colours}</dd></div>
                 {from ? <div><dt>From</dt><dd>{formatNPR(from)}</dd></div> : null}
               </Box>
             ) : null}
-            <Box component={RouterLink} to="/g10" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, minHeight: 44, color: brand.goldText, fontSize: 15, fontWeight: 700, textDecoration: 'none', ml: { md: 'auto' }, '&:hover': { textDecoration: 'underline', textUnderlineOffset: '4px' } }}>
+            <Box component={RouterLink} to="/g10" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, minHeight: 44, color: land.blue, fontSize: 15, fontWeight: 700, textDecoration: 'none', ml: { md: 'auto' }, '&:hover': { textDecoration: 'underline', textUnderlineOffset: '4px' } }}>
               <Rotate3d size={18} strokeWidth={2} aria-hidden="true" /> New: the G10 in 3D
             </Box>
           </Box>
@@ -175,8 +173,8 @@ export default function StoreHero() {
           aria-label="Shoes in the shop"
           role="region"
           sx={{
-            display: { xs: 'none', md: 'grid' }, gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 2.25, height: '100svh', overflow: 'hidden', alignSelf: 'stretch',
-            maskImage: 'linear-gradient(180deg, transparent 0%, #000 14%, #000 86%, transparent 100%)', WebkitMaskImage: 'linear-gradient(180deg, transparent 0%, #000 14%, #000 86%, transparent 100%)',
+            display: { xs: 'none', md: 'grid' }, gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 2.25, px: 2.25, boxSizing: 'border-box', overflow: 'hidden', alignSelf: 'start',
+            mt: 'calc(var(--appbar-h, 64px) + 20px)', height: 'calc(100svh - var(--appbar-h, 64px) - 44px)', borderRadius: '32px', backgroundColor: land.blue,
             '& > div:nth-of-type(2)': { mt: -14 },
           }}
         >
@@ -184,7 +182,7 @@ export default function StoreHero() {
         </Box>
 
         {/* Phones: two sliding rows */}
-        <Box role="region" aria-label="Shoes in the shop" sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 1.5, mx: { xs: -2, sm: -3 }, pb: 6, overflow: 'hidden', maskImage: 'linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%)', WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%)' }}>
+        <Box role="region" aria-label="Shoes in the shop" sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 1.5, mx: { xs: -2, sm: -3 }, mb: 0, py: 2.5, overflow: 'hidden', backgroundColor: land.blue }}>
           {tiles.length ? (
             <>
               <Track tiles={cols[0]} axis="x" dir="up" seconds={38} eagerFirst />

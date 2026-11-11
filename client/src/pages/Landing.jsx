@@ -1,7 +1,7 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import { useTitle } from '../components/Page.jsx';
-import { brand } from '../theme/tokens.js';
+import { land } from '../theme/tokens.js';
 import StoreHero from '../landing/StoreHero.jsx';
 
 // Below the hero, every section is a lazy chunk fetched after the page has loaded: the first-paint bundle carries
@@ -34,7 +34,7 @@ export default function Landing() {
   const spacer = <Box sx={{ minHeight: { xs: 3200, md: 2800 } }} />;
 
   return (
-    <Box id="landing" sx={{ position: 'relative', mt: 'calc(var(--appbar-h, 64px) * -1)', backgroundColor: brand.night, color: brand.onNight, overflowX: 'clip' }}>
+    <Box id="landing" sx={{ position: 'relative', mt: 'calc(var(--appbar-h, 64px) * -1)', backgroundColor: land.cream, color: land.ink, overflowX: 'clip' }}>
       <StoreHero />
       {below ? <Suspense fallback={spacer}><Below /></Suspense> : spacer}
     </Box>

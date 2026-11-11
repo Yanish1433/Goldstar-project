@@ -184,3 +184,25 @@ export const brand = {
   lineInk: 'rgba(22,18,14,0.12)',
   whatsapp: '#128C7E', // WhatsApp teal green: 4.2:1 behind the white glyph (the bright #25D366 is 2:1)
 };
+
+// Landing (storefront home): flat, warm grounds in Goldstar's own colours. No dark navy, no glows or gradients.
+// AA checked: ink on cream 15.6:1, white on blue 7.3:1, ink on tangerine 6.0:1, cream on pine 9.1:1, ink on saffron 11.5:1.
+export const land = {
+  cream: '#F3EDE2',
+  paper: '#F6F2EA',
+  sunk: '#EAE3D6',
+  white: '#FFFFFF',
+  ink: '#16120E',
+  ink2: '#4F4840',
+  line: 'rgba(22,18,14,0.14)',
+  blue: '#2A27E9',
+  blueDeep: '#1714A8',
+  onBlue: '#FFFFFF',
+  onBlue2: '#D9D8FF',
+  tangerine: '#FF5A1F',
+  pine: '#0F4D42',
+  onPine: '#F6F2EA',
+  onPine2: 'rgba(246,242,234,0.8)',
+  saffron: '#FFC21A',
+  sale: '#C2124F',
+};

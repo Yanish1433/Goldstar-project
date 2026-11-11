@@ -5,13 +5,13 @@ import { ArrowLeft, ArrowRight, MapPin, Phone, Rotate3d, Tag, Truck } from 'luci
 import ProductCard, { ProductCardSkeleton } from '../components/shop/ProductCard.jsx';
 import Reveal from '../components/Reveal.jsx';
 import { useCategories, useProducts } from '../api/hooks.js';
-import { brand, WIDE } from '../theme/tokens.js';
+import { land, WIDE } from '../theme/tokens.js';
 import { formatNPR } from '../lib/format.js';
 import { Eyebrow, Pill, SectionTitle } from './ui.jsx';
 
 const WRAP = { maxWidth: 1440, mx: 'auto', px: { xs: 2, sm: 3, lg: 4 }, boxSizing: 'border-box' };
 const REDUCED = '@media (prefers-reduced-motion: reduce)';
-const focusRing = (c = brand.navy) => ({ '&:focus-visible': { outline: `3px solid ${c}`, outlineOffset: 3 } });
+const focusRing = (c = land.blue) => ({ '&:focus-visible': { outline: `3px solid ${c}`, outlineOffset: 3 } });
 
 // All active products, shared by every section on the page (one cached query).
 const useAll = () => {
@@ -41,7 +41,7 @@ const TICKS = [
 
 export function Ticker() {
   return (
-    <Box aria-label="Why Goldstar" role="region" sx={{ backgroundColor: brand.gold, color: brand.onGold, overflow: 'hidden', py: 1.5, borderBlock: `1px solid ${brand.onGold}` }}>
+    <Box aria-label="Why Goldstar" role="region" sx={{ backgroundColor: land.ink, color: land.paper, overflow: 'hidden', py: 1.5, '& svg': { color: land.saffron } }}>
       <Box
         component="ul"
         sx={{
@@ -74,7 +74,7 @@ function CatTile({ slug, count, image, big, tint }) {
       aria-label={`${c.label}, ${count} ${count === 1 ? 'style' : 'styles'}`}
       sx={{
         position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minHeight: big ? { xs: 300, md: '100%' } : { xs: 190, md: 230 },
-        p: { xs: 2, md: 2.5 }, borderRadius: '24px', overflow: 'hidden', backgroundColor: tint, color: brand.ink, textDecoration: 'none',
+        p: { xs: 2, md: 2.5 }, borderRadius: '24px', overflow: 'hidden', backgroundColor: tint, color: land.ink, textDecoration: 'none',
         gridColumn: big ? { xs: 'span 2', md: 'span 2' } : undefined, gridRow: big ? { md: 'span 2' } : undefined,
         '& img': {
           position: 'absolute', right: big ? '4%' : '-4%', top: big ? '4%' : '0%', height: big ? '70%' : '64%', width: 'auto', maxWidth: big ? '92%' : '86%', aspectRatio: '1 / 1', objectFit: 'contain',
@@ -88,11 +88,11 @@ function CatTile({ slug, count, image, big, tint }) {
       <Box sx={{ position: 'relative', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 1 }}>
         <Box>
           <Box component="h3" sx={{ m: 0, fontWeight: 800, ...WIDE, letterSpacing: '-0.02em', lineHeight: 1, fontSize: big ? { xs: 32, md: 48 } : { xs: 19, md: 24 } }}>{c.label}</Box>
-          <Box component="p" sx={{ m: 0, mt: 0.75, fontSize: { xs: 13, md: 15 }, fontWeight: 600, color: brand.ink2 }}>
+          <Box component="p" sx={{ m: 0, mt: 0.75, fontSize: { xs: 13, md: 15 }, fontWeight: 600, color: land.ink2 }}>
             {big ? `${c.line} ` : ''}{count} {count === 1 ? 'style' : 'styles'}
           </Box>
         </Box>
-        <Box className="arrow" sx={{ flex: '0 0 auto', width: 40, height: 40, borderRadius: '50%', display: 'grid', placeItems: 'center', backgroundColor: big ? brand.navy : brand.ink, color: '#fff', transition: 'transform 220ms ease' }}>
+        <Box className="arrow" sx={{ flex: '0 0 auto', width: 40, height: 40, borderRadius: '50%', display: 'grid', placeItems: 'center', backgroundColor: big ? land.blue : land.ink, color: '#fff', transition: 'transform 220ms ease' }}>
           <ArrowRight size={18} strokeWidth={2.25} aria-hidden="true" />
         </Box>
       </Box>
@@ -108,16 +108,15 @@ function AllTile({ total, span }) {
       to="/shop"
       sx={{
         gridColumn: { xs: 'span 2', md: `span ${span}` }, minHeight: { xs: 150, md: 230 }, p: { xs: 2, md: 3 }, borderRadius: '24px', boxSizing: 'border-box',
-        backgroundColor: brand.navy, color: '#fff', textDecoration: 'none', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 2,
-        backgroundImage: `radial-gradient(circle at 85% 20%, rgba(226,184,87,0.35) 0%, rgba(226,184,87,0) 55%)`,
+        backgroundColor: land.blue, color: land.onBlue, textDecoration: 'none', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 2,
         '@media (hover:hover)': { '&:hover .arrow': { transform: 'translateX(6px)' } }, ...focusRing(),
       }}
     >
       <Box>
-        <Eyebrow>Everything Goldstar</Eyebrow>
+        <Eyebrow tone={land.onBlue2}>Everything Goldstar</Eyebrow>
         <Box sx={{ mt: 1, fontWeight: 800, ...WIDE, letterSpacing: '-0.02em', lineHeight: 1, fontSize: { xs: 26, md: 36 } }}>Shop all {total || ''} styles</Box>
       </Box>
-      <Box className="arrow" sx={{ flex: '0 0 auto', width: 48, height: 48, borderRadius: '50%', display: 'grid', placeItems: 'center', backgroundColor: brand.gold, color: brand.onGold, transition: 'transform 220ms ease' }}>
+      <Box className="arrow" sx={{ flex: '0 0 auto', width: 48, height: 48, borderRadius: '50%', display: 'grid', placeItems: 'center', backgroundColor: land.saffron, color: land.ink, transition: 'transform 220ms ease' }}>
         <ArrowRight size={20} strokeWidth={2.25} aria-hidden="true" />
       </Box>
     </Box>
@@ -141,14 +140,14 @@ export function CategoryGrid() {
   }, [cats.data, items]);
 
   return (
-    <Box component="section" aria-labelledby="cats-h" sx={{ backgroundColor: brand.paper, color: brand.ink, py: { xs: 8, md: 12 } }}>
+    <Box component="section" aria-labelledby="cats-h" sx={{ backgroundColor: land.paper, color: land.ink, py: { xs: 8, md: 12 } }}>
       <Box sx={WRAP}>
         <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: { xs: 4, md: 6 } }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            <Eyebrow tone={brand.navy}>Find your pair</Eyebrow>
+            <Eyebrow tone={land.blue}>Find your pair</Eyebrow>
             <SectionTitle id="cats-h">Shop by category.</SectionTitle>
           </Box>
-          <Pill to="/shop" variant="navy" size="sm">Everything <ArrowRight size={18} strokeWidth={2.25} aria-hidden="true" /></Pill>
+          <Pill to="/shop" variant="blue" size="sm">Everything <ArrowRight size={18} strokeWidth={2.25} aria-hidden="true" /></Pill>
         </Box>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' }, gap: { xs: 1.5, md: 2.5 } }}>
           {list.length
@@ -156,7 +155,7 @@ export function CategoryGrid() {
                 ...list.map((c, i) => <CatTile key={c.slug} {...c} big={i === 0} tint={TINTS[i % TINTS.length]} />),
                 <AllTile key="all" total={items.length} span={(4 - ((list.length - 1 + 4) % 4)) % 4 || 4} />,
               ]
-            : Array.from({ length: 5 }, (_, i) => <Box key={i} sx={{ minHeight: { xs: 190, md: 230 }, borderRadius: '24px', backgroundColor: brand.paper2, gridColumn: i === 0 ? 'span 2' : undefined, gridRow: i === 0 ? { md: 'span 2' } : undefined }} />)}
+            : Array.from({ length: 5 }, (_, i) => <Box key={i} sx={{ minHeight: { xs: 190, md: 230 }, borderRadius: '24px', backgroundColor: land.sunk, gridColumn: i === 0 ? 'span 2' : undefined, gridRow: i === 0 ? { md: 'span 2' } : undefined }} />)}
         </Box>
       </Box>
     </Box>
@@ -184,16 +183,16 @@ export function Shelves() {
   };
 
   return (
-    <Box component="section" aria-labelledby="shelf-h" sx={{ backgroundColor: brand.paper, color: brand.ink, pb: { xs: 9, md: 13 }, borderTop: `1px solid ${brand.lineInk}`, pt: { xs: 7, md: 10 } }}>
+    <Box component="section" aria-labelledby="shelf-h" sx={{ backgroundColor: land.paper, color: land.ink, pb: { xs: 9, md: 13 }, borderTop: `1px solid ${land.line}`, pt: { xs: 7, md: 10 } }}>
       <Box sx={WRAP}>
         <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 3 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            <Eyebrow tone={brand.navy}>The line-up</Eyebrow>
+            <Eyebrow tone={land.blue}>The line-up</Eyebrow>
             <SectionTitle id="shelf-h">Shop the range.</SectionTitle>
           </Box>
           <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1 }}>
             {[[-1, ArrowLeft, 'Scroll back'], [1, ArrowRight, 'Scroll on']].map(([d, Icon, label]) => (
-              <Box key={d} component="button" type="button" aria-label={label} onClick={() => nudge(d)} sx={{ width: 48, height: 48, borderRadius: '50%', border: `2px solid ${brand.ink}`, backgroundColor: 'transparent', color: brand.ink, cursor: 'pointer', display: 'grid', placeItems: 'center', '&:hover': { backgroundColor: brand.ink, color: '#fff' }, ...focusRing() }}>
+              <Box key={d} component="button" type="button" aria-label={label} onClick={() => nudge(d)} sx={{ width: 48, height: 48, borderRadius: '50%', border: `2px solid ${land.ink}`, backgroundColor: 'transparent', color: land.ink, cursor: 'pointer', display: 'grid', placeItems: 'center', '&:hover': { backgroundColor: land.ink, color: '#fff' }, ...focusRing() }}>
                 <Icon size={20} strokeWidth={2.25} aria-hidden="true" />
               </Box>
             ))}
@@ -217,8 +216,8 @@ export function Shelves() {
                 }}
                 sx={{
                   flex: '0 0 auto', minHeight: 44, px: 2.25, borderRadius: '999px', fontFamily: 'inherit', fontSize: 15, fontWeight: 700, cursor: 'pointer',
-                  border: `2px solid ${on ? brand.navy : brand.lineInk}`, backgroundColor: on ? brand.navy : 'transparent', color: on ? '#fff' : brand.ink,
-                  transition: 'background-color 180ms ease, color 180ms ease, border-color 180ms ease', '&:hover': { borderColor: brand.navy }, ...focusRing(),
+                  border: `2px solid ${on ? land.blue : land.line}`, backgroundColor: on ? land.blue : 'transparent', color: on ? '#fff' : land.ink,
+                  transition: 'background-color 180ms ease, color 180ms ease, border-color 180ms ease', '&:hover': { borderColor: land.blue }, ...focusRing(),
                 }}
               >
                 {s.label}{items.length ? <Box component="span" sx={{ ml: 0.75, opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>{n}</Box> : null}
@@ -243,11 +242,11 @@ export function Shelves() {
             : shown.map((p, i) => <li key={`${tab}-${p.slug}`}><ProductCard p={p} index={i} sizes="(min-width:900px) 25vw, 68vw" /></li>)}
           {!isLoading ? (
             <li>
-              <Box component={RouterLink} to={shelf.to || '/shop'} sx={{ height: '100%', minHeight: 280, aspectRatio: { md: '1 / 1' }, borderRadius: '20px', backgroundColor: brand.navy, color: '#fff', textDecoration: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', p: 3, boxSizing: 'border-box', '&:hover .arrow': { transform: 'translateX(6px)' }, ...focusRing() }}>
-                <Eyebrow>See them all</Eyebrow>
+              <Box component={RouterLink} to={shelf.to || '/shop'} sx={{ height: '100%', minHeight: 280, aspectRatio: { md: '1 / 1' }, borderRadius: '20px', backgroundColor: land.ink, color: '#fff', textDecoration: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', p: 3, boxSizing: 'border-box', '&:hover .arrow': { transform: 'translateX(6px)' }, ...focusRing() }}>
+                <Eyebrow tone={land.saffron}>See them all</Eyebrow>
                 <Box>
                   <Box sx={{ fontWeight: 800, ...WIDE, fontSize: { xs: 26, md: 32 }, lineHeight: 1, letterSpacing: '-0.02em', mb: 2 }}>{shelf.id === 'all' ? 'The whole shop' : shelf.label}</Box>
-                  <Box className="arrow" sx={{ width: 48, height: 48, borderRadius: '50%', display: 'grid', placeItems: 'center', backgroundColor: brand.gold, color: brand.onGold, transition: 'transform 220ms ease' }}>
+                  <Box className="arrow" sx={{ width: 48, height: 48, borderRadius: '50%', display: 'grid', placeItems: 'center', backgroundColor: land.saffron, color: land.ink, transition: 'transform 220ms ease' }}>
                     <ArrowRight size={20} strokeWidth={2.25} aria-hidden="true" />
                   </Box>
                 </Box>
@@ -255,7 +254,7 @@ export function Shelves() {
             </li>
           ) : null}
         </Box>
-        {isError ? <Box component="p" role="alert" sx={{ color: brand.ink2 }}>The range could not load. <Box component={RouterLink} to="/shop" sx={{ color: brand.navy, fontWeight: 700 }}>Open the shop</Box>.</Box> : null}
+        {isError ? <Box component="p" role="alert" sx={{ color: land.ink2 }}>The range could not load. <Box component={RouterLink} to="/shop" sx={{ color: land.blue, fontWeight: 700 }}>Open the shop</Box>.</Box> : null}
       </Box>
     </Box>
   );
@@ -271,32 +270,32 @@ export function Deals() {
   if (!deals.length) return null;
   const best = Math.max(...deals.map((d) => d.save));
   return (
-    <Box component="section" aria-labelledby="deals-h" sx={{ position: 'relative', overflow: 'hidden', backgroundColor: brand.gold, color: brand.onGold, py: { xs: 8, md: 12 } }}>
-      <Box aria-hidden="true" sx={{ position: 'absolute', right: { xs: -40, md: -20 }, top: { xs: -30, md: -60 }, fontWeight: 900, ...WIDE, fontSize: { xs: 180, md: 380 }, lineHeight: 1, letterSpacing: '-0.06em', color: 'rgba(20,18,12,0.07)', userSelect: 'none', pointerEvents: 'none' }}>SALE</Box>
+    <Box component="section" aria-labelledby="deals-h" sx={{ position: 'relative', overflow: 'hidden', backgroundColor: land.tangerine, color: land.ink, py: { xs: 8, md: 12 } }}>
+      <Box aria-hidden="true" sx={{ position: 'absolute', right: { xs: -40, md: -20 }, top: { xs: -30, md: -60 }, fontWeight: 900, ...WIDE, fontSize: { xs: 180, md: 380 }, lineHeight: 1, letterSpacing: '-0.06em', color: 'rgba(22,18,14,0.08)', userSelect: 'none', pointerEvents: 'none' }}>SALE</Box>
       <Box sx={{ ...WRAP, position: 'relative', display: 'grid', gridTemplateColumns: { xs: '1fr', md: '5fr 7fr' }, gap: { xs: 4, md: 6 }, alignItems: 'center' }}>
         <Reveal sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Eyebrow tone={brand.onGold}>On sale now</Eyebrow>
+          <Eyebrow tone={land.ink}>On sale now</Eyebrow>
           <SectionTitle id="deals-h">Save up to {formatNPR(best)}.</SectionTitle>
           <Box component="p" sx={{ m: 0, fontSize: { xs: 16, md: 18 }, lineHeight: 1.5, maxWidth: '38ch', fontWeight: 500 }}>
             Everyday casuals at a lower price, while sizes last. Pay cash when your pair arrives.
           </Box>
-          <Box sx={{ mt: 1 }}><Pill to="/shop?category=casual" variant="navy">Shop the sale <ArrowRight size={18} strokeWidth={2.25} aria-hidden="true" /></Pill></Box>
+          <Box sx={{ mt: 1 }}><Pill to="/shop?sort=price_asc" variant="ink">Shop the sale <ArrowRight size={18} strokeWidth={2.25} aria-hidden="true" /></Pill></Box>
         </Reveal>
         <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0, display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' }, gap: 2 }}>
           {deals.map(({ p, c, save }, i) => (
             <Reveal component="li" key={p.slug} delay={i * 0.08}>
-              <Box component={RouterLink} to={`/product/${p.slug}?colour=${c.key}`} sx={{ display: 'grid', gridTemplateColumns: '120px 1fr', alignItems: 'center', gap: 2, p: 1.5, borderRadius: '22px', backgroundColor: brand.paper, color: brand.ink, textDecoration: 'none', boxShadow: '0 14px 30px rgba(20,18,12,0.16)', transition: 'transform 220ms ease', '&:hover': { transform: 'translateY(-3px)' }, ...focusRing(brand.onGold) }}>
-                <Box sx={{ aspectRatio: '1 / 1', borderRadius: '16px', backgroundColor: brand.paper2, overflow: 'hidden', '& img': { width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply' } }}>
+              <Box component={RouterLink} to={`/product/${p.slug}?colour=${c.key}`} sx={{ display: 'grid', gridTemplateColumns: '120px 1fr', alignItems: 'center', gap: 2, p: 1.5, borderRadius: '22px', backgroundColor: land.paper, color: land.ink, textDecoration: 'none', boxShadow: '0 10px 24px rgba(22,18,14,0.18)', transition: 'transform 220ms ease', '&:hover': { transform: 'translateY(-3px)' }, ...focusRing(land.ink) }}>
+                <Box sx={{ aspectRatio: '1 / 1', borderRadius: '16px', backgroundColor: land.white, overflow: 'hidden', '& img': { width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply' } }}>
                   <img src={c.image.thumb || c.image.src} alt="" width={800} height={800} loading="lazy" decoding="async" />
                 </Box>
                 <Box sx={{ minWidth: 0 }}>
-                  <Box component="span" sx={{ display: 'inline-block', px: 1, py: 0.25, borderRadius: '999px', backgroundColor: '#C2124F', color: '#fff', fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Save {formatNPR(save)}</Box>
+                  <Box component="span" sx={{ display: 'inline-block', px: 1, py: 0.25, borderRadius: '999px', backgroundColor: land.sale, color: '#fff', fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Save {formatNPR(save)}</Box>
                   <Box sx={{ mt: 1, fontWeight: 800, ...WIDE, fontSize: 20 }}>{p.name}</Box>
                   <Box sx={{ mt: 0.5, display: 'flex', gap: 1, alignItems: 'baseline', flexWrap: 'wrap', fontVariantNumeric: 'tabular-nums' }}>
                     <Box component="span" sx={{ fontWeight: 800, fontSize: 17 }}>{formatNPR(c.price)}</Box>
-                    <Box component="s" sx={{ color: brand.ink2, fontSize: 14 }}>{formatNPR(c.regularPrice)}</Box>
+                    <Box component="s" sx={{ color: land.ink2, fontSize: 14 }}>{formatNPR(c.regularPrice)}</Box>
                   </Box>
-                  <Box sx={{ mt: 0.5, fontSize: 13, color: brand.ink2 }}>{p.colourways.length} colours</Box>
+                  <Box sx={{ mt: 0.5, fontSize: 13, color: land.ink2 }}>{p.colourways.length} colours</Box>
                 </Box>
               </Box>
             </Reveal>
@@ -325,10 +324,10 @@ export function ColourBrowse() {
   if (!groups.length) return null;
 
   return (
-    <Box component="section" aria-labelledby="colour-h" sx={{ backgroundColor: brand.night, color: brand.onNight, py: { xs: 8, md: 12 } }}>
+    <Box component="section" aria-labelledby="colour-h" sx={{ backgroundColor: land.sunk, color: land.ink, py: { xs: 8, md: 12 } }}>
       <Box sx={WRAP}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: { xs: 3, md: 4 } }}>
-          <Eyebrow>Pick a colour, any colour</Eyebrow>
+          <Eyebrow tone={land.blue}>Pick a colour, any colour</Eyebrow>
           <SectionTitle id="colour-h">Shop by colour.</SectionTitle>
         </Box>
         <Box role="radiogroup" aria-label="Colour" sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25, mb: { xs: 3, md: 5 } }}>
@@ -344,13 +343,13 @@ export function ColourBrowse() {
                 onClick={() => setPick(g.name)}
                 sx={{
                   display: 'inline-flex', alignItems: 'center', gap: 1, minHeight: 48, pl: 0.75, pr: 2, borderRadius: '999px', cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, fontWeight: 700,
-                  border: `2px solid ${on ? brand.gold : brand.line}`, backgroundColor: on ? 'rgba(226,184,87,0.12)' : 'transparent', color: brand.onNight, transition: 'border-color 180ms ease, background-color 180ms ease',
-                  '&:hover': { borderColor: brand.goldText }, ...focusRing(brand.goldText),
+                  border: `2px solid ${on ? land.ink : land.line}`, backgroundColor: on ? land.ink : land.white, color: on ? '#fff' : land.ink, transition: 'border-color 180ms ease, background-color 180ms ease, color 180ms ease',
+                  '&:hover': { borderColor: land.ink }, ...focusRing(),
                 }}
               >
-                <Box component="span" aria-hidden="true" sx={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: g.hex, boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.25)' }} />
+                <Box component="span" aria-hidden="true" sx={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: g.hex, boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.35), 0 0 0 1px rgba(22,18,14,0.15)' }} />
                 {g.name}
-                <Box component="span" sx={{ color: brand.onNight2, fontVariantNumeric: 'tabular-nums' }}>{g.list.length}</Box>
+                <Box component="span" sx={{ opacity: 0.65, fontVariantNumeric: 'tabular-nums' }}>{g.list.length}</Box>
               </Box>
             );
           })}
@@ -358,11 +357,11 @@ export function ColourBrowse() {
         <Box component="ul" key={current.name} sx={{ listStyle: 'none', m: 0, p: 0, display: 'grid', gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' }, gap: { xs: 1.5, md: 2.5 } }}>
           {current.list.map(({ p, c, to }, i) => (
             <Reveal component="li" key={`${p.slug}-${c.key}`} delay={i * 0.06}>
-              <Box component={RouterLink} to={to} aria-label={`${p.name} in ${c.name}, ${formatNPR(c.price)}`} sx={{ display: 'block', borderRadius: '22px', overflow: 'hidden', backgroundColor: brand.paper2, color: brand.ink, textDecoration: 'none', '& img': { display: 'block', width: '100%', height: 'auto', aspectRatio: '1 / 1', objectFit: 'contain', mixBlendMode: 'multiply', transition: 'transform 400ms cubic-bezier(0.22,1,0.36,1)' }, '&:hover img': { transform: 'scale(1.05)' }, ...focusRing(brand.goldText) }}>
+              <Box component={RouterLink} to={to} aria-label={`${p.name} in ${c.name}, ${formatNPR(c.price)}`} sx={{ display: 'block', borderRadius: '22px', overflow: 'hidden', backgroundColor: land.white, color: land.ink, textDecoration: 'none', '& img': { display: 'block', width: '100%', height: 'auto', aspectRatio: '1 / 1', objectFit: 'contain', mixBlendMode: 'multiply', transition: 'transform 400ms cubic-bezier(0.22,1,0.36,1)' }, '&:hover img': { transform: 'scale(1.05)' }, ...focusRing() }}>
                 <img src={c.image.thumb || c.image.src} alt="" width={800} height={800} loading="lazy" decoding="async" />
                 <Box sx={{ px: 2, pb: 1.75, pt: 0.5, display: 'flex', justifyContent: 'space-between', gap: 1, alignItems: 'baseline' }}>
                   <Box component="span" sx={{ fontWeight: 800, ...WIDE, fontSize: { xs: 14, md: 16 } }}>{p.name}</Box>
-                  <Box component="span" sx={{ fontSize: 13, fontWeight: 700, color: brand.ink2, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{formatNPR(c.price)}</Box>
+                  <Box component="span" sx={{ fontSize: 13, fontWeight: 700, color: land.ink2, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{formatNPR(c.price)}</Box>
                 </Box>
               </Box>
             </Reveal>

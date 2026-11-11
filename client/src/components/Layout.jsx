@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { Outlet, ScrollRestoration, useLocation } from 'react-router';
+import { Navigate, Outlet, ScrollRestoration, useLocation } from 'react-router';
 import Box from '@mui/material/Box';
 import Snackbar from '@mui/material/Snackbar';
 import Button from '@mui/material/Button';
@@ -13,7 +13,7 @@ import Footer from './Footer.jsx';
 import { useUi } from '../store/ui.js';
 import { useMe } from '../api/hooks.js';
 import { visuallyHidden } from './Page.jsx';
-import { isStoryPath } from '../lib/paths.js';
+import { ADMIN_HOME, isStoryPath } from '../lib/paths.js';
 
 const CartDrawer = lazy(() => import('./CartDrawer.jsx'));
 
@@ -124,6 +124,9 @@ export default function Layout() {
     }, 100);
     return () => clearInterval(t);
   }, [loc.hash, loc.pathname]);
+
+  // Admins only use the panel: any store page sends them back to it.
+  if (me.data?.role === 'admin' && !isAdminPath(loc.pathname)) return <Navigate to={ADMIN_HOME} replace />;
 
   if (bare) {
     return (

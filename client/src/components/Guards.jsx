@@ -4,6 +4,7 @@ import Skeleton from '@mui/material/Skeleton';
 import { useMe } from '../api/hooks.js';
 import NotFound from '../pages/NotFound.jsx';
 import { PageBox } from './Page.jsx';
+import { landingFor } from '../lib/paths.js';
 
 function Pending() {
   return (
@@ -34,8 +35,7 @@ export function GuestOnly() {
   const loc = useLocation();
   if (me.isLoading) return <Pending />;
   if (me.data) {
-    const next = new URLSearchParams(loc.search).get('next');
-    return <Navigate to={next && next.startsWith('/') && !next.startsWith('//') ? next : '/account'} replace />;
+    return <Navigate to={landingFor(me.data, new URLSearchParams(loc.search).get('next'))} replace />;
   }
   return (
     <Box>
