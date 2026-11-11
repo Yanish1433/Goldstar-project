@@ -224,11 +224,32 @@ function HeroPoster() {
   );
 }
 
+// "Scroll" cue: pinned to the bottom centre of the hero, outside the copy column, so it can never sit on the
+// buttons. Desktop only, and only when the screen is tall enough to leave it clear room under the copy.
+function ScrollCue() {
+  return (
+    <Box
+      data-copy
+      aria-hidden="true"
+      sx={{
+        display: 'none', position: 'absolute', left: '50%', bottom: 24, transform: 'translateX(-50%)', zIndex: 2, pointerEvents: 'none',
+        flexDirection: 'column', alignItems: 'center', gap: 0.75, ...LABEL_TEXT, fontSize: 12, letterSpacing: '0.18em',
+        '@media (min-width:900px) and (min-height:700px)': { display: 'flex' },
+        '& svg': { animation: 'gsCue 1.8s ease-in-out infinite', '@media (prefers-reduced-motion: reduce)': { animation: 'none' } },
+        '@keyframes gsCue': { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(5px)' } },
+      }}
+    >
+      Scroll
+      <ArrowDown size={16} strokeWidth={2.25} />
+    </Box>
+  );
+}
+
 export function HeroSection({ product }) {
   const p = pal('hero');
   const from = product?.colourways?.length ? Math.min(...product.colourways.map((c) => c.price)) : null;
   return (
-    <Panel id="hero" side="left" phoneTop="55%" extra={<><HeroPoster /><Sparkles /></>}>
+    <Panel id="hero" side="left" phoneTop="55%" extra={<><HeroPoster /><Sparkles /><ScrollCue /></>}>
       <Eyebrow>Goldstar Nepal · G10-401</Eyebrow>
       <Headline component="h1" id="story-hero-h" sx={{ fontSize: { xs: 'clamp(40px, 12vw, 54px)', md: 'clamp(64px, 7vw, 120px)' } }}>
         Explore further.
@@ -238,9 +259,6 @@ export function HeroSection({ product }) {
       <Box data-copy sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mt: { xs: 0.5, md: 1 } }}>
         <PillLink to="/product/g10-401" ink={p.ink} bg={p.bg}>Shop the G10-401</PillLink>
         <PillButton ink={p.ink} bg={p.bg} filled={false} onClick={() => scrollToSection('anatomy', 70)}>See inside</PillButton>
-      </Box>
-      <Box data-copy aria-hidden="true" sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1, position: 'absolute', bottom: 36, left: 0, ...LABEL_TEXT, letterSpacing: '0.16em' }}>
-        <ArrowDown size={16} strokeWidth={2.25} /> Scroll
       </Box>
     </Panel>
   );
