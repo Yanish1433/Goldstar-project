@@ -1,7 +1,7 @@
 // Route roles that change the chrome: the landing (/) and the scroll-driven G10 story (/g10).
 export const STORY_PATH = '/g10';
 export const isStoryPath = (pathname) => pathname === STORY_PATH || pathname === `${STORY_PATH}/`;
-export const isLandingPath = (pathname) => pathname === '/';
+export const isLandingPath = (pathname) => pathname === '/' || pathname === '/v2' || pathname === '';
 
 // Where an account lands after login, register or opening a guest-only page: admins work in the panel only,
 // customers go straight to the shop. A safe same-site `next` wins, except that an admin is only sent inside /admin.

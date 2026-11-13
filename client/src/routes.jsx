@@ -20,6 +20,8 @@ export const routes = [
     children: [
       // The landing is in the entry bundle: its first-paint code arrives in the first request wave, not after a second hop.
       { index: true, Component: Landing },
+      // Redesigned responsive landing section (V2) adhering to UI/UX Pro Max guidelines:
+      { path: 'v2', lazy: lazyPage(() => import('./landing-v2/LandingV2.jsx')) },
       // The scroll-driven 3D story of the G10-401 (formerly the home page).
       { path: 'g10', lazy: lazyPage(() => import('./pages/Home.jsx')) },
       { path: 'shop', lazy: lazyPage(() => import('./pages/Shop.jsx')) },
