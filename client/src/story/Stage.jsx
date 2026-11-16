@@ -54,6 +54,7 @@ function ShoeRig({ url, onReady, shadowRef }) {
   }, [gltf, gl, url]);
   const tinter = useMemo(() => createTinter(built.parts), [built]);
   const rig = useRef();
+  const focus = useRef();
   const pose = useMemo(() => makePose(), []);
   const camera = useThree((s) => s.camera);
   const sizeRef = useRef({ w: 1, h: 1 });
@@ -112,6 +113,9 @@ function ShoeRig({ url, onReady, shadowRef }) {
     g.visible = pose.alpha > 0.02;
     g.position.set(0, pose.lift, 0);
     g.rotation.set(pose.rx, pose.ry + s.yaw * k, pose.rz, 'YXZ');
+    // Macro close-ups: slide the shoe inside the rig so the focus point sits at the pivot (the camera's target),
+    // and the orbit then turns around that point.
+    if (focus.current) focus.current.position.set(-pose.fx, -pose.fy, -pose.fz);
 
     // Exploded view: each part slides along its offset, staggered from the outside in.
     Object.entries(built.parts).forEach(([name, p]) => {
@@ -140,7 +144,9 @@ function ShoeRig({ url, onReady, shadowRef }) {
 
   return (
     <group ref={rig}>
-      <primitive object={built.root} />
+      <group ref={focus}>
+        <primitive object={built.root} />
+      </group>
     </group>
   );
 }
