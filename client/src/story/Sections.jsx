@@ -193,19 +193,27 @@ function Sparkles() {
   );
 }
 
-// LCP poster: a transparent render of the hero pose, placed with the stage-box maths of storyline.js (hero key:
-// box 'hero' / phone, fill 0.9; the render is 1.3x / 1.15x that square), so it sits under the live boot and
-// crossfades into it when the canvas is ready. Devices without WebGL keep it as the hero image.
+// LCP poster: a transparent render of the first frame, placed with the stage-box maths of storyline.js, so it sits
+// under the live boot and crossfades into it when the canvas is ready (the crossfade starts only once the canvas
+// has mounted its first frame, onReady in Stage.jsx).
+//  - scrub mode: the macro close-up at T=0 (key 0: box 'macro', fill 0.9, R 0.72 on the tongue logo). The render is a
+//    square of 2x the fill square (2 * 0.9 * min(box w, box h)), centred on the box: 100.8vw / 133.2vh on desktop.
+//  - flow mode (reduced motion, no WebGL): the full hero pose (hero key: fill 0.9; the render is 1.3x / 1.15x that
+//    square). Devices without WebGL keep it as the hero image.
 function HeroPoster({ flow }) {
   const ready = useStoryUi((s) => s.canvasReady);
   const reduced = useStoryUi((s) => s.reduced);
+  const size = flow
+    ? { desktop: 'min(65.52vw, 86.58vh)', phone: 'min(97.29vw, 41.4vh)', phoneTop: '32vh' }
+    : { desktop: 'min(100.8vw, 133.2vh)', phone: 'min(169.2vw, 72vh)', phoneTop: '20vh' };
+  const src = flow ? ['/img/hero/boot-desktop.webp', '/img/hero/boot-phone.webp'] : ['/img/hero/macro-desktop.webp', '/img/hero/macro-phone.webp'];
   return (
     <Box
       component="picture"
       data-hero-poster
       aria-hidden="true"
       sx={{
-        '--s': 'min(65.52vw, 86.58vh)',
+        '--s': size.desktop,
         position: 'absolute',
         left: 'calc(68vw - var(--s) / 2)',
         top: 'calc(55vh - var(--s) / 2)',
@@ -214,12 +222,12 @@ function HeroPoster({ flow }) {
         pointerEvents: 'none',
         opacity: ready ? 0 : 1,
         transition: reduced ? 'none' : 'opacity 600ms ease',
-        '@media (max-width:899.95px)': { '--s': 'min(97.29vw, 41.4vh)', left: 'calc(50vw - var(--s) / 2)', top: 'calc(32vh - var(--s) / 2)' },
+        '@media (max-width:899.95px)': { '--s': size.phone, left: 'calc(50vw - var(--s) / 2)', top: `calc(${size.phoneTop} - var(--s) / 2)` },
         '& img': { display: 'block', width: '100%', height: '100%' },
       }}
     >
-      <source media="(max-width: 899.95px)" srcSet="/img/hero/boot-phone.webp" width={720} height={720} />
-      <img src="/img/hero/boot-desktop.webp" alt="" width={1100} height={1100} fetchPriority="high" decoding="async" />
+      <source media="(max-width: 899.95px)" srcSet={src[1]} width={720} height={720} />
+      <img src={src[0]} alt="" width={1100} height={1100} fetchPriority="high" decoding="async" />
     </Box>
   );
 }
@@ -232,7 +240,7 @@ function HeroPoster({ flow }) {
 const introPart = (k) => STORY_MODEL.parts[k];
 export const INTRO_CAPTIONS = [introPart('tongue'), introPart('eyelets'), introPart('outsole')].map((part, i) => ({ n: i + 1, label: part.label, text: part.detail }));
 
-const intro = { caps: [], root: null, thumb: null, fill: null, btns: [], label: null };
+const intro = { caps: [], eyebrow: null, root: null, thumb: null, fill: null, btns: [], label: null };
 export function applyIntro(T) {
   if (!intro.root) return;
   const b = introBeat(T);
@@ -243,6 +251,7 @@ export function applyIntro(T) {
     el.style.opacity = String(v);
     el.style.transform = `translateY(${(dir * (1 - v) * 14).toFixed(2)}px)`;
   });
+  if (intro.eyebrow) intro.eyebrow.style.opacity = String(0.9 * b.rail);
   const r = intro.root;
   r.style.opacity = String(b.rail);
   r.style.visibility = b.rail < 0.02 ? 'hidden' : 'visible'; // out of the tab order once it has left
@@ -281,7 +290,7 @@ function IntroRail({ ink }) {
         position: 'absolute', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pointerEvents: 'none',
         left: { xs: 4, md: 'calc(3vw - 2px)' }, top: { xs: '56%', md: '50%' }, transform: { xs: 'none', md: 'translateY(-50%)' },
         mt: { md: 'calc(var(--appbar-h, 64px) / 2)' }, width: 44,
-        '& [data-label]': { ...LABEL_TEXT, fontSize: 10, letterSpacing: '0.14em', textAlign: 'center', lineHeight: 1.2, width: 44, userSelect: 'none' },
+        '& [data-label]': { ...LABEL_TEXT, fontSize: { xs: 9, md: 10 }, letterSpacing: { xs: '0.06em', md: '0.14em' }, textAlign: 'center', lineHeight: 1.2, width: 44, userSelect: 'none' },
         '& [data-label] svg': { animation: 'gsCue 1.8s ease-in-out infinite', '@media (prefers-reduced-motion: reduce)': { animation: 'none' } },
         '@keyframes gsCue': { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(4px)' } },
         '& [data-when="end"]': { display: 'none' },
@@ -328,9 +337,11 @@ function IntroCaptions({ ink }) {
   const wrap = useRef(null);
   useEffect(() => {
     intro.caps = [...(wrap.current?.querySelectorAll('li') || [])];
+    intro.eyebrow = wrap.current?.previousElementSibling || null;
     applyIntro(live.T);
     return () => {
       intro.caps = [];
+      intro.eyebrow = null;
     };
   }, []);
   return (
@@ -338,11 +349,12 @@ function IntroCaptions({ ink }) {
       data-intro
       sx={{
         position: 'absolute', zIndex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: { xs: 1.25, md: 2 }, boxSizing: 'border-box', color: ink, pointerEvents: 'none',
-        left: { xs: 56, md: 'calc(3vw + 60px)' }, right: { xs: 20 }, top: { xs: '55%' }, bottom: { xs: 20 },
-        '@media (min-width:900px)': { right: 'auto', top: 0, bottom: 0, width: 'min(28vw, 440px)', paddingTop: 'var(--appbar-h, 64px)' },
+        left: 56, right: 20, top: '55%', bottom: 20,
+        // (one media block: a separate md key would share it and be overwritten)
+        '@media (min-width:900px)': { left: 'calc(3vw + 60px)', right: 'auto', top: 0, bottom: 0, width: 'min(28vw, 440px)', paddingTop: 'var(--appbar-h, 64px)' },
       }}
     >
-      <Box aria-hidden="true" sx={{ fontSize: { xs: 12, md: 13 }, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', opacity: 0.9 }}>Goldstar Nepal · G10-401</Box>
+      <Box aria-hidden="true" sx={{ fontSize: { xs: 12, md: 13 }, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' }}>Goldstar Nepal · G10-401</Box>
       <Box ref={wrap} component="ul" sx={{ m: 0, p: 0, listStyle: 'none', display: 'grid', '& > li': { gridArea: '1 / 1', willChange: 'opacity, transform' } }}>
         {INTRO_CAPTIONS.map((c, i) => (
           <li key={c.n} style={i === 0 ? undefined : { opacity: 0 }}>

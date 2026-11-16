@@ -106,6 +106,7 @@ export const HOLD = {
 export const LAYOUTS = {
   desktop: {
     hero: { cx: 0.68, cy: 0.55, w: 0.56, h: 0.74 },
+    macro: { cx: 0.68, cy: 0.55, w: 0.56, h: 0.74 }, // the hero's close-up intro: same place on desktop
     right: { cx: 0.68, cy: 0.55, w: 0.56, h: 0.74 },
     left: { cx: 0.32, cy: 0.55, w: 0.56, h: 0.74 },
     mid: { cx: 0.53, cy: 0.55, w: 0.42, h: 0.86 },
@@ -113,6 +114,7 @@ export const LAYOUTS = {
   },
   phone: {
     hero: { cx: 0.5, cy: 0.32, w: 0.94, h: 0.4 },
+    macro: { cx: 0.5, cy: 0.2, w: 0.94, h: 0.4 }, // higher: the close-up spills below the box, the captions sit under it
     right: { cx: 0.5, cy: 0.33, w: 0.98, h: 0.53 },
     left: { cx: 0.5, cy: 0.33, w: 0.98, h: 0.53 },
     mid: { cx: 0.5, cy: 0.32, w: 0.98, h: 0.55 },
@@ -134,9 +136,9 @@ const HERO_Y = -0.65; // 3/4 front, toe to the right (storyboard)
 // Macro close-ups of the intro: framing radius R (rig units, 0.6+ keeps the textures sharp and the near plane clear
 // of the upper), shoe yaw/roll, camera elevation and the focus point f = [x, y, z] on the shoe.
 const MACRO = {
-  logo: { R: 0.7, ry: -0.9, el: 0.3, f: [0, 0.4, 0] },
+  logo: { R: 0.72, ry: -0.9, el: 0.3, f: [0, 0.78, 0] },
   hardware: { R: 0.8, ry: -0.5, el: 0.25, f: [0.3, 0.3, 0] },
-  lugs: { R: 0.95, ry: -1.3, el: 0.05, rx: -0.3, f: [0.5, -0.5, 0] },
+  lugs: { R: 0.95, ry: -1.3, el: 0.08, rx: -0.3, f: [0.5, -0.25, 0] },
 };
 const PERF_Y0 = HERO_Y + 0.2 + Math.PI; // half a turn during the flight
 const PERF_Y1 = PERF_Y0 + TAU; // a full 360 in the pin
@@ -158,7 +160,7 @@ export const ANATOMY = {
 
 export const KEYS = [
   // 1. Close-up on the tongue logo.
-  { t: 0, ...BASE, box: 'hero', fill: 0.9, R: MACRO.logo.R, ry: MACRO.logo.ry, rz: 0.04, el: MACRO.logo.el, shadow: 0, fx: MACRO.logo.f[0], fy: MACRO.logo.f[1], fz: MACRO.logo.f[2] },
+  { t: 0, ...BASE, box: 'macro', fill: 0.9, R: MACRO.logo.R, ry: MACRO.logo.ry, rz: 0.04, el: MACRO.logo.el, shadow: 0, fx: MACRO.logo.f[0], fy: MACRO.logo.f[1], fz: MACRO.logo.f[2] },
   { t: 30, ry: MACRO.logo.ry + 0.12, ease: 'linear' },
   // 2. Pan to the lace hardware.
   { t: 50, R: MACRO.hardware.R, ry: MACRO.hardware.ry, el: MACRO.hardware.el, fx: MACRO.hardware.f[0], fy: MACRO.hardware.f[1], fz: MACRO.hardware.f[2], ease: 'inOut' },
@@ -167,7 +169,7 @@ export const KEYS = [
   { t: 90, R: MACRO.lugs.R, ry: MACRO.lugs.ry, el: MACRO.lugs.el, rx: MACRO.lugs.rx, fx: MACRO.lugs.f[0], fy: MACRO.lugs.f[1], fz: MACRO.lugs.f[2], ease: 'inOut' },
   { t: 112, ry: MACRO.lugs.ry + 0.12, ease: 'linear' },
   // Pull back to the full hero pose (R only ever grows, so scrolling down never zooms back in).
-  { t: INTRO.end, R: 1.6, rx: 0, ry: HERO_Y, rz: 0.04, el: 0.14, shadow: 1, fx: 0, fy: 0, fz: 0, ease: 'inOut' },
+  { t: INTRO.end, box: 'hero', R: 1.6, rx: 0, ry: HERO_Y, rz: 0.04, el: 0.14, shadow: 1, fx: 0, fy: 0, fz: 0, ease: 'inOut' },
   { t: endOf('hero'), ry: HERO_Y + 0.2, ease: 'linear' },
   // flight hero -> performance: lift and bank mid-air, half turn
   { t: endOf('hero') + 50, box: 'mid', lift: 0.3, rz: -0.16, ry: HERO_Y + 0.2 + Math.PI / 2, fill: 0.8, shadow: 0.2, ease: 'in' },

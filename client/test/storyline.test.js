@@ -227,6 +227,11 @@ describe('hero close-up intro (scroll-scrubbed, reversible)', () => {
     expect(tr.in[0]).toBeGreaterThanOrEqual(INTRO.captionOut[0]);
     expect(tr.in[1] + 21).toBeLessThanOrEqual(HOLD.hero + 1e-9);
   });
+  it('phone: the close-up box sits above the caption block; desktop: it sits in the shoe half', () => {
+    expect(LAYOUTS.phone.macro.cy + LAYOUTS.phone.macro.h / 2).toBeLessThanOrEqual(0.55);
+    expect(LAYOUTS.desktop.macro.cx - LAYOUTS.desktop.macro.w / 2).toBeGreaterThanOrEqual(0.4);
+    expect(samplePose(0, 'phone')).toMatchObject(LAYOUTS.phone.macro);
+  });
   it('the intro does not push later chapters out of order', () => {
     expect(START.performance).toBe(100 + pinOf('hero'));
     expect(pinOf('hero')).toBeGreaterThan(INTRO.end);
