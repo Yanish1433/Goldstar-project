@@ -26,7 +26,7 @@ export default function DetailGallery() {
       const dist = () => Math.max(0, track.scrollWidth - window.innerWidth);
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
-        scrollTrigger: { trigger: ref.current.querySelector('[data-gpin]'), start: 'top top', end: () => `+=${dist()}`, pin: true, scrub: 0.8, anticipatePin: 1, invalidateOnRefresh: true },
+        scrollTrigger: { trigger: ref.current.querySelector('[data-gpin]'), start: 'top top', end: () => `+=${Math.round(dist() * 0.8)}`, pin: true, scrub: 0.8, anticipatePin: 1, invalidateOnRefresh: true },
       });
       tl.to(track, { x: () => -dist(), duration: 1 }, 0)
         .fromTo('[data-gimg]', { xPercent: 6 }, { xPercent: -6, duration: 1 }, 0)

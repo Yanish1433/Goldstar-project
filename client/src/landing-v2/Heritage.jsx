@@ -25,7 +25,7 @@ export default function Heritage() {
       const counter = { v: 0 };
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
-        scrollTrigger: { trigger: root.querySelector('[data-hpin]'), start: 'top top', end: phone ? '+=60%' : '+=110%', pin: true, scrub: 0.6, anticipatePin: 1, invalidateOnRefresh: true },
+        scrollTrigger: { trigger: root.querySelector('[data-hpin]'), start: 'top top', end: phone ? '+=60%' : '+=85%', pin: true, scrub: 0.6, anticipatePin: 1, invalidateOnRefresh: true },
       });
       tl.fromTo('[data-hphoto]', { scale: 1.7 }, { scale: 1, duration: 1 }, 0)
         .fromTo('[data-hshade]', { opacity: 0.35 }, { opacity: 1, duration: 1 }, 0)

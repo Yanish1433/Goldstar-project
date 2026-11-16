@@ -170,7 +170,7 @@ export default function PopShelf({ onQuickView }) {
       cards.forEach((card, i) => riseInto(enter, card, 0.2 + i * 0.12, 1.4));
       // Pinned: the shoes pop up one after another.
       const tl = gsap.timeline({
-        scrollTrigger: { trigger: pin, start: 'top top', end: () => `+=${Math.round(window.innerHeight * 1.4)}`, pin: true, scrub: 0.7, anticipatePin: 1, invalidateOnRefresh: true },
+        scrollTrigger: { trigger: pin, start: 'top top', end: () => `+=${Math.round(window.innerHeight * 1.2)}`, pin: true, scrub: 0.7, anticipatePin: 1, invalidateOnRefresh: true },
       });
       cards.forEach((card, i) => popInto(tl, gsap, card, i * 0.3, 1));
       tl.to({}, { duration: 0.25 }); // a beat of rest with every shoe out before the pin releases

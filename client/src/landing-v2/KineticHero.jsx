@@ -63,7 +63,7 @@ export default function KineticHero() {
         scrollTrigger: {
           trigger: root.querySelector('[data-stage]'),
           start: 'top top',
-          end: phone ? '+=75%' : '+=115%',
+          end: phone ? '+=75%' : '+=100%',
           pin: true,
           scrub: phone ? 0.4 : 0.8,
           anticipatePin: 1,
