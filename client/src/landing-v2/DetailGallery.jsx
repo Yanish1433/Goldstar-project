@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import Box from '@mui/material/Box';
-import { tokensV2 as t, KINETIC, EYEBROW, PHONE } from './tokensV2.js';
+import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_TILE, PHONE } from './tokensV2.js';
 import { Eyebrow, Display, GUTTER } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
 import { shot } from './shots.js';
@@ -29,7 +29,7 @@ export default function DetailGallery() {
         scrollTrigger: { trigger: ref.current.querySelector('[data-gpin]'), start: 'top top', end: () => `+=${dist()}`, pin: true, scrub: 0.8, anticipatePin: 1, invalidateOnRefresh: true },
       });
       tl.to(track, { x: () => -dist(), duration: 1 }, 0)
-        .fromTo('[data-gimg]', { xPercent: 14 }, { xPercent: -14, duration: 1 }, 0)
+        .fromTo('[data-gimg]', { xPercent: 6 }, { xPercent: -6, duration: 1 }, 0)
         .fromTo('[data-gno]', { xPercent: 60 }, { xPercent: -60, duration: 1 }, 0);
     });
     return () => mm.revert();
@@ -56,7 +56,7 @@ export default function DetailGallery() {
               <Box component="li" key={d.no} sx={{ flex: '0 0 auto', width: { xs: '82vw', sm: '60vw', md: 'min(44vw, calc((100svh - var(--appbar-h, 64px) - 300px) * 1.25))' }, minWidth: { md: 420 }, scrollSnapAlign: 'start', display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box sx={{ position: 'relative', aspectRatio: '5 / 4', borderRadius: `${t.radiusLg}px`, overflow: 'hidden', backgroundColor: t.paper }}>
                   <Box data-gimg component="img" src={shot(d.img).src} srcSet={shot(d.img).srcSet} sizes="(max-width: 899.95px) 82vw, 44vw" alt={d.alt} loading="lazy" decoding="async" width={1600} height={1600}
-                    sx={{ position: 'absolute', top: 0, left: '-10%', width: '120%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply', p: { xs: 1, md: 3 }, boxSizing: 'border-box', willChange: 'transform' }} />
+                    sx={{ position: 'absolute', top: 0, left: '-6%', width: '112%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply', filter: PHOTO_TILE, p: { xs: 1, md: 3 }, boxSizing: 'border-box', willChange: 'transform' }} />
                   <Box data-gno aria-hidden="true" component="span" sx={{ ...KINETIC, position: 'absolute', right: { xs: 12, md: 24 }, bottom: { xs: -8, md: -18 }, fontSize: { xs: 96, md: 'clamp(120px, 12vw, 200px)' }, fontWeight: 300, color: t.inkOnPaper, opacity: 0.12, lineHeight: 1 }}>{d.no}</Box>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>

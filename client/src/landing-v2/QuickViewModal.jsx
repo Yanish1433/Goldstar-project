@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import { X, ShoppingBag, ArrowRight, Check, ShieldCheck } from 'lucide-react';
 import { makeLine, addToCartAnimated, pickSourceRect } from '../lib/addToCart.js';
 import { formatNPR } from '../lib/format.js';
-import { tokensV2, FOCUS_RING } from './tokensV2.js';
+import { tokensV2, FOCUS_RING, PHOTO_TILE } from './tokensV2.js';
 import { WIDE } from '../theme/tokens.js';
 import { shelfPhoto } from './shots.js';
 
@@ -139,6 +139,7 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
               height: '94%',
               objectFit: 'contain',
               mixBlendMode: 'multiply',
+              filter: PHOTO_TILE,
               zIndex: 1,
             }}
           />

@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import Box from '@mui/material/Box';
-import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_MONO, PHONE } from './tokensV2.js';
+import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_MONO, PHOTO_TILE, PHONE } from './tokensV2.js';
 import { Cta } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
 import { HERO_SHOT } from './shots.js';
@@ -121,7 +121,7 @@ export default function KineticHero() {
             height={1600}
             fetchPriority="high"
             decoding="async"
-            sx={{ width: `calc(${WIN.h} * 0.98)`, height: 'auto', aspectRatio: '1', mixBlendMode: 'multiply', [PHONE]: { width: `calc(${WIN.hPhone} * 1.02)` }, willChange: 'transform' }}
+            sx={{ width: `calc(${WIN.h} * 0.98)`, height: 'auto', aspectRatio: '1', mixBlendMode: 'multiply', filter: PHOTO_TILE, [PHONE]: { width: `calc(${WIN.hPhone} * 1.02)` }, willChange: 'transform' }}
           />
           <Box data-hend sx={{ position: 'absolute', left: 0, right: 0, bottom: { xs: '9svh', md: '7svh' }, textAlign: 'center', color: t.inkOnPaper, px: 2, opacity: 0, visibility: 'hidden' }}>
             <Box component="p" sx={{ ...EYEBROW, color: t.inkOnPaper2, m: 0 }}>G10-401 · Trek Everyday</Box>
@@ -138,7 +138,7 @@ export default function KineticHero() {
             ...KINETIC, position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
             display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
             pt: { xs: 'calc(var(--appbar-h, 56px) + 54px)', md: 'calc(var(--appbar-h, 64px) + 6svh)' },
-            pb: { xs: '27svh', md: '18svh' },
+            pb: { xs: 'calc(30svh + 24px)', md: '18svh' },
             px: { xs: 2, md: '4vw' },
           }}
         >
@@ -150,13 +150,13 @@ export default function KineticHero() {
           Goldstar · Made in Nepal
         </Box>
 
-        <Box data-hcopy sx={{ position: 'absolute', zIndex: 3, left: { xs: 16, md: '4vw' }, right: { xs: 16, md: 'auto' }, bottom: { xs: 'calc(20px + env(safe-area-inset-bottom))', md: '6svh' }, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: { md: 380 } }}>
+        <Box data-hcopy sx={{ position: 'absolute', zIndex: 3, left: { xs: 16, md: '4vw' }, right: { xs: 16, md: 'auto' }, bottom: { xs: 'calc(88px + env(safe-area-inset-bottom))', md: '6svh' }, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: { md: 380 } }}>
           <Box component="p" sx={{ m: 0, fontSize: { xs: 15, md: 17 }, lineHeight: 1.55, color: t.ivoryDim, [PHONE]: { display: 'none' } }}>
             Trek boots and everyday sneakers, made in Kathmandu and worn from the Terai to the Khumbu.
           </Box>
-          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: { xs: 1, md: 1.5 }, flexWrap: { xs: 'nowrap', md: 'wrap' }, '& > a': { [PHONE]: { px: 2, fontSize: 14 } } }}>
             <Cta to="/shop" variant="solid">Shop all footwear</Cta>
-            <Cta to="/g10" sx={{ [PHONE]: { flex: '1 1 auto' } }}>G10 in 3D</Cta>
+            <Cta to="/g10">G10 in 3D</Cta>
           </Box>
         </Box>
       </Box>

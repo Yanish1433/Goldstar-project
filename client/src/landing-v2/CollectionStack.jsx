@@ -3,7 +3,7 @@ import { Link as RouterLink } from 'react-router';
 import Box from '@mui/material/Box';
 import { ArrowUpRight } from 'lucide-react';
 import { useCategories } from '../api/hooks.js';
-import { tokensV2 as t, KINETIC, EYEBROW, FOCUS_RING, EASE_CSS, FINE_POINTER, PHONE } from './tokensV2.js';
+import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_TILE, FOCUS_RING, EASE_CSS, FINE_POINTER, PHONE } from './tokensV2.js';
 import { Eyebrow, Display, WRAP } from './ui.jsx';
 import { useSectionMotion } from './motion.js';
 import { shot } from './shots.js';
@@ -90,7 +90,7 @@ function Card({ c, i, count }) {
             height={1600}
             sx={{
               position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: c.tile ? 'contain' : 'cover',
-              ...(c.tile ? { mixBlendMode: 'multiply', p: { xs: 1, md: 4 }, boxSizing: 'border-box' } : { objectPosition: '50% 60%' }),
+              ...(c.tile ? { mixBlendMode: 'multiply', filter: PHOTO_TILE, p: { xs: 1, md: 4 }, boxSizing: 'border-box' } : { objectPosition: '50% 60%' }),
               willChange: 'transform',
             }}
           />
@@ -114,11 +114,11 @@ export default function CollectionStack() {
       if (next) {
         gsap.to(card, {
           scale: 0.9 + i * 0.012, rotateX: -6, transformPerspective: 1600, ease: 'none',
-          scrollTrigger: { trigger: next, start: 'top bottom', end: () => `top ${parseFloat(getComputedStyle(next).top) || 80}px`, scrub: true, invalidateOnRefresh: true },
+          scrollTrigger: { trigger: next, start: 'top 70%', end: () => `top ${parseFloat(getComputedStyle(next).top) || 80}px`, scrub: true, invalidateOnRefresh: true },
         });
         gsap.fromTo(card.querySelector('[data-cdim]'), { opacity: 0 }, {
-          opacity: 0.62, ease: 'none',
-          scrollTrigger: { trigger: next, start: 'top bottom', end: () => `top ${parseFloat(getComputedStyle(next).top) || 80}px`, scrub: true, invalidateOnRefresh: true },
+          opacity: 0.55, ease: 'none',
+          scrollTrigger: { trigger: next, start: 'top 55%', end: () => `top ${parseFloat(getComputedStyle(next).top) || 80}px`, scrub: true, invalidateOnRefresh: true },
         });
       }
       // The arriving photo settles from a slight zoom.

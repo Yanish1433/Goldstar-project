@@ -72,6 +72,9 @@ export const tokensV2 = {
 // Lifestyle photographs are pulled into the room: warm monochrome, a little darker. They take their own colour
 // back on hover/focus (see Categories), product photos are never treated.
 export const PHOTO_MONO = 'grayscale(1) sepia(0.28) brightness(0.62) contrast(1.06)';
+// Studio photos on the ivory tiles: their off-white sweep is lifted to pure white so `multiply` melts it into the
+// tile (no visible photo box). Used with mixBlendMode: 'multiply'.
+export const PHOTO_TILE = 'brightness(1.09) contrast(1.03)';
 export const PHOTO_LIVE = 'grayscale(0) sepia(0) brightness(0.86) contrast(1.04)';
 
 // One focus ring for both grounds: a gold line with a dark halo, visible on the ground and on ivory surfaces.

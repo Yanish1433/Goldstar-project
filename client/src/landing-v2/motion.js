@@ -51,6 +51,13 @@ const useIso = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 // useSectionMotion(ref, (gsap, ScrollTrigger, root) => { ...tweens... }, deps)
 // Skipped entirely under reduced motion (the markup's resting state is the final state) and in jsdom.
+// The index of the landing section holding `el` (0 = hero), for refresh ordering.
+function sectionOrder(el) {
+  const sec = el.closest('#landing-v2 > section') || el.closest('section');
+  if (!sec?.parentElement) return 0;
+  return Array.prototype.indexOf.call(sec.parentElement.children, sec);
+}
+
 // With { split: true } the build also receives SplitText as its 4th argument.
 export function useSectionMotion(ref, build, deps = [], { split = false } = {}) {
   useIso(() => {
@@ -58,12 +65,22 @@ export function useSectionMotion(ref, build, deps = [], { split = false } = {}) 
     let ctx = null;
     let extra = null;
     let dead = false;
-    Promise.all([loadGsap(), split ? loadSplitText() : null]).then(([{ gsap, ScrollTrigger }, SplitText]) => {
+    // Split text waits for the web font, so the letters are measured in the face they will be drawn in.
+    Promise.all([loadGsap(), split ? loadSplitText() : null, split ? document.fonts?.ready : null]).then(([{ gsap, ScrollTrigger }, SplitText]) => {
       if (dead || !ref.current) return;
       ref.current.setAttribute('data-motion', 'on');
+      const root = ref.current;
+      const before = new Set(ScrollTrigger.getAll());
       ctx = gsap.context(() => {
-        extra = build(gsap, ScrollTrigger, ref.current, SplitText);
-      }, ref.current);
+        extra = build(gsap, ScrollTrigger, root, SplitText);
+      }, root);
+      // Sections build at different times (the shelf waits for its products), but pins must be measured top-down:
+      // each pin's spacer moves everything after it. Rank this section's triggers by its place on the page.
+      const order = sectionOrder(root);
+      ScrollTrigger.getAll().forEach((st) => {
+        if (!before.has(st)) st.refreshPriority = 1000 - order;
+      });
+      ScrollTrigger.sort();
       // Images and fonts above may still be settling: re-measure once everything has laid out.
       requestAnimationFrame(() => ScrollTrigger.refresh());
     }).catch(() => {});

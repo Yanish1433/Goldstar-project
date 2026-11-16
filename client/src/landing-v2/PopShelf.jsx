@@ -5,7 +5,7 @@ import { Eye, Plus, Check } from 'lucide-react';
 import { useProducts } from '../api/hooks.js';
 import { formatNPR } from '../lib/format.js';
 import { makeLine, addToCartAnimated, pickSourceRect } from '../lib/addToCart.js';
-import { tokensV2 as t, KINETIC, EYEBROW, FOCUS_RING, EASE_CSS, FINE_POINTER, PHONE } from './tokensV2.js';
+import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_TILE, FOCUS_RING, EASE_CSS, FINE_POINTER, PHONE } from './tokensV2.js';
 import { Cta, Eyebrow, Display, GUTTER } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
 import { shelfPhoto } from './shots.js';
@@ -56,8 +56,10 @@ export function PopCard({ product, onQuickView }) {
         {/* Contact shadow on the plinth floor. */}
         <Box data-shadow aria-hidden="true" sx={{ position: 'absolute', left: '18%', right: '18%', bottom: '14%', height: '7%', borderRadius: '50%', backgroundColor: t.inkOnPaper, opacity: 0.16, filter: 'blur(10px)', pointerEvents: 'none' }} />
         <Box component={RouterLink} to={href} aria-label={`${product.name}, ${c.name}, ${formatNPR(c.price)}`} sx={{ position: 'absolute', inset: 0, display: 'block', ...FOCUS_RING, '&:focus-visible': { ...FOCUS_RING['&:focus-visible'], outlineOffset: -4 } }}>
-          {/* Two wrappers: GSAP moves [data-shoe] (the pop), CSS moves [data-lift] (the hover), so they never fight. */}
-          <Box data-shoe sx={{ position: 'absolute', inset: 0, willChange: 'transform' }}>
+          {/* Two wrappers: GSAP moves [data-shoe] (the pop), CSS moves [data-lift] (the hover), so they never fight. The
+              blend sits on the outer wrapper: a transformed box isolates its children, so the group is what multiplies
+              into the ivory plinth. */}
+          <Box data-shoe sx={{ position: 'absolute', inset: 0, willChange: 'transform', mixBlendMode: 'multiply' }}>
             <Box data-lift sx={{ position: 'absolute', inset: 0, transition: `transform 700ms ${EASE_CSS}`, [FINE_POINTER]: { '[data-card]:hover &': { transform: 'translateY(-6%) rotate(-5deg) scale(1.06)' } } }}>
               <Box
                 ref={photoRef}
@@ -70,7 +72,7 @@ export function PopCard({ product, onQuickView }) {
                 decoding="async"
                 width={800}
                 height={800}
-                sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply', p: { xs: 1, md: 2 }, boxSizing: 'border-box' }}
+                sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', filter: PHOTO_TILE, p: { xs: 1, md: 2 }, boxSizing: 'border-box' }}
               />
             </Box>
           </Box>
@@ -124,7 +126,7 @@ export function PopCard({ product, onQuickView }) {
               </Box>
             ))}
           </Box>
-          <Box component="button" type="button" onClick={add} disabled={!c.inStock || !size} aria-label={`Add ${product.name}, ${c.name}, UK ${size} to cart`} sx={{ ...btn, [PHONE]: { flex: '1 1 100%', px: 1 }, '&:disabled': { opacity: 0.45, cursor: 'not-allowed' } }}>
+          <Box component="button" type="button" onClick={add} disabled={!c.inStock || !size} aria-label={`Add ${product.name}, ${c.name}, UK ${size} to cart`} sx={{ ...btn, flex: '1 1 100%', [PHONE]: { px: 1 }, '&:disabled': { opacity: 0.45, cursor: 'not-allowed' } }}>
             {added ? <Check size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}
             {!c.inStock ? 'Sold out' : added ? 'Added' : `Add · UK ${size}`}
           </Box>
@@ -135,10 +137,12 @@ export function PopCard({ product, onQuickView }) {
 }
 
 // One card's pop, as a timeline segment (used by the pinned scene and by the per-card phone triggers).
+function riseInto(tl, card, at, span = 1) {
+  return tl.fromTo(card.querySelector('[data-plinth]'), { yPercent: 40, rotateX: -28, transformPerspective: 900, autoAlpha: 0.0001 }, { yPercent: 0, rotateX: 0, autoAlpha: 1, duration: 0.35 * span, ease: 'power3.out' }, at);
+}
 function popInto(tl, gsap, card, at, span = 1) {
   const q = (s) => card.querySelector(s);
-  tl.fromTo(q('[data-plinth]'), { yPercent: 40, rotateX: -28, transformPerspective: 900, autoAlpha: 0.0001 }, { yPercent: 0, rotateX: 0, autoAlpha: 1, duration: 0.35 * span, ease: 'power3.out' }, at)
-    .fromTo(q('[data-shoe]'), { yPercent: 105, rotate: -22, scale: 0.72 }, { yPercent: -9, rotate: 4, scale: 1.1, duration: 0.3 * span, ease: 'power2.out' }, at + 0.22 * span)
+  tl.fromTo(q('[data-shoe]'), { yPercent: 105, rotate: -22, scale: 0.72 }, { yPercent: -9, rotate: 4, scale: 1.1, duration: 0.3 * span, ease: 'power2.out' }, at + 0.22 * span)
     .to(q('[data-shoe]'), { yPercent: 0, rotate: 0, scale: 1, duration: 0.22 * span, ease: 'back.out(2.2)' }, at + 0.52 * span)
     .fromTo(q('[data-shadow]'), { scaleX: 0.2, opacity: 0 }, { scaleX: 1, opacity: 0.16, duration: 0.4 * span, ease: 'power2.out' }, at + 0.3 * span)
     .fromTo(q('[data-ring]'), { scale: 0.4, opacity: 0 }, { scale: 1.25, opacity: 0.7, duration: 0.25 * span, ease: 'power2.out' }, at + 0.34 * span)
@@ -159,18 +163,24 @@ export default function PopShelf({ onQuickView }) {
     // Pinned scene: desktop, a single row (up to 5 shoes) and enough height for it.
     mm.add(`${MQ.desk} and (min-height: 600px)`, () => {
       if (cards.length > 5) return perCard();
+      // On the way in (not pinned yet): the heading and the empty plinths rise into place.
+      const pin = root.querySelector('[data-pin]');
+      const enter = gsap.timeline({ scrollTrigger: { trigger: pin, start: 'top 85%', end: 'top top', scrub: 0.5 } });
+      enter.fromTo('[data-shead] > *', { y: 60, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: 0.08, duration: 0.5, ease: 'power3.out' }, 0);
+      cards.forEach((card, i) => riseInto(enter, card, 0.2 + i * 0.12, 1.4));
+      // Pinned: the shoes pop up one after another.
       const tl = gsap.timeline({
-        scrollTrigger: { trigger: root.querySelector('[data-pin]'), start: 'top top', end: () => `+=${Math.round(window.innerHeight * 1.5)}`, pin: true, scrub: 0.7, anticipatePin: 1, invalidateOnRefresh: true },
+        scrollTrigger: { trigger: pin, start: 'top top', end: () => `+=${Math.round(window.innerHeight * 1.4)}`, pin: true, scrub: 0.7, anticipatePin: 1, invalidateOnRefresh: true },
       });
-      tl.fromTo('[data-shead] > *', { y: 50, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: 0.06, duration: 0.3, ease: 'power3.out' }, 0);
-      cards.forEach((card, i) => popInto(tl, gsap, card, 0.15 + i * 0.32, 1));
+      cards.forEach((card, i) => popInto(tl, gsap, card, i * 0.3, 1));
       tl.to({}, { duration: 0.25 }); // a beat of rest with every shoe out before the pin releases
       return undefined;
     });
     function perCard() {
       cards.forEach((card) => {
         const tl = gsap.timeline({ scrollTrigger: { trigger: card, start: 'top 98%', end: 'top 40%', scrub: 0.5 } });
-        popInto(tl, gsap, card, 0, 1);
+        riseInto(tl, card, 0, 1);
+        popInto(tl, gsap, card, 0.2, 1);
       });
       gsap.fromTo('[data-shead] > *', { y: 40, autoAlpha: 0 }, { y: 0, autoAlpha: 1, stagger: 0.08, ease: 'none', scrollTrigger: { trigger: '[data-shead]', start: 'top 95%', end: 'top 65%', scrub: true } });
     }
