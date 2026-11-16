@@ -136,6 +136,9 @@ export default function KineticHero() {
           aria-label={HERO_LABEL}
           sx={{
             ...KINETIC, position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
+            // Ivory letters over the ivory window would vanish: `difference` inverts them where they cross it
+            // (ink on the window and the pair, ivory on the dark backdrop), so the line always reads.
+            mixBlendMode: 'difference',
             display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
             pt: { xs: 'calc(var(--appbar-h, 56px) + 54px)', md: 'calc(var(--appbar-h, 64px) + 6svh)' },
             pb: { xs: 'calc(30svh + 24px)', md: '18svh' },
