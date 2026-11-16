@@ -26,10 +26,10 @@ function renderAt(path) {
 const T = { timeout: 15000 };
 
 describe('route smoke renders with the mock API', () => {
-  it('/ renders the storefront landing (welcome banner, shop all footwear, link to the G10 in 3D)', async () => {
+  it('/ renders the storefront landing (Made in Nepal hero, shop all footwear, link to the G10 in 3D)', async () => {
     const { container } = renderAt('/');
-    expect(await screen.findByRole('heading', { level: 1, name: /WELCOME TO GOLDSTAR/i }, T)).toBeInTheDocument();
-    expect(await screen.findByRole('link', { name: /Shop All Footwear/i }, T)).toHaveAttribute('href', '/shop');
+    expect(await screen.findByRole('heading', { level: 1, name: /Made in Nepal\. Built for the Himalaya\./i }, T)).toBeInTheDocument();
+    expect((await screen.findAllByRole('link', { name: /Shop all footwear/i }, T))[0]).toHaveAttribute('href', '/shop');
     expect(screen.getAllByRole('link', { name: /Explore G10 in 3D/i })[0]).toHaveAttribute('href', '/g10');
   });
   it('/g10 renders the story copy when WebGL is missing', async () => {

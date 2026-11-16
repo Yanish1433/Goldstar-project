@@ -69,7 +69,8 @@ function Card3D({ rev }) {
           p: { xs: 3, sm: 3.5 },
           borderRadius: '24px',
           backgroundColor: tokensV2.cream,
-          border: '1px solid rgba(20,18,14,0.08)',
+          color: tokensV2.ink,
+          border: `1px solid ${tokensV2.lineOnPaper}`,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -86,15 +87,15 @@ function Card3D({ rev }) {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Box sx={{ display: 'flex', gap: 0.5 }}>
               {Array.from({ length: rev.rating }, (_, i) => (
-                <Star key={i} size={16} fill={tokensV2.gold} color={tokensV2.gold} />
+                <Star key={i} size={16} fill={tokensV2.goldDeep} color={tokensV2.goldDeep} />
               ))}
             </Box>
             <Box
               sx={{
                 fontSize: 11,
                 fontWeight: 800,
-                color: tokensV2.blue,
-                backgroundColor: 'rgba(36,32,217,0.08)',
+                color: tokensV2.inkSecondary,
+                backgroundColor: tokensV2.blueWash,
                 px: 1,
                 py: 0.3,
                 borderRadius: '999px',
@@ -130,14 +131,14 @@ function Card3D({ rev }) {
         </Box>
 
         {/* Author Footer */}
-        <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid rgba(20,18,14,0.08)' }}>
+        <Box sx={{ mt: 3, pt: 2, borderTop: `1px solid ${tokensV2.lineOnPaper}` }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box>
               <Box sx={{ fontSize: 15, fontWeight: 800, color: tokensV2.ink }}>
                 {rev.name}
               </Box>
               <Box sx={{ fontSize: 12, color: tokensV2.inkMuted }}>
-                {rev.location} · <strong style={{ color: tokensV2.blue }}>{rev.shoe}</strong>
+                {rev.location} · <strong style={{ color: tokensV2.ink }}>{rev.shoe}</strong>
               </Box>
             </Box>
 
@@ -148,7 +149,7 @@ function Card3D({ rev }) {
                 gap: 0.5,
                 fontSize: 11,
                 fontWeight: 800,
-                color: '#0F7A4F',
+                color: tokensV2.inkSecondary,
               }}
             >
               <CheckCircle size={14} />
@@ -169,8 +170,8 @@ export default function Reviews3DV2() {
       aria-labelledby="reviews-heading"
       sx={{
         py: { xs: 8, md: 14 },
-        backgroundColor: tokensV2.white,
-        color: tokensV2.ink,
+        backgroundColor: tokensV2.ground,
+        color: tokensV2.ivory,
       }}
     >
       <Box
@@ -197,8 +198,8 @@ export default function Reviews3DV2() {
               px: 2,
               py: 0.5,
               borderRadius: '999px',
-              backgroundColor: 'rgba(255, 184, 0, 0.15)',
-              color: tokensV2.ink,
+              backgroundColor: tokensV2.goldWash,
+              color: tokensV2.ivory,
               fontSize: 12,
               fontWeight: 800,
               letterSpacing: '0.08em',
@@ -226,7 +227,7 @@ export default function Reviews3DV2() {
             sx={{
               mt: 1.5,
               fontSize: { xs: 15, md: 17 },
-              color: tokensV2.inkSecondary,
+              color: tokensV2.ivoryDim,
               lineHeight: 1.6,
             }}
           >

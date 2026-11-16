@@ -1,33 +1,31 @@
-import { useState } from 'react';
-import { Link as RouterLink } from 'react-router';
+import { useCallback, useState } from 'react';
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import { Sparkles, ArrowRight } from 'lucide-react';
 import { useTitle } from '../components/Page.jsx';
-import { tokensV2, FOCUS_RING } from './tokensV2.js';
-import TrekHeroScroll from './TrekHeroScroll.jsx';
-import UrbanWalkScroll from './UrbanWalkScroll.jsx';
-import GearCollectionV2 from './GearCollectionV2.jsx';
-import G10ShowcaseV2 from './G10ShowcaseV2.jsx';
-import WomensSectionV2 from './WomensSectionV2.jsx';
-import KidsSectionV2 from './KidsSectionV2.jsx';
-import ShelvesV2 from './ShelvesV2.jsx';
-import ColorStudioV2 from './ColorStudioV2.jsx';
-import HeritageStoryV2 from './HeritageStoryV2.jsx';
+import { tokensV2 as t } from './tokensV2.js';
+import Hero3D from './Hero3D.jsx';
+import Marquee from './Marquee.jsx';
+import Categories from './Categories.jsx';
+import G10Band from './G10Band.jsx';
+import ShoeRail from './ShoeRail.jsx';
+import Heritage from './Heritage.jsx';
 import Reviews3DV2 from './Reviews3DV2.jsx';
 import QuickViewModal from './QuickViewModal.jsx';
 
+// The store's front page ("/"), direction "dark-room": one warm near-black ground from top to bottom, ivory ink and
+// Goldstar gold as the single accent (tokensV2.js is the only file here with colour values).
+//   1 Hero3D      cinematic 3D hero: poster first, the G10 in WebGL on idle, scroll push-in, hand-off
+//   2 Marquee     what Goldstar promises
+//   3 Categories  Men / Women / Kids / Trek index
+//   4 G10Band     featured G10-401, links to the 3D story at /g10
+//   5 ShoeRail    the shoe shelf: pinned horizontal rail (desktop) / scroll-snap row (touch)
+//   6 Heritage    Made in Nepal, full-bleed Himalaya
+//   7 Reviews3DV2 the Goldstar reviews (kept, retinted)
+// The Footer comes from Layout.
 export default function LandingV2() {
-  useTitle('Goldstar 3D · Cinematic Nepal Footwear & Gear');
-  const [modalData, setModalData] = useState({ open: false, product: null, colour: null });
-
-  const handleOpenQuickView = (product, colour) => {
-    setModalData({ open: true, product, colour });
-  };
-
-  const handleCloseQuickView = () => {
-    setModalData((prev) => ({ ...prev, open: false }));
-  };
+  useTitle('Goldstar · Made in Nepal, built for the Himalaya');
+  const [modal, setModal] = useState({ open: false, product: null, colour: null });
+  const openQuickView = useCallback((product, colour) => setModal({ open: true, product, colour }), []);
+  const close = useCallback(() => setModal((m) => ({ ...m, open: false })), []);
 
   return (
     <Box
@@ -35,51 +33,20 @@ export default function LandingV2() {
       sx={{
         position: 'relative',
         mt: 'calc(var(--appbar-h, 64px) * -1)',
-        pt: 'var(--appbar-h, 64px)',
-        backgroundColor: '#070A0F',
-        color: '#FFFFFF',
+        backgroundColor: t.ground,
+        color: t.ivory,
         overflowX: 'clip',
+        '& ::selection': { backgroundColor: t.gold, color: t.onGold },
       }}
     >
-      {/* 1. Cinematic Scrolling Story: The Trekking Woman climbing the Himalayas with popping gear */}
-      <TrekHeroScroll onQuickView={handleOpenQuickView} />
-
-      {/* 2. Scrolling Animation: "Why Goldstar" / Urban Stride with grey sneaker pop-out */}
-      <UrbanWalkScroll onQuickView={handleOpenQuickView} />
-
-      {/* 3. The Goldstar Trek Collection Breakdown (Jacket, Rucksack, Pants, Boot) */}
-      <GearCollectionV2 />
-
-      {/* 3.5. Dedicated G-10 Trek Footwear Showcase (Layer Breakdown & Colorway Switcher) */}
-      <G10ShowcaseV2 onQuickView={handleOpenQuickView} />
-
-      {/* 4. Dedicated Women's Section */}
-      <WomensSectionV2 onQuickView={handleOpenQuickView} />
-
-      {/* 5. Dedicated Kids' Section */}
-      <KidsSectionV2 />
-
-      {/* 6. All Footwear & Shelves Curator */}
-      <Box id="all-shoes">
-        <ShelvesV2 onQuickView={handleOpenQuickView} />
-      </Box>
-
-      {/* 7. Signature Mountain Color Studio */}
-      <ColorStudioV2 />
-
-      {/* 8. Authentic Nepal Heritage Story */}
-      <HeritageStoryV2 />
-
-      {/* 9. 3D Tilt Community Reviews */}
+      <Hero3D />
+      <Marquee />
+      <Categories />
+      <G10Band />
+      <ShoeRail onQuickView={openQuickView} />
+      <Heritage />
       <Reviews3DV2 />
-
-      {/* Quick View Modal */}
-      <QuickViewModal
-        open={modalData.open}
-        onClose={handleCloseQuickView}
-        product={modalData.product}
-        initialColour={modalData.colour}
-      />
+      <QuickViewModal open={modal.open} onClose={close} product={modal.product} initialColour={modal.colour} />
     </Box>
   );
 }

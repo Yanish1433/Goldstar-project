@@ -3,11 +3,10 @@ import { Link as RouterLink } from 'react-router';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Typography from '@mui/material/Typography';
-import { X, ShoppingBag, ArrowRight, Check, Star, ShieldCheck } from 'lucide-react';
-import { useCart } from '../store/cart.js';
-import { useUi } from '../store/ui.js';
+import { X, ShoppingBag, ArrowRight, Check, ShieldCheck } from 'lucide-react';
+import { makeLine, addToCartAnimated, pickSourceRect } from '../lib/addToCart.js';
 import { formatNPR } from '../lib/format.js';
-import { tokensV2, DISPLAY_HEADING, FOCUS_RING } from './tokensV2.js';
+import { tokensV2, FOCUS_RING } from './tokensV2.js';
 import { WIDE } from '../theme/tokens.js';
 
 export default function QuickViewModal({ open, onClose, product, initialColour }) {
@@ -15,9 +14,6 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
   const [selectedSize, setSelectedSize] = useState('8');
   const [added, setAdded] = useState(false);
 
-  const addToCart = useCart((s) => s.add);
-  const showSnackbar = useUi((s) => s.showSnackbar);
-  const openCart = useUi((s) => s.openCart);
 
   useEffect(() => {
     if (initialColour?.key) {
@@ -32,25 +28,14 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
   const currentColour = product.colourways?.find((c) => c.key === selectedKey) || product.colourways?.[0];
   const sizes = currentColour?.sizes?.length ? currentColour.sizes : ['5', '6', '7', '8', '9', '10'];
   const hasSale = currentColour?.regularPrice > currentColour?.price;
+  const size = sizes.map(String).includes(String(selectedSize)) ? selectedSize : sizes[Math.floor((sizes.length - 1) / 2)];
 
-  const handleAdd = () => {
-    addToCart({
-      productId: product.slug,
-      name: product.name,
-      colourwayKey: currentColour.key,
-      colourName: currentColour.name,
-      size: selectedSize,
-      unitPrice: currentColour.price,
-      image: currentColour.image,
-      qty: 1,
-    });
-    setAdded(true);
-    showSnackbar({
-      message: `Added ${product.name} (UK ${selectedSize}) to bag!`,
-      actionLabel: 'View Bag',
-      onAction: () => openCart(),
-    });
-    setTimeout(() => setAdded(false), 2000);
+  const handleAdd = (e) => {
+    const res = addToCartAnimated(makeLine(product, currentColour, size), { sourceRect: pickSourceRect(e.currentTarget) });
+    if (res.ok) {
+      setAdded(true);
+      setTimeout(() => setAdded(false), 2000);
+    }
   };
 
   return (
@@ -63,7 +48,7 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
         placeItems: 'center',
         p: { xs: 2, sm: 3 },
         backdropFilter: 'blur(8px)',
-        backgroundColor: 'rgba(20,18,14,0.65)',
+        backgroundColor: tokensV2.scrim,
         zIndex: 1300,
       }}
     >
@@ -74,7 +59,8 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
           maxWidth: 880,
           maxHeight: '90vh',
           overflowY: 'auto',
-          backgroundColor: tokensV2.white,
+          backgroundColor: tokensV2.paper,
+          color: tokensV2.inkOnPaper,
           borderRadius: '32px',
           boxShadow: tokensV2.shadowFloating,
           p: { xs: 3, sm: 4.5 },
@@ -107,7 +93,7 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
             transition: 'all 180ms ease',
             '&:hover': {
               backgroundColor: tokensV2.ink,
-              color: '#FFFFFF',
+              color: tokensV2.paper,
             },
             ...FOCUS_RING,
           }}
@@ -121,7 +107,7 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
             position: 'relative',
             aspectRatio: '1 / 1',
             borderRadius: '24px',
-            backgroundColor: tokensV2.cream,
+            backgroundColor: tokensV2.paperDim,
             display: 'grid',
             placeItems: 'center',
             p: 3,
@@ -137,7 +123,7 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
               width: '65%',
               height: '14%',
               borderRadius: '50%',
-              backgroundColor: 'rgba(20,18,14,0.14)',
+              backgroundColor: tokensV2.lineOnPaper,
               filter: 'blur(12px)',
             }}
           />
@@ -167,7 +153,7 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
                 gap: 0.5,
                 fontSize: 12,
                 fontWeight: 800,
-                color: tokensV2.blue,
+                color: tokensV2.goldDeep,
                 letterSpacing: '0.04em',
                 textTransform: 'uppercase',
                 mb: 0.75,
@@ -232,8 +218,8 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
                         height: 34,
                         borderRadius: '50%',
                         backgroundColor: cw.hex,
-                        border: `2px solid ${isSelected ? tokensV2.blue : '#FFFFFF'}`,
-                        boxShadow: isSelected ? `0 0 0 2px ${tokensV2.blue}` : '0 1px 4px rgba(0,0,0,0.2)',
+                        border: `2px solid ${tokensV2.paper}`,
+                        boxShadow: isSelected ? `0 0 0 2px ${tokensV2.ink}` : `0 0 0 1px ${tokensV2.lineOnPaper}`,
                         cursor: 'pointer',
                         p: 0,
                         '&:hover': { transform: 'scale(1.15)' },
@@ -252,7 +238,7 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 {sizes.map((sz) => {
-                  const isSelected = sz === selectedSize;
+                  const isSelected = String(sz) === String(size);
                   return (
                     <Box
                       key={sz}
@@ -265,15 +251,15 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
                         height: 44,
                         px: 1.5,
                         borderRadius: '12px',
-                        border: `2px solid ${isSelected ? tokensV2.blue : 'rgba(20,18,14,0.15)'}`,
-                        backgroundColor: isSelected ? tokensV2.blue : tokensV2.white,
-                        color: isSelected ? '#FFFFFF' : tokensV2.ink,
+                        border: `1.5px solid ${isSelected ? tokensV2.ink : tokensV2.lineOnPaper}`,
+                        backgroundColor: isSelected ? tokensV2.ink : 'transparent',
+                        color: isSelected ? tokensV2.paper : tokensV2.ink,
                         fontSize: 14,
                         fontWeight: 800,
                         cursor: 'pointer',
                         transition: 'all 160ms ease',
                         '&:hover': {
-                          borderColor: tokensV2.blue,
+                          borderColor: tokensV2.ink,
                         },
                         ...FOCUS_RING,
                       }}
@@ -299,16 +285,16 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
                 gap: 1,
                 minHeight: 52,
                 borderRadius: '999px',
-                backgroundColor: added ? '#0F7A4F' : tokensV2.blue,
-                color: '#FFFFFF',
+                backgroundColor: tokensV2.ink,
+                color: tokensV2.paper,
                 border: 'none',
                 fontSize: 16,
                 fontWeight: 800,
                 cursor: 'pointer',
-                boxShadow: '0 8px 24px rgba(36,32,217,0.25)',
+                boxShadow: tokensV2.shadowCard,
                 transition: 'all 200ms ease',
                 '&:hover': {
-                  backgroundColor: added ? '#0F7A4F' : tokensV2.blueHover,
+                  backgroundColor: tokensV2.blueHover,
                   transform: 'translateY(-2px)',
                 },
                 ...FOCUS_RING,
@@ -317,12 +303,12 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
               {added ? (
                 <>
                   <Check size={18} strokeWidth={2.5} />
-                  Added to Bag!
+                  Added to cart
                 </>
               ) : (
                 <>
                   <ShoppingBag size={18} />
-                  Add to Bag (Pay COD)
+                  Add to cart · Cash on delivery
                 </>
               )}
             </Box>
@@ -346,7 +332,7 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
                 transition: 'all 180ms ease',
                 '&:hover': {
                   backgroundColor: tokensV2.ink,
-                  color: '#FFFFFF',
+                  color: tokensV2.paper,
                 },
                 ...FOCUS_RING,
               }}
