@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Link as RouterLink, NavLink, useLocation, useNavigate } from 'react-router';
 import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -9,7 +9,7 @@ import Badge from '@mui/material/Badge';
 const Drawer = lazy(() => import('@mui/material/Drawer'));
 import Typography from '@mui/material/Typography';
 import { useReducedMotion } from 'motion/react';
-import { ShoppingBag, Menu, X, Sparkles } from 'lucide-react';
+import { ShoppingBag, Menu, X } from 'lucide-react';
 import { tokens } from '../theme/tokens.js';
 import { PAGE_PX } from './Page.jsx';
 import { useMe } from '../api/hooks.js';
@@ -37,8 +37,29 @@ export function Star({ size = 22 }) {
   );
 }
 
-// Styled Animated Goldstar Logo (Highlighted with Luminous Glow, Zero Background)
-function AnimatedGoldstarLogo() {
+// Bar palettes. Every text colour here is AA (>= 4.5:1) on its bar: ivory on the dark bars, ink and deep gold on the
+// light store bar (the white wordmark with a glow used to vanish on the white bar on /shop).
+const BAR = {
+  dark: { ink: '#F2EDE3', sub: '#E2B857', hover: '#E2B857', ground: 'rgba(13,12,10,0.82)', line: 'rgba(242,237,227,0.12)' },
+  light: { ink: '#16120E', sub: '#75561A', hover: '#75561A', ground: 'rgba(246,242,234,0.88)', line: 'rgba(22,18,14,0.10)' },
+};
+
+// Has the page scrolled past the top? Only listened to where the bar changes with it (the landing).
+function useScrolled(active) {
+  const [scrolled, setScrolled] = useState(() => typeof window !== 'undefined' && window.scrollY > 8);
+  useEffect(() => {
+    if (!active) return undefined;
+    const on = () => setScrolled(window.scrollY > 8);
+    on();
+    window.addEventListener('scroll', on, { passive: true });
+    return () => window.removeEventListener('scroll', on);
+  }, [active]);
+  return scrolled;
+}
+
+// The Goldstar logo. tone names the bar it sits on: 'dark' (ivory wordmark), 'light' (ink wordmark on the light
+// store bar), 'inherit' (the /g10 story's current ink).
+function AnimatedGoldstarLogo({ tone = 'dark' }) {
   const reduced = useReducedMotion();
   const navigate = useNavigate();
   const loc = useLocation();
@@ -76,15 +97,9 @@ function AnimatedGoldstarLogo() {
         boxShadow: 'none',
         transition: 'transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1)',
         '&:hover': {
-          transform: 'scale(1.06)',
-          '& .star-box': {
-            transform: 'rotate(24deg) scale(1.2)',
-            filter: 'drop-shadow(0 0 20px rgba(255, 184, 0, 1)) drop-shadow(0 0 35px rgba(255, 224, 102, 0.9))',
-          },
-          '& .brand-text': {
-            textShadow: '0 2px 14px rgba(0, 0, 0, 0.95), 0 0 28px rgba(255, 184, 0, 0.95), 0 0 10px #FFFFFF',
-          },
+          '& .star-box': { transform: 'rotate(24deg) scale(1.15)' },
         },
+        '&:focus-visible': { outline: `2px solid ${tone === 'inherit' ? 'currentColor' : BAR[tone].hover}`, outlineOffset: 4, borderRadius: '6px' },
       }}
     >
       {/* Animated Glowing Star (Highlighted with Radiant Glow) */}
@@ -93,19 +108,7 @@ function AnimatedGoldstarLogo() {
         sx={{
           display: 'grid',
           placeItems: 'center',
-          transition: 'transform 350ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 350ms ease',
-          filter: 'drop-shadow(0 0 10px rgba(255, 184, 0, 0.9)) drop-shadow(0 2px 6px rgba(0,0,0,0.9))',
-          animation: reduced ? 'none' : 'gsStarGlow 3.5s ease-in-out infinite',
-          '@keyframes gsStarGlow': {
-            '0%, 100%': {
-              transform: 'scale(1)',
-              filter: 'drop-shadow(0 0 8px rgba(255, 184, 0, 0.85)) drop-shadow(0 2px 6px rgba(0,0,0,0.9))',
-            },
-            '50%': {
-              transform: 'scale(1.12) rotate(8deg)',
-              filter: 'drop-shadow(0 0 20px rgba(255, 184, 0, 1)) drop-shadow(0 0 30px rgba(255, 224, 102, 0.8)) drop-shadow(0 2px 8px rgba(0,0,0,0.95))',
-            },
-          },
+          transition: reduced ? 'none' : 'transform 350ms cubic-bezier(0.2, 0.8, 0.2, 1)',
         }}
       >
         <Star size={26} />
@@ -120,9 +123,8 @@ function AnimatedGoldstarLogo() {
             fontWeight: 900,
             fontSize: { xs: 20, sm: 23 },
             letterSpacing: '0.07em',
-            color: '#FFFFFF',
-            textShadow: '0 2px 12px rgba(0, 0, 0, 0.95), 0 0 20px rgba(255, 184, 0, 0.5), 0 0 4px #FFFFFF',
-            transition: 'text-shadow 260ms ease',
+            color: tone === 'inherit' ? 'inherit' : BAR[tone].ink,
+            transition: 'color 260ms ease',
           }}
         >
           GOLDSTAR
@@ -136,9 +138,8 @@ function AnimatedGoldstarLogo() {
               fontFamily: '"Mukta", system-ui, sans-serif',
               fontWeight: 800,
               fontSize: 12,
-              color: '#FFB800',
+              color: tone === 'inherit' ? 'inherit' : BAR[tone].sub,
               letterSpacing: '0.02em',
-              textShadow: '0 2px 8px rgba(0,0,0,0.95), 0 0 14px rgba(255, 184, 0, 0.85)',
             }}
           >
             गोल्डस्टार
@@ -151,12 +152,9 @@ function AnimatedGoldstarLogo() {
               px: 0.6,
               py: 0.1,
               borderRadius: '4px',
-              backgroundColor: 'rgba(255, 184, 0, 0.18)',
-              color: '#FFB800',
-              border: '1px solid rgba(255, 184, 0, 0.65)',
+              color: tone === 'inherit' ? 'inherit' : BAR[tone].sub,
+              border: '1px solid currentColor',
               letterSpacing: '0.06em',
-              textShadow: '0 1px 4px rgba(0,0,0,0.8)',
-              boxShadow: '0 0 8px rgba(255, 184, 0, 0.35)',
             }}
           >
             NEPAL
@@ -167,31 +165,26 @@ function AnimatedGoldstarLogo() {
   );
 }
 
-function NavItem({ to, children, onClick, end, isLanding }) {
+// tone: 'dark' | 'light' | 'inherit' (the bar, as for the logo).
+const navSx = (tone) => ({
+  color: tone === 'inherit' ? 'inherit' : BAR[tone].ink,
+  minHeight: 44,
+  px: 2,
+  fontWeight: 700,
+  fontSize: 14,
+  transition: 'color 180ms ease',
+  '&:hover': { color: tone === 'inherit' ? 'inherit' : BAR[tone].hover, backgroundColor: 'transparent', textDecoration: 'underline', textUnderlineOffset: '6px' },
+  '&.active': { color: tone === 'inherit' ? 'inherit' : BAR[tone].hover, textDecoration: 'underline', textUnderlineOffset: '6px', textDecorationThickness: '2px' },
+});
+
+function NavItem({ to, children, onClick, end, tone }) {
   return (
     <Button
       component={NavLink}
       to={to}
       end={end}
       onClick={onClick}
-      sx={{
-        color: isLanding ? '#FFFFFF' : 'text.primary',
-        textShadow: isLanding ? '0 2px 8px rgba(0,0,0,0.85)' : 'none',
-        minHeight: 44,
-        px: 2,
-        fontWeight: 700,
-        fontSize: 14,
-        transition: 'color 180ms ease, text-shadow 180ms ease',
-        '&:hover': {
-          color: '#FFB800',
-          textShadow: '0 0 12px rgba(255, 184, 0, 0.75)',
-          backgroundColor: 'transparent',
-        },
-        '&.active': {
-          color: '#FFB800',
-          textShadow: '0 0 10px rgba(255, 184, 0, 0.6)',
-        },
-      }}
+      sx={navSx(tone)}
     >
       {children}
     </Button>
@@ -200,7 +193,7 @@ function NavItem({ to, children, onClick, end, isLanding }) {
 
 const NO_OVERSHOOT = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
-function CartButton({ isLanding }) {
+function CartButton({ tone }) {
   const count = useCart(cartCount);
   const visible = useCart(cartVisibleCount);
   const openCart = useUi((s) => s.openCart);
@@ -228,11 +221,8 @@ function CartButton({ isLanding }) {
       sx={{
         ml: 0.5,
         mr: { xs: 0, md: -1.5 },
-        color: isLanding ? '#FFFFFF' : 'inherit',
-        '&:hover': {
-          color: '#FFB800',
-          backgroundColor: 'rgba(255, 255, 255, 0.08)',
-        },
+        color: tone === 'inherit' ? 'inherit' : BAR[tone].ink,
+        '&:hover': { color: tone === 'inherit' ? 'inherit' : BAR[tone].hover, backgroundColor: tone === 'light' ? 'rgba(22,18,14,0.06)' : 'rgba(242,237,227,0.08)' },
       }}
     >
       <Badge
@@ -285,78 +275,66 @@ export default function AppBar() {
 
   const story = isStoryPath(loc.pathname);
   const landing = isLandingPath(loc.pathname);
+  const scrolled = useScrolled(landing);
+  // Bar states. Store pages: the light frosted bar with the ink logo. Landing: the dark frosted bar with the ivory
+  // logo, transparent only at scroll 0 over the dark hero. /g10: a low-alpha frosted bar that takes the story's ink
+  // (its grounds change colour per chapter; an opaque bar would crop the boot and clash).
+  const tone = story ? 'inherit' : landing ? 'dark' : 'light'; // which bar: BAR.dark / BAR.light
+  const bar = landing ? BAR.dark : BAR.light;
+  const clear = landing && !scrolled;
 
-  const links = (onClick) => (
+  const links = (onClick, t = tone) => (
     <>
-      <NavItem to="/shop" onClick={onClick} isLanding={landing}>Shop</NavItem>
-      <Button
-        component={RouterLink}
-        to="/shop?category=new-arrival"
-        onClick={onClick}
-        sx={{
-          color: landing ? '#FFFFFF' : 'text.primary',
-          textShadow: landing ? '0 2px 8px rgba(0,0,0,0.85)' : 'none',
-          minHeight: 44,
-          px: 2,
-          fontWeight: 700,
-          fontSize: 14,
-          '&:hover': {
-            color: '#FFB800',
-            textShadow: '0 0 12px rgba(255, 184, 0, 0.75)',
-            backgroundColor: 'transparent',
-          },
-        }}
-      >
+      <NavItem to="/shop" onClick={onClick} tone={t}>Shop</NavItem>
+      <Button component={RouterLink} to="/shop?category=new-arrival" onClick={onClick} sx={navSx(t)}>
         New arrivals
       </Button>
-      <NavItem to="/g10" onClick={onClick} isLanding={landing}>G10 in 3D</NavItem>
+      <NavItem to="/g10" onClick={onClick} tone={t}>G10 in 3D</NavItem>
       {me.data ? (
-        <NavItem to="/account" onClick={onClick} isLanding={landing}>Account</NavItem>
+        <NavItem to="/account" onClick={onClick} tone={t}>Account</NavItem>
       ) : (
-        <NavItem to="/login" onClick={onClick} isLanding={landing}>Log in</NavItem>
+        <NavItem to="/login" onClick={onClick} tone={t}>Log in</NavItem>
       )}
-      {isAdmin ? <NavItem to="/admin" onClick={onClick} isLanding={landing}>Admin</NavItem> : null}
+      {isAdmin ? <NavItem to="/admin" onClick={onClick} tone={t}>Admin</NavItem> : null}
     </>
   );
 
   return (
     <MuiAppBar
       component="header"
+      position="fixed"
       elevation={0}
+      data-bar={story ? 'story' : clear ? 'clear' : landing ? 'dark' : 'light'}
       sx={{
         zIndex: 1200,
-        // Entire Navbar Background is 100% TRANSPARENT on the landing page!
-        ...(landing
-          ? {
-              backgroundColor: 'transparent !important',
-              boxShadow: 'none !important',
-              borderBottom: 'none !important',
-              backdropFilter: 'none !important',
-              backgroundImage: 'linear-gradient(180deg, rgba(7, 10, 15, 0.55) 0%, transparent 100%)',
-            }
-          : null),
+        top: 0,
+        left: 0,
+        right: 0,
+        boxShadow: 'none',
+        backgroundImage: 'none',
+        transition: 'background-color 320ms ease, border-color 320ms ease, backdrop-filter 320ms ease, color 300ms ease',
+        borderBottom: '1px solid transparent',
         ...(story
           ? {
-              backgroundColor: 'transparent',
               color: 'var(--story-ink, #F2EDE3)',
-              boxShadow: 'none',
-              transition: 'color 300ms ease',
+              backgroundColor: 'color-mix(in srgb, var(--story-ink, #F2EDE3) 6%, transparent)',
+              backdropFilter: 'blur(12px) saturate(1.2)',
+              WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
+              borderBottomColor: 'color-mix(in srgb, var(--story-ink, #F2EDE3) 14%, transparent)',
               '& .MuiButton-root, & .MuiIconButton-root, & .MuiTypography-root, & a': { color: 'inherit' },
               '& svg path[fill]': { fill: 'currentColor' },
             }
-          : null),
-        ...(!landing && !story
-          ? {
-              backgroundColor: 'rgba(255, 255, 255, 0.94)',
-              backdropFilter: 'blur(16px)',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-            }
-          : null),
+          : {
+              color: bar.ink,
+              backgroundColor: clear ? 'transparent' : bar.ground,
+              backdropFilter: clear ? 'none' : 'blur(16px) saturate(1.3)',
+              WebkitBackdropFilter: clear ? 'none' : 'blur(16px) saturate(1.3)',
+              borderBottomColor: clear ? 'transparent' : bar.line,
+            }),
       }}
     >
       <Toolbar sx={{ px: PAGE_PX, maxWidth: 1440, width: '100%', mx: 'auto', boxSizing: 'border-box', gap: 1 }} disableGutters>
-        {/* Styled Animated Goldstar Logo on White Capsule Background */}
-        <AnimatedGoldstarLogo />
+        <AnimatedGoldstarLogo tone={tone} />
 
         <Box sx={{ flex: 1 }} />
 
@@ -366,7 +344,7 @@ export default function AppBar() {
         </Box>
 
         {/* Shopping Cart Button */}
-        <CartButton isLanding={landing} />
+        <CartButton tone={tone} />
 
         {/* Mobile Menu Button */}
         <IconButton
@@ -375,7 +353,7 @@ export default function AppBar() {
           sx={{
             display: { md: 'none' },
             mr: -1.5,
-            color: landing ? '#FFFFFF' : 'inherit',
+            color: tone === 'inherit' ? 'inherit' : BAR[tone].ink,
           }}
         >
           <Menu size={22} strokeWidth={2} aria-hidden="true" />
@@ -389,10 +367,10 @@ export default function AppBar() {
             anchor="right"
             open={menuOpen}
             onClose={closeMenu}
-            PaperProps={{ sx: { width: { xs: '100vw', sm: 360 }, height: '100%', backgroundColor: '#0A0E14', color: '#FFFFFF' } }}
+            PaperProps={{ sx: { width: { xs: '100vw', sm: 360 }, height: '100%', backgroundColor: '#0D0C0A', color: BAR.dark.ink } }}
           >
             <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end' }}>
-              <IconButton aria-label="Close menu" onClick={closeMenu} sx={{ color: '#FFFFFF' }}>
+              <IconButton aria-label="Close menu" onClick={closeMenu} sx={{ color: BAR.dark.ink }}>
                 <X size={20} strokeWidth={1.75} aria-hidden="true" />
               </IconButton>
             </Box>
@@ -405,10 +383,10 @@ export default function AppBar() {
                 alignItems: 'flex-start',
                 px: 3,
                 gap: 1.5,
-                '& .MuiButton-root': { fontSize: 22, minHeight: 52, color: '#FFFFFF' },
+                '& .MuiButton-root': { fontSize: 22, minHeight: 52 },
               }}
             >
-              {links(closeMenu)}
+              {links(closeMenu, 'dark')}
             </Box>
           </Drawer>
         </Suspense>

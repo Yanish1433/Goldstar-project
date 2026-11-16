@@ -1,29 +1,51 @@
 import { useCallback, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
+import GlobalStyles from '@mui/material/GlobalStyles';
 import { useTitle } from '../components/Page.jsx';
 import { tokensV2 as t } from './tokensV2.js';
-import Hero3D from './Hero3D.jsx';
-import Marquee from './Marquee.jsx';
-import Categories from './Categories.jsx';
-import G10Band from './G10Band.jsx';
-import ShoeRail from './ShoeRail.jsx';
+import KineticHero from './KineticHero.jsx';
+import Ticker from './Ticker.jsx';
+import CollectionStack from './CollectionStack.jsx';
+import PopShelf from './PopShelf.jsx';
+import DetailGallery from './DetailGallery.jsx';
 import Heritage from './Heritage.jsx';
 import Reviews3DV2 from './Reviews3DV2.jsx';
 import QuickViewModal from './QuickViewModal.jsx';
 import { useRefreshOnResize } from './motion.js';
 
-// The store's front page ("/"), direction "dark-room": one warm near-black ground from top to bottom, ivory ink and
-// Goldstar gold as the single accent (tokensV2.js is the only file here with colour values).
-//   1 Hero3D      cinematic 3D hero: poster first, the G10 in WebGL on idle, scroll push-in, hand-off
-//   2 Marquee     what Goldstar promises
-//   3 Categories  Men / Women / Kids / Trek index
-//   4 G10Band     featured G10-401, links to the 3D story at /g10
-//   5 ShoeRail    the shoe shelf: pinned horizontal rail (desktop) / scroll-snap row (touch)
-//   6 Heritage    Made in Nepal, full-bleed Himalaya
-//   7 Reviews3DV2 the Goldstar reviews (kept, retinted)
-// The Footer comes from Layout.
+// The store's front page ("/"): a scroll story. Every section has its own move, all scrubbed to the scroll (so
+// they run backwards when you scroll up), all on one easing family, one duration scale and one accent (gold).
+//   1 KineticHero      the headline splits apart, the ivory window opens from the centre, the pair scales up
+//   2 Ticker           the collection names, driven sideways by the scroll in opposite directions
+//   3 CollectionStack  sticky cards that pile up and sink back (Trek Everyday, Sneak into Comfort, Women, Kids)
+//   4 PopShelf         the centrepiece: shoes pop up out of their plinths (quick view + add to cart)
+//   5 DetailGallery    pinned horizontal strip of close-ups with counter-parallax
+//   6 Heritage         a "50" that counts with the scroll over a photo zooming out
+//   7 Reviews3DV2      the Goldstar reviews (kept)
+// No WebGL on this page; the G10 3D story is one link away (/g10). The Footer comes from Layout.
+// The display face is self-hosted (public/fonts, preloaded in index.html) and declared here, so it only exists on
+// the landing; the size-adjusted local fallback keeps the swap from moving the layout.
+const FONT_CSS = `
+@font-face {
+  font-family: 'Sofia Sans XC';
+  src: url(/fonts/sofia-sans-extra-condensed-latin-var.woff2) format('woff2');
+  font-weight: 1 1000;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212;
+}
+@font-face {
+  font-family: 'Sofia Sans XC Fallback';
+  src: local('Arial Narrow'), local('ArialNarrow'), local('Arial');
+  size-adjust: 78%;
+  ascent-override: 118%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}`;
+const fontFaces = <GlobalStyles styles={FONT_CSS} />;
+
 export default function LandingV2() {
-  useTitle('Goldstar · Made in Nepal, built for the Himalaya');
+  useTitle('Goldstar · Walking the world for over five decades');
   const rootRef = useRef(null);
   useRefreshOnResize(rootRef);
   const [modal, setModal] = useState({ open: false, product: null, colour: null });
@@ -34,8 +56,11 @@ export default function LandingV2() {
     <Box
       ref={rootRef}
       id="landing-v2"
+      className="gs-landing"
       sx={{
         position: 'relative',
+        // The AppBar is fixed; Layout's spacer holds its height. The landing pulls up under it: the hero is dark and
+        // the bar is transparent over it until the first scroll.
         mt: 'calc(var(--appbar-h, 64px) * -1)',
         backgroundColor: t.ground,
         color: t.ivory,
@@ -43,11 +68,12 @@ export default function LandingV2() {
         '& ::selection': { backgroundColor: t.gold, color: t.onGold },
       }}
     >
-      <Hero3D />
-      <Marquee />
-      <Categories />
-      <G10Band />
-      <ShoeRail onQuickView={openQuickView} />
+      {fontFaces}
+      <KineticHero />
+      <Ticker />
+      <CollectionStack />
+      <PopShelf onQuickView={openQuickView} />
+      <DetailGallery />
       <Heritage />
       <Reviews3DV2 />
       <QuickViewModal open={modal.open} onClose={close} product={modal.product} initialColour={modal.colour} />

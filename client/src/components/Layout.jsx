@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Navigate, Outlet, ScrollRestoration, useLocation } from 'react-router';
 import Box from '@mui/material/Box';
 import Snackbar from '@mui/material/Snackbar';
@@ -70,6 +70,9 @@ export const isAdminPath = (pathname) => pathname === '/admin' || pathname.start
 // (A non-admin on /admin sees the store's light 404 page.)
 export const isLightRoute = (pathname) => !isStoryPath(pathname);
 
+// Hash targets land below the fixed bar, not under it.
+const anchorGlobals = <GlobalStyles styles={{ 'main [id]': { scrollMarginTop: 'var(--appbar-h, 64px)' } }} />;
+
 const lightGlobals = (
   <GlobalStyles
     styles={{
@@ -98,8 +101,9 @@ export default function Layout() {
   // chrome, so a non-admin sees the ordinary store 404 there and the panel is not advertised.
   const bare = isAdminPath(loc.pathname) && (me.isLoading || me.data?.role === 'admin');
 
-  // Expose the sticky header height so sticky story frames can clear it.
-  useEffect(() => {
+  // The header is fixed (it stays readable at every scroll position): expose its height as --appbar-h so the spacer
+  // below, sticky frames and pinned scenes can clear it. A layout effect, so it is set before the first paint.
+  useLayoutEffect(() => {
     const el = headRef.current?.querySelector('header');
     if (!el) return undefined;
     const set = () => document.documentElement.style.setProperty('--appbar-h', `${el.getBoundingClientRect().height}px`);
@@ -148,8 +152,12 @@ export default function Layout() {
         Skip to content
       </Box>
       <Themed light={light}>
+        {anchorGlobals}
         {light ? lightGlobals : null}
         <AppBar />
+        {/* Holds the fixed bar's place in the flow (it was sticky before). The landing and the /g10 story pull up
+            under it on purpose with a negative margin of the same height. */}
+        <Box aria-hidden="true" data-appbar-spacer sx={{ height: 'var(--appbar-h, 64px)', flex: 'none' }} />
         <Box component="main" id="content" tabIndex={-1} sx={{ outline: 'none', minHeight: '60vh', ...(light ? { backgroundColor: shop.ground, color: shop.ink } : null) }}>
           <Suspense fallback={<Box sx={{ minHeight: '70vh' }} />}>
             {/* No transformed wrapper on the story or the landing: their fixed/sticky stages must not sit inside one. */}

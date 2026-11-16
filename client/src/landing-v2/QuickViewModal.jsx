@@ -8,6 +8,7 @@ import { makeLine, addToCartAnimated, pickSourceRect } from '../lib/addToCart.js
 import { formatNPR } from '../lib/format.js';
 import { tokensV2, FOCUS_RING } from './tokensV2.js';
 import { WIDE } from '../theme/tokens.js';
+import { shelfPhoto } from './shots.js';
 
 export default function QuickViewModal({ open, onClose, product, initialColour }) {
   const [selectedKey, setSelectedKey] = useState(initialColour?.key || product?.colourways?.[0]?.key);
@@ -130,7 +131,7 @@ export default function QuickViewModal({ open, onClose, product, initialColour }
 
           <Box
             component="img"
-            src={currentColour?.image?.thumb || currentColour?.image?.src}
+            src={shelfPhoto(product, currentColour).thumb}
             alt={`${product.name} in ${currentColour?.name}`}
             sx={{
               position: 'relative',

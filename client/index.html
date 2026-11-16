@@ -18,9 +18,9 @@
     <meta name="twitter:card" content="summary_large_image" />
     <title>Goldstar Shoes — Made in Nepal</title>
     <script>
-      // No loading screen: the page paints straight away. First paint takes the route's ground: the night navy of the
-      // landing (/), the tangerine hero of the G10 story (/g10), the warm shop ground elsewhere. The landing preloads
-      // only its hero poster (the 3D loads after first paint, never here). The story preloads its poster and the
+      // No loading screen: the page paints straight away. First paint takes the route's ground: the warm near-black of
+      // the landing (/), the tangerine hero of the G10 story (/g10), the warm shop ground elsewhere. The landing has no
+      // 3D: it preloads its display font (the one file, used above the fold) and its hero photo. The story preloads its poster and the
       // boot for this device tier (same rules as src/three/tier.js, fetched once the poster has painted) so the 3D can fade
       // in over the poster.
       (function () {
@@ -29,12 +29,19 @@
         var story = p === '/g10' || p === '/g10/';
         var admin = '#F6F4EF';
         if (p.indexOf('/admin') === 0) { try { if ((JSON.parse(localStorage.getItem('gs-admin-prefs')) || {}).mode === 'dark') admin = '#100F0D'; } catch (e) {} }
-        document.documentElement.style.background = landing ? '#0A0C28' : story ? '#FF5A1F' : p.indexOf('/admin') === 0 ? admin : '#F6F2EA';
+        document.documentElement.style.background = landing ? '#0D0C0A' : story ? '#FF5A1F' : p.indexOf('/admin') === 0 ? admin : '#F6F2EA';
         if (!landing && !story) return;
-        function pre(href, as, type, media, low) { var l = document.createElement('link'); l.rel = 'preload'; l.as = as; l.href = href; if (type) l.type = type; if (media) l.media = media; if (as === 'fetch') l.crossOrigin = 'anonymous'; if (as === 'image') l.fetchPriority = 'high'; if (low) l.fetchPriority = 'low'; document.head.appendChild(l); }
+        function pre(href, as, type, media, low) { var l = document.createElement('link'); l.rel = 'preload'; l.as = as; l.href = href; if (type) l.type = type; if (media) l.media = media; if (as === 'fetch' || as === 'font') l.crossOrigin = 'anonymous'; if (as === 'image') l.fetchPriority = 'high'; if (low) l.fetchPriority = 'low'; document.head.appendChild(l); return l; }
+        if (landing) {
+          try { document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0D0C0A'); } catch (e) {}
+          pre('/fonts/sofia-sans-extra-condensed-latin-var.woff2', 'font', 'font/woff2');
+          var h = pre('/img/catalogue/C_M09888-2-scaled-2-1600.webp', 'image', 'image/webp');
+          h.setAttribute('imagesrcset', '/img/catalogue/C_M09888-2-scaled-2-800x800.webp 800w, /img/catalogue/C_M09888-2-scaled-2-1600.webp 1600w');
+          h.setAttribute('imagesizes', '(max-width: 899.95px) 72vw, 34vw');
+          return;
+        }
         pre('/img/hero/boot-phone.webp', 'image', 'image/webp', '(max-width: 899.95px)');
         pre('/img/hero/boot-desktop.webp', 'image', 'image/webp', '(min-width: 900px)');
-        if (landing) { try { document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0A0C28'); } catch (e) {} return; }
         try {
           var n = navigator, q = new URLSearchParams(location.search).get('tier'), mm = window.matchMedia;
           if (q === 'static' || mm('(prefers-reduced-motion: reduce)').matches) return;

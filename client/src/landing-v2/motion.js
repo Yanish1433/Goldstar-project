@@ -18,6 +18,32 @@ export function loadGsap() {
   return gsapPromise;
 }
 
+// SplitText ships free with GSAP 3.13. Loaded with the rest of the motion code, only when motion runs.
+let splitPromise = null;
+export function loadSplitText() {
+  if (!splitPromise) {
+    splitPromise = Promise.all([loadGsap(), import('gsap/SplitText')]).then(([{ gsap }, m]) => {
+      const SplitText = m.SplitText || m.default;
+      gsap.registerPlugin(SplitText);
+      return SplitText;
+    });
+  }
+  return splitPromise;
+}
+
+// The fixed AppBar's height (Layout keeps --appbar-h current). Pinned scenes sit under the translucent bar on
+// purpose (full-bleed stages) and pad their copy by this much.
+export const appbarH = () => {
+  if (typeof window === 'undefined') return 64;
+  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--appbar-h')) || 64;
+};
+
+// Screen tiers the scenes branch on (gsap.matchMedia keys).
+export const MQ = {
+  desk: '(min-width: 900px)',
+  phone: '(max-width: 899.95px)',
+};
+
 export const prefersReducedMotion = () =>
   typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -25,16 +51,18 @@ const useIso = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 // useSectionMotion(ref, (gsap, ScrollTrigger, root) => { ...tweens... }, deps)
 // Skipped entirely under reduced motion (the markup's resting state is the final state) and in jsdom.
-export function useSectionMotion(ref, build, deps = []) {
+// With { split: true } the build also receives SplitText as its 4th argument.
+export function useSectionMotion(ref, build, deps = [], { split = false } = {}) {
   useIso(() => {
     if (typeof window === 'undefined' || prefersReducedMotion() || !window.IntersectionObserver) return undefined;
     let ctx = null;
     let extra = null;
     let dead = false;
-    loadGsap().then(({ gsap, ScrollTrigger }) => {
+    Promise.all([loadGsap(), split ? loadSplitText() : null]).then(([{ gsap, ScrollTrigger }, SplitText]) => {
       if (dead || !ref.current) return;
+      ref.current.setAttribute('data-motion', 'on');
       ctx = gsap.context(() => {
-        extra = build(gsap, ScrollTrigger, ref.current);
+        extra = build(gsap, ScrollTrigger, ref.current, SplitText);
       }, ref.current);
       // Images and fonts above may still be settling: re-measure once everything has laid out.
       requestAnimationFrame(() => ScrollTrigger.refresh());
@@ -43,6 +71,7 @@ export function useSectionMotion(ref, build, deps = []) {
       dead = true;
       if (typeof extra === 'function') extra();
       ctx?.revert();
+      ref.current?.removeAttribute('data-motion');
     };
   }, deps); // eslint-disable-line react-hooks/exhaustive-deps
 }
@@ -69,12 +98,22 @@ export function useRefreshOnResize(ref) {
       kick();
     });
     ro.observe(el);
+    // The AppBar height differs per breakpoint: pins measured against it are refreshed when it changes.
+    const bar = document.querySelector('header');
+    let barLast = bar?.offsetHeight;
+    const roBar = bar ? new ResizeObserver(() => {
+      if (bar.offsetHeight === barLast) return;
+      barLast = bar.offsetHeight;
+      kick();
+    }) : null;
+    if (bar) roBar.observe(bar);
     document.fonts?.ready?.then(kick);
     if (document.readyState !== 'complete') window.addEventListener('load', kick, { once: true });
     kick();
     return () => {
       clearTimeout(t);
       ro.disconnect();
+      roBar?.disconnect();
       window.removeEventListener('load', kick);
     };
   }, [ref]);

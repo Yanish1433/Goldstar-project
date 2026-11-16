@@ -3,7 +3,6 @@
 // ink, a dimmer ivory for secondary text, and Goldstar gold as the single accent (dark ground, large type and
 // hairlines only: gold on ivory fails AA for text, so on ivory surfaces the accent drops to goldDeep).
 // Product photos bring their own colour; UI chrome never does. Contrast pairs are tested in test/landingV2.test.jsx.
-import { WIDE } from '../theme/tokens.js';
 
 // 'rgba(r,g,b,a)' from a '#RRGGBB' token: components build translucent tints with this, never by hand.
 export const alpha = (hex, a) => {
@@ -85,24 +84,34 @@ export const FOCUS_RING = {
 };
 export const FOCUS_RING_LIGHT = FOCUS_RING;
 
-// Reviews3DV2 keeps its heavy heading; the new sections use the light editorial display below.
-export const DISPLAY_HEADING = {
+// The landing's display face (round 2): Sofia Sans Extra Condensed, a variable condensed grotesk (wght 1-1000),
+// self-hosted from /fonts and scoped to the landing root (LandingV2 declares the @font-face; the global theme font is
+// untouched). Condensed caps stay legible at 20vw, split cleanly into letters and lines, and the weight axis can be
+// scrubbed with the scroll. The metric-matched fallback keeps the swap from shifting the layout.
+export const KINETIC_FAMILY = '"Sofia Sans XC", "Sofia Sans XC Fallback", "Arial Narrow", sans-serif';
+export const KINETIC = {
+  fontFamily: KINETIC_FAMILY,
   fontWeight: 800,
-  ...WIDE,
-  letterSpacing: '-0.03em',
-  lineHeight: 1.05,
+  textTransform: 'uppercase',
+  letterSpacing: '-0.01em',
+  lineHeight: 0.86,
+  m: 0,
+};
+
+// Reviews3DV2 keeps its layout; its heading takes the landing's display face (a token change only).
+export const DISPLAY_HEADING = {
+  ...KINETIC,
+  fontWeight: 760,
+  lineHeight: 0.92,
   textWrap: 'balance',
 };
 
-// Dark-room type: light weights glow on dark. Extended Archivo at 300, tight but not cramped.
+// Section headings: the display face, uppercase, heavy. (Name kept from round 1, the look is new.)
 export const DISPLAY_LIGHT = {
-  fontWeight: 300,
-  fontStretch: '118%',
-  fontVariationSettings: '"wdth" 118',
-  letterSpacing: '-0.035em',
-  lineHeight: 0.98,
+  ...KINETIC,
+  fontWeight: 720,
+  lineHeight: 0.9,
   textWrap: 'balance',
-  m: 0,
 };
 
 export const EYEBROW = {
@@ -113,7 +122,8 @@ export const EYEBROW = {
   color: C.ivoryFaint,
 };
 
-// One easing family for the whole page (GSAP 'expo.out' / 'power3.out' and this CSS curve).
+// One easing family for the whole page (GSAP 'expo.out' / 'power3.out' and this CSS curve). One duration scale.
+export const DUR = { fast: 0.24, base: 0.6, slow: 1.1 };
 export const EASE_CSS = 'cubic-bezier(0.16, 1, 0.3, 1)';
 export const TRANSITION_SPRING = EASE_CSS;
 
