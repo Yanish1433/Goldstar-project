@@ -7,7 +7,7 @@ import { detectTier, layoutFor } from '../three/tier.js';
 import { PALETTE, SECTIONS, START, colourIndexAt, endOf, pinOf, sectionAt } from '../story/storyline.js';
 import { useStoryUi } from '../story/state.js';
 import { useStoryEngine } from '../story/useStoryEngine.js';
-import { AnatomySection, CalloutsSection, ColourSection, FinaleSection, HeroSection, PerformanceSection, SoleSection, StageLabels, StudioSection } from '../story/Sections.jsx';
+import { AnatomySection, applyIntro, CalloutsSection, ColourSection, FinaleSection, HeroSection, PerformanceSection, SoleSection, StageLabels, StudioSection } from '../story/Sections.jsx';
 import { COLOURWAYS, DEFAULT_COLOUR } from '../story/model.config.js';
 import Quiet3D from '../components/Quiet3D.jsx';
 
@@ -60,6 +60,7 @@ export default function Home() {
   const onTimeRef = useRef(null);
   onTimeRef.current = (T) => {
     const ui = useStoryUi.getState();
+    applyIntro(T);
     const i = sectionAt(T);
     if (ui.section !== i) ui.set({ section: i });
     if (degRef.current) {
@@ -89,11 +90,11 @@ export default function Home() {
     };
   }, [tier]);
 
-  // Hero copy arrives on load (time-based, once). Reduced motion: no movement.
+  // The intro captions arrive on load (time-based, once; the hero headline waits for the end of the close-up). Reduced motion: no movement.
   useLayoutEffect(() => {
     if (flow) return undefined;
     const ctx = gsap.context(() => {
-      gsap.from('#story-hero [data-copy]', { autoAlpha: 0, y: 40, duration: 1, stagger: 0.09, ease: 'power3.out', delay: 0.1 });
+      gsap.from('#story-hero [data-intro]', { autoAlpha: 0, y: 24, duration: 0.9, ease: 'power3.out', delay: 0.1 });
     }, rootRef);
     return () => ctx.revert();
   }, [flow]);
@@ -118,7 +119,7 @@ export default function Home() {
         </Quiet3D>
       ) : null}
       {tier !== 'static' && !stageFailed ? <StageLabels /> : null}
-      <HeroSection product={product} />
+      <HeroSection product={product} flow={flow} />
       <PerformanceSection ref={degRef} />
       <CalloutsSection />
       <AnatomySection />

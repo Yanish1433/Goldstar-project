@@ -24,7 +24,7 @@ export const PALETTE = {
 };
 
 export const SECTIONS = [
-  { id: 'hero', pin: 40, colour: 'tangerine', title: 'Explore further' },
+  { id: 'hero', pin: 200, colour: 'tangerine', title: 'Explore further' },
   { id: 'performance', pin: 120, colour: 'lilac', title: 'Performance, redefined' },
   { id: 'callouts', pin: 180, colour: 'pine', title: 'Built in' },
   { id: 'anatomy', pin: 220, colour: 'glacier', title: 'Designed to endure' },
@@ -52,9 +52,43 @@ export const endOf = (id) => START[id] + pinOf(id);
 export const TOTAL = endOf(SECTIONS[SECTIONS.length - 1].id);
 // Absolute time of a fraction of a section's pin (0 = panel just pinned, 1 = about to leave).
 export const at = (id, frac) => START[id] + frac * pinOf(id);
+
+// The hero's opening: a scroll-scrubbed macro close-up (tongue logo -> metal hardware -> outsole lugs) that pulls
+// back to the full hero pose at `end`, then the hero copy arrives. Everything is in vh from the top of the story,
+// tied 1:1 to scroll, so scrolling up plays it backward exactly. Captions and the rail read introBeat(T).
+const BEAT_AT = [40, 80]; // where the caption crossfades are centred (between beat 1|2 and 2|3)
+export const INTRO = {
+  end: at('hero', 0.8), // 160: full hero pose reached (this is also HOLD.hero)
+  fade: 12, // width of a caption crossfade
+  captionOut: [112, 122], // the last caption leaves, the rail goes with it
+  copyIn: [118, 139], // hero headline + buttons arrive (their stagger ends exactly at `end`)
+  // The click targets of the rail: a point where each beat is fully shown.
+  beatT: [17, 60, 99],
+};
+export const INTRO_BEATS = 3;
+
+// Which close-up beat is on at T. vis[i] is caption i's opacity (0..1); rail is the rail's opacity; progress 0..1
+// is the rail thumb position (0 at the top, 1 when the last caption leaves); index is the strongest beat (for the rail's active dot / label).
+export function introBeat(T) {
+  const t = Number.isFinite(T) ? T : 0;
+  const h = INTRO.fade / 2;
+  const vis = [];
+  for (let i = 0; i < INTRO_BEATS; i += 1) {
+    const inn = i === 0 ? 1 : smooth(BEAT_AT[i - 1] - h, BEAT_AT[i - 1] + h, t);
+    const out = i === INTRO_BEATS - 1 ? 1 - smooth(INTRO.captionOut[0], INTRO.captionOut[1], t) : 1 - smooth(BEAT_AT[i] - h, BEAT_AT[i] + h, t);
+    vis.push(inn * out);
+  }
+  let index = 0;
+  vis.forEach((v, i) => {
+    if (v > vis[index]) index = i;
+  });
+  const rail = 1 - smooth(INTRO.captionOut[0], INTRO.captionOut[1], t);
+  return { vis, index, rail, progress: clamp01(t / INTRO.captionOut[0]) };
+}
+
 // The "hold" pose of each section: what reduced motion and the static screenshots show.
 export const HOLD = {
-  hero: at('hero', 0),
+  hero: INTRO.end,
   performance: at('performance', 0.2),
   callouts: at('callouts', 0.6),
   anatomy: at('anatomy', 0.55),
@@ -89,12 +123,21 @@ export const LAYOUTS = {
 // Pose defaults. Units: R = framing radius (rig units, the shoe is 3 long), angles in radians.
 // rx/ry/rz: shoe rotation (Euler 'YXZ': yaw ry, then roll rx about the length axis, then pitch rz).
 // az/el: camera orbit around the shoe. lift: shoe y offset. explode: 0..1. shadow: contact shadow opacity.
-const BASE = { box: 'right', fill: 0.92, R: 1.6, az: 0, el: 0.14, rx: 0, ry: 0, rz: 0, lift: 0, explode: 0, shadow: 1, alpha: 1, studio: 0 };
+// fx/fy/fz: the point of the shoe (rig units, shoe-local, toe +x) that sits at the centre of the framing; the macro
+// close-ups look at the tongue logo, the hardware and the lugs by moving it. 0 = the whole shoe, centred.
+const BASE = { box: 'right', fill: 0.92, R: 1.6, az: 0, el: 0.14, rx: 0, ry: 0, rz: 0, lift: 0, explode: 0, shadow: 1, alpha: 1, studio: 0, fx: 0, fy: 0, fz: 0 };
 
 // Keyframes. `t` is absolute vh; `ease` is how we arrive at this key from the previous one.
 // Values not given are carried over from the previous key.
 // Yaw is unwrapped (it only ever accumulates), so every flight spins the short or deliberate way.
 const HERO_Y = -0.65; // 3/4 front, toe to the right (storyboard)
+// Macro close-ups of the intro: framing radius R (rig units, 0.6+ keeps the textures sharp and the near plane clear
+// of the upper), shoe yaw/roll, camera elevation and the focus point f = [x, y, z] on the shoe.
+const MACRO = {
+  logo: { R: 0.7, ry: -0.9, el: 0.3, f: [0, 0.4, 0] },
+  hardware: { R: 0.8, ry: -0.5, el: 0.25, f: [0.3, 0.3, 0] },
+  lugs: { R: 0.95, ry: -1.3, el: 0.05, rx: -0.3, f: [0.5, -0.5, 0] },
+};
 const PERF_Y0 = HERO_Y + 0.2 + Math.PI; // half a turn during the flight
 const PERF_Y1 = PERF_Y0 + TAU; // a full 360 in the pin
 const CALL_Y = 2 * TAU - 0.9; // toe toward the camera: logo on the tongue + lateral side
@@ -114,7 +157,17 @@ export const ANATOMY = {
 };
 
 export const KEYS = [
-  { t: 0, ...BASE, box: 'hero', fill: 0.9, ry: HERO_Y, rz: 0.04, el: 0.14 },
+  // 1. Close-up on the tongue logo.
+  { t: 0, ...BASE, box: 'hero', fill: 0.9, R: MACRO.logo.R, ry: MACRO.logo.ry, rz: 0.04, el: MACRO.logo.el, shadow: 0, fx: MACRO.logo.f[0], fy: MACRO.logo.f[1], fz: MACRO.logo.f[2] },
+  { t: 30, ry: MACRO.logo.ry + 0.12, ease: 'linear' },
+  // 2. Pan to the lace hardware.
+  { t: 50, R: MACRO.hardware.R, ry: MACRO.hardware.ry, el: MACRO.hardware.el, fx: MACRO.hardware.f[0], fy: MACRO.hardware.f[1], fz: MACRO.hardware.f[2], ease: 'inOut' },
+  { t: 70, ry: MACRO.hardware.ry + 0.12, ease: 'linear' },
+  // 3. Down to the outsole lugs.
+  { t: 90, R: MACRO.lugs.R, ry: MACRO.lugs.ry, el: MACRO.lugs.el, rx: MACRO.lugs.rx, fx: MACRO.lugs.f[0], fy: MACRO.lugs.f[1], fz: MACRO.lugs.f[2], ease: 'inOut' },
+  { t: 112, ry: MACRO.lugs.ry + 0.12, ease: 'linear' },
+  // Pull back to the full hero pose (R only ever grows, so scrolling down never zooms back in).
+  { t: INTRO.end, R: 1.6, rx: 0, ry: HERO_Y, rz: 0.04, el: 0.14, shadow: 1, fx: 0, fy: 0, fz: 0, ease: 'inOut' },
   { t: endOf('hero'), ry: HERO_Y + 0.2, ease: 'linear' },
   // flight hero -> performance: lift and bank mid-air, half turn
   { t: endOf('hero') + 50, box: 'mid', lift: 0.3, rz: -0.16, ry: HERO_Y + 0.2 + Math.PI / 2, fill: 0.8, shadow: 0.2, ease: 'in' },
@@ -145,7 +198,7 @@ export const KEYS = [
   { t: TOTAL, ease: 'linear' },
 ];
 
-const NUM_KEYS = ['fill', 'R', 'az', 'el', 'rx', 'ry', 'rz', 'lift', 'explode', 'shadow', 'alpha', 'studio'];
+const NUM_KEYS = ['fill', 'R', 'az', 'el', 'rx', 'ry', 'rz', 'lift', 'explode', 'shadow', 'alpha', 'studio', 'fx', 'fy', 'fz'];
 
 // Fill every key with the values carried over from the previous one.
 const FULL = (() => {
@@ -172,7 +225,7 @@ export const smooth = (a, b, x) => {
 };
 
 export function makePose() {
-  return { cx: 0, cy: 0, w: 0, h: 0, fill: 0, R: 0, az: 0, el: 0, rx: 0, ry: 0, rz: 0, lift: 0, explode: 0, shadow: 0, alpha: 0, studio: 0 };
+  return { cx: 0, cy: 0, w: 0, h: 0, fill: 0, R: 0, az: 0, el: 0, rx: 0, ry: 0, rz: 0, lift: 0, explode: 0, shadow: 0, alpha: 0, studio: 0, fx: 0, fy: 0, fz: 0 };
 }
 
 // Sample the shoe pose at story time T (vh units) for a layout ('desktop' | 'phone').
@@ -234,7 +287,7 @@ export function copyTrack(id) {
   const s = START[id];
   const e = endOf(id);
   return {
-    in: id === 'hero' ? null : [s - 75, s - 5],
+    in: id === 'hero' ? INTRO.copyIn : [s - 75, s - 5],
     out: id === 'finale' ? null : [e - 20, e + 18],
   };
 }

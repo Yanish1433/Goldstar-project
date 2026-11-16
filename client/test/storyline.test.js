@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HOLD, KEYS, LAYOUTS, PALETTE, SECTIONS, START, TOTAL, TRACKS, TRANSITION, backgroundAt, colourIndexAt, copyTrack, endOf, trackAt, samplePose, sectionAt } from '../src/story/storyline.js';
+import { HOLD, INTRO, INTRO_BEATS, KEYS, LAYOUTS, PALETTE, SECTIONS, START, TOTAL, TRACKS, TRANSITION, backgroundAt, colourIndexAt, copyTrack, endOf, introBeat, pinOf, trackAt, samplePose, sectionAt } from '../src/story/storyline.js';
 import { STORY_MODEL, LABEL_ORDER, CALLOUTS, BADGES, COLOURWAYS, partColours } from '../src/story/model.config.js';
 
 // WCAG relative luminance / contrast.
@@ -184,5 +184,51 @@ describe('phone framing from the performance chapter on (captain addendum 4b)', 
     expect(LAYOUTS.phone.hero).toEqual({ cx: 0.5, cy: 0.32, w: 0.94, h: 0.4 });
     expect(LAYOUTS.desktop.hero).toEqual({ cx: 0.68, cy: 0.55, w: 0.56, h: 0.74 });
     expect(samplePose(HOLD.anatomy, 'phone').R).toBeCloseTo(2.4, 6);
+  });
+});
+
+describe('hero close-up intro (scroll-scrubbed, reversible)', () => {
+  const sweep = (fn) => { for (let t = 0; t <= INTRO.end; t += 0.5) fn(t); };
+  it('opens on a macro close-up and ends on the full hero pose, which is the hold', () => {
+    expect(HOLD.hero).toBe(INTRO.end);
+    expect(samplePose(0).R).toBeLessThan(1);
+    expect(samplePose(0).R).toBeGreaterThanOrEqual(0.6); // sharp textures, near plane clear of the upper
+    expect(samplePose(INTRO.end).R).toBeCloseTo(1.6, 6);
+    ['desktop', 'phone'].forEach((l) => expect(samplePose(HOLD.hero, l)).toMatchObject({ fx: 0, fy: 0, fz: 0, rx: 0, ry: -0.65, rz: 0.04, el: 0.14, shadow: 1 }));
+  });
+  it('pulls back monotonically: scrolling down never zooms back in', () => {
+    let prev = samplePose(0).R;
+    sweep((t) => { const R = samplePose(t).R; expect(R).toBeGreaterThanOrEqual(prev - 1e-9); prev = R; });
+  });
+  it('is a pure function of T: the same T gives the same pose (so scrolling up plays it backward exactly)', () => {
+    const fwd = []; const back = [];
+    sweep((t) => fwd.push(samplePose(t).R + samplePose(t).fx + samplePose(t).ry));
+    for (let t = INTRO.end; t >= 0; t -= 0.5) back.unshift(samplePose(t).R + samplePose(t).fx + samplePose(t).ry);
+    expect(back).toEqual(fwd);
+  });
+  it('the first caption is up at T=0 and one caption leads at every T; each beat is fully shown >= 25vh', () => {
+    expect(introBeat(0).vis[0]).toBe(1);
+    sweep((t) => { if (t <= INTRO.captionOut[0]) expect(Math.max(...introBeat(t).vis)).toBeGreaterThanOrEqual(0.5 - 1e-9); });
+    for (let i = 0; i < INTRO_BEATS; i += 1) {
+      let run = 0; let best = 0;
+      for (let t = 0; t <= INTRO.end; t += 0.5) { if (introBeat(t).vis[i] > 0.999) { run += 0.5; best = Math.max(best, run); } else run = 0; }
+      expect(best).toBeGreaterThanOrEqual(25);
+    }
+  });
+  it('rail click targets sit inside their own beat, the thumb is monotonic and the rail leaves after the last caption', () => {
+    INTRO.beatT.forEach((t, i) => expect(introBeat(t).index).toBe(i));
+    let p = 0; sweep((t) => { const b = introBeat(t); expect(b.progress).toBeGreaterThanOrEqual(p); p = b.progress; });
+    expect(introBeat(INTRO.captionOut[0] - 1).rail).toBe(1);
+    expect(introBeat(INTRO.captionOut[1]).rail).toBe(0);
+    expect(introBeat(HOLD.hero).vis.every((v) => v === 0)).toBe(true);
+  });
+  it('the hero headline arrives after the last caption has mostly left and is fully in by the hold', () => {
+    const tr = copyTrack('hero');
+    expect(tr.in[0]).toBeGreaterThanOrEqual(INTRO.captionOut[0]);
+    expect(tr.in[1] + 21).toBeLessThanOrEqual(HOLD.hero + 1e-9);
+  });
+  it('the intro does not push later chapters out of order', () => {
+    expect(START.performance).toBe(100 + pinOf('hero'));
+    expect(pinOf('hero')).toBeGreaterThan(INTRO.end);
   });
 });
