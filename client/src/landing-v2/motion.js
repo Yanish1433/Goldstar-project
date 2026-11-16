@@ -12,6 +12,18 @@ export function loadGsap() {
       const ScrollTrigger = st.ScrollTrigger || st.default;
       gsap.registerPlugin(ScrollTrigger);
       gsap.defaults({ ease: 'expo.out' });
+      // Refresh in page order, every time. Each pin's spacer pushes everything below it down, so a pin must be measured
+      // after every pin above it. Triggers are created in whatever order sections happen to build (the shelf waits for
+      // its products; gsap.matchMedia rebuilds a section's triggers when the window crosses a breakpoint and appends
+      // them last). Re-sorting by DOM position at the start of each refresh makes the order independent of build time.
+      // Only on the landing: /g10 builds its own triggers in order and is left alone.
+      ScrollTrigger.addEventListener('refreshInit', () => {
+        if (document.getElementById('landing-v2')) ScrollTrigger.sort(byPageOrder);
+      });
+      if (import.meta.env?.DEV) {
+        window.__ST = ScrollTrigger; // dev only: the overlap check (and you, in the console) can read the live triggers
+        ScrollTrigger.addEventListener('refresh', () => assertPinsInOrder(ScrollTrigger));
+      }
       return { gsap, ScrollTrigger };
     });
   }
@@ -51,11 +63,46 @@ const useIso = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 // useSectionMotion(ref, (gsap, ScrollTrigger, root) => { ...tweens... }, deps)
 // Skipped entirely under reduced motion (the markup's resting state is the final state) and in jsdom.
-// The index of the landing section holding `el` (0 = hero), for refresh ordering.
-function sectionOrder(el) {
-  const sec = el.closest('#landing-v2 > section') || el.closest('section');
-  if (!sec?.parentElement) return 0;
-  return Array.prototype.indexOf.call(sec.parentElement.children, sec);
+// Page (DOM) order of two triggers. Same element (e.g. the shelf's "enter" and its pin): keep creation order (stable
+// sort). Triggers without an element go last.
+export function byPageOrder(a, b) {
+  const ea = a.trigger;
+  const eb = b.trigger;
+  if (!ea || !eb) return (ea ? 0 : 1) - (eb ? 0 : 1);
+  if (ea === eb) return 0;
+  const pos = ea.compareDocumentPosition(eb);
+  if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1; // b after a (or inside a)
+  if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+  return 0;
+}
+
+let refreshQueued = false;
+function scheduleRefresh(ScrollTrigger) {
+  if (refreshQueued) return;
+  refreshQueued = true;
+  requestAnimationFrame(() => {
+    refreshQueued = false;
+    ScrollTrigger.refresh();
+  });
+}
+
+// Dev-only guard: after every refresh, the landing's pins must not overlap in scroll space (a pin that starts before
+// the one above it releases means two scenes are fixed on screen at once). Logs loudly; the Playwright check and
+// anyone with the console open will see it.
+export function assertPinsInOrder(ScrollTrigger) {
+  const root = document.getElementById('landing-v2');
+  if (!root) return [];
+  const pins = ScrollTrigger.getAll().filter((s) => s.pin && root.contains(s.pin)).sort(byPageOrder);
+  const errs = [];
+  const seen = new Set();
+  pins.forEach((p, i) => {
+    if (seen.has(p.pin)) errs.push(`pinned twice: ${p.pin.closest('section')?.id}`);
+    seen.add(p.pin);
+    const prev = pins[i - 1];
+    if (prev && p.start < prev.end - 1) errs.push(`${p.pin.closest('section')?.id} starts at ${Math.round(p.start)} before ${prev.pin.closest('section')?.id} releases at ${Math.round(prev.end)}`);
+  });
+  if (errs.length) console.error('[landing] pin overlap:', errs.join('; '));
+  return errs;
 }
 
 // With { split: true } the build also receives SplitText as its 4th argument.
@@ -70,19 +117,12 @@ export function useSectionMotion(ref, build, deps = [], { split = false } = {}) 
       if (dead || !ref.current) return;
       ref.current.setAttribute('data-motion', 'on');
       const root = ref.current;
-      const before = new Set(ScrollTrigger.getAll());
       ctx = gsap.context(() => {
         extra = build(gsap, ScrollTrigger, root, SplitText);
       }, root);
-      // Sections build at different times (the shelf waits for its products), but pins must be measured top-down:
-      // each pin's spacer moves everything after it. Rank this section's triggers by its place on the page.
-      const order = sectionOrder(root);
-      ScrollTrigger.getAll().forEach((st) => {
-        if (!before.has(st)) st.refreshPriority = 1000 - order;
-      });
-      ScrollTrigger.sort();
-      // Images and fonts above may still be settling: re-measure once everything has laid out.
-      requestAnimationFrame(() => ScrollTrigger.refresh());
+      // Sections build at different times, but pins must be measured top-down: one refresh (which sorts by page
+      // order, see loadGsap) once this section has laid out. Coalesced, so 6 sections building cost one refresh.
+      scheduleRefresh(ScrollTrigger);
     }).catch(() => {});
     return () => {
       dead = true;
