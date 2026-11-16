@@ -38,8 +38,8 @@ const FONT_CSS = `
   font-family: 'Sofia Sans XC Fallback';
   src: local('Arial Narrow'), local('ArialNarrow'), local('Arial');
   size-adjust: 78%;
-  ascent-override: 118%;
-  descent-override: 30%;
+  ascent-override: 122%;
+  descent-override: 32%;
   line-gap-override: 0%;
 }`;
 const fontFaces = <GlobalStyles styles={FONT_CSS} />;
