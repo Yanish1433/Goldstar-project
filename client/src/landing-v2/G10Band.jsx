@@ -64,7 +64,7 @@ export default function G10Band() {
                 height={262}
                 loading="lazy"
                 decoding="async"
-                sx={{ display: 'block', width: '100%', height: 'auto' }}
+                sx={{ display: 'block', width: '100%', height: 'auto', mixBlendMode: 'multiply' }}
               />
               </Box>
             </Box>

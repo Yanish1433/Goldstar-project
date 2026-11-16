@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import { useTitle } from '../components/Page.jsx';
 import { tokensV2 as t } from './tokensV2.js';
@@ -10,6 +10,7 @@ import ShoeRail from './ShoeRail.jsx';
 import Heritage from './Heritage.jsx';
 import Reviews3DV2 from './Reviews3DV2.jsx';
 import QuickViewModal from './QuickViewModal.jsx';
+import { useRefreshOnResize } from './motion.js';
 
 // The store's front page ("/"), direction "dark-room": one warm near-black ground from top to bottom, ivory ink and
 // Goldstar gold as the single accent (tokensV2.js is the only file here with colour values).
@@ -23,12 +24,15 @@ import QuickViewModal from './QuickViewModal.jsx';
 // The Footer comes from Layout.
 export default function LandingV2() {
   useTitle('Goldstar · Made in Nepal, built for the Himalaya');
+  const rootRef = useRef(null);
+  useRefreshOnResize(rootRef);
   const [modal, setModal] = useState({ open: false, product: null, colour: null });
   const openQuickView = useCallback((product, colour) => setModal({ open: true, product, colour }), []);
   const close = useCallback(() => setModal((m) => ({ ...m, open: false })), []);
 
   return (
     <Box
+      ref={rootRef}
       id="landing-v2"
       sx={{
         position: 'relative',

@@ -47,6 +47,39 @@ export function useSectionMotion(ref, build, deps = []) {
   }, deps); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
+// Keep every trigger's start/end true while the landing settles (web fonts, product data, a restored scroll position
+// after coming back from /g10): when the landing's own height changes, refresh ScrollTrigger once (debounced).
+// Scoped to the landing root and disconnected on unmount, so it never touches the /g10 story.
+export function useRefreshOnResize(ref) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined' || prefersReducedMotion()) return undefined;
+    let t = null;
+    let last = el.offsetHeight;
+    const kick = () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        loadGsap().then(({ ScrollTrigger }) => ScrollTrigger.refresh()).catch(() => {});
+      }, 180);
+    };
+    const ro = new ResizeObserver(() => {
+      const h = el.offsetHeight;
+      if (Math.abs(h - last) < 2) return;
+      last = h;
+      kick();
+    });
+    ro.observe(el);
+    document.fonts?.ready?.then(kick);
+    if (document.readyState !== 'complete') window.addEventListener('load', kick, { once: true });
+    kick();
+    return () => {
+      clearTimeout(t);
+      ro.disconnect();
+      window.removeEventListener('load', kick);
+    };
+  }, [ref]);
+}
+
 // Magnetic hover for primary buttons: only on a fine pointer that can hover, never under reduced motion.
 export function magnetic(el, strength = 0.25) {
   if (!el || typeof window === 'undefined') return () => {};

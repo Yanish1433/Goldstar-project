@@ -55,7 +55,7 @@ export function ShoeCard({ product, onQuickView }) {
             decoding="async"
             width={800}
             height={800}
-            sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', p: { xs: 2, md: 3 }, boxSizing: 'border-box', transition: `transform 900ms ${EASE_CSS}`, [FINE_POINTER]: { '[data-card]:hover &': { transform: 'scale(1.05)' } } }}
+            sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply', p: { xs: 2, md: 3 }, boxSizing: 'border-box', transition: `transform 900ms ${EASE_CSS}`, [FINE_POINTER]: { '[data-card]:hover &': { transform: 'scale(1.05)' } } }}
           />
         </Box>
         <Box sx={{ position: 'absolute', top: 14, left: 14, display: 'flex', gap: 1, pointerEvents: 'none' }}>

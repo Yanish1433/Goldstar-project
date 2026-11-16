@@ -42,7 +42,7 @@ function Row({ c, i, count }) {
         <Box component="span" sx={{ ...EYEBROW, fontVariantNumeric: 'tabular-nums', [PHONE]: { display: 'none' } }}>{String(i + 1).padStart(2, '0')}</Box>
         {/* Phone thumbnail (always visible on touch) */}
         <Box aria-hidden="true" sx={{ display: 'none', [PHONE]: { display: 'block', width: 72, height: 72, borderRadius: `${t.radiusSm}px`, backgroundColor: t.paper, overflow: 'hidden' } }}>
-          <Box component="img" src={c.img} alt="" width={72} height={72} loading="lazy" decoding="async" sx={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain', p: 0.75, boxSizing: 'border-box' }} />
+          <Box component="img" src={c.img} alt="" width={72} height={72} loading="lazy" decoding="async" sx={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply', p: 0.75, boxSizing: 'border-box' }} />
         </Box>
         <Box data-label component="span" sx={{ ...DISPLAY_LIGHT, fontSize: { xs: 'clamp(36px, 11vw, 52px)', md: 'clamp(56px, 6.4vw, 112px)' }, lineHeight: 1 }}>
           {c.label}
@@ -64,7 +64,7 @@ function Row({ c, i, count }) {
             [PHONE]: { display: 'none' },
           }}
         >
-          <Box component="img" src={c.img} alt={c.alt} loading="lazy" decoding="async" width={260} height={260} sx={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain', p: 2, boxSizing: 'border-box' }} />
+          <Box component="img" src={c.img} alt={c.alt} loading="lazy" decoding="async" width={260} height={260} sx={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply', p: 2, boxSizing: 'border-box' }} />
         </Box>
       </Box>
     </Box>

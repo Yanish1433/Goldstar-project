@@ -91,7 +91,7 @@ function HeroCopy({ copyRef, still }) {
         '& [data-rise="2"]': { animationDelay: '90ms' },
         '& [data-rise="3"]': { animationDelay: '180ms' },
         '& [data-rise="4"]': { animationDelay: '270ms' },
-        [PHONE]: { maxWidth: 'none', px: 2, justifyContent: 'space-between', gap: 2, pt: 'calc(var(--appbar-h, 56px) + 20px)', pb: 'calc(28px + env(safe-area-inset-bottom))' },
+        [PHONE]: { maxWidth: 'none', px: 2, justifyContent: 'space-between', gap: 2, pt: 'calc(var(--appbar-h, 56px) + 20px)', pb: 'calc(92px + env(safe-area-inset-bottom))' },
       }}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: 2.5 } }}>
@@ -107,7 +107,7 @@ function HeroCopy({ copyRef, still }) {
         </Box>
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Box data-rise="4" sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', [PHONE]: { flexWrap: 'nowrap', '& > *': { flex: '1 1 0', px: 1.5, fontSize: 14 } } }}>
+        <Box data-rise="4" sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', [PHONE]: { flexWrap: 'nowrap', gap: 1, '& > *': { flex: '1 1 auto', minWidth: 0, px: 2, fontSize: 14 } } }}>
           <Cta to="/shop" variant="solid">Shop all footwear</Cta>
           <Cta to="/g10" aria-label="Explore G10 in 3D">
             <Box component="span" sx={{ [PHONE]: { display: 'none' } }}>Explore G10 in 3D</Box>
@@ -116,7 +116,7 @@ function HeroCopy({ copyRef, still }) {
         </Box>
       </Box>
       {still ? null : (
-        <Box aria-hidden="true" sx={{ position: 'absolute', left: '50%', bottom: 28, transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, ...EYEBROW, fontSize: 11, [PHONE]: { display: 'none' } }}>
+        <Box aria-hidden="true" sx={{ position: 'absolute', left: '50cqw', bottom: 28, transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, ...EYEBROW, fontSize: 11, [PHONE]: { display: 'none' } }}>
           Scroll
           <Box sx={{ '@keyframes gsCue': { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(6px)' } }, animation: 'gsCue 2.4s ease-in-out infinite', [REDUCED]: { animation: 'none' }, display: 'flex' }}>
             <ArrowDown size={16} strokeWidth={1.5} />
@@ -296,10 +296,10 @@ export default function Hero3D() {
             ref={handRef}
             sx={{
               position: 'absolute', zIndex: Z.copy, left: 16, right: 16, bottom: '7cqh', opacity: 0, visibility: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, textAlign: 'center',
-              [PHONE]: { bottom: 'calc(32px + env(safe-area-inset-bottom))' },
+              [PHONE]: { bottom: 'calc(92px + env(safe-area-inset-bottom))' },
             }}
           >
-            <Box component="p" sx={{ ...EYEBROW, m: 0 }}>G10-401 · Mid-cut trek boot · 12 parts</Box>
+            <Box component="p" sx={{ ...EYEBROW, m: 0 }}>G10-401 · Mid-cut trek boot</Box>
             <Box component="p" sx={{ m: 0, fontSize: { xs: 18, md: 22 }, fontWeight: 300, color: t.ivory, maxWidth: '30ch', lineHeight: 1.4 }}>Every part modelled, every layer you can take apart.</Box>
             <Cta to="/g10">Take it apart in 3D</Cta>
           </Box>
