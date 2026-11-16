@@ -197,7 +197,8 @@ function Sparkles() {
 // under the live boot and crossfades into it when the canvas is ready (the crossfade starts only once the canvas
 // has mounted its first frame, onReady in Stage.jsx).
 //  - scrub mode: the macro close-up at T=0 (key 0: box 'macro', fill 0.9, R 0.72 on the tongue logo). The render is a
-//    square of 2x the fill square (2 * 0.9 * min(box w, box h)), centred on the box: 100.8vw / 133.2vh on desktop.
+//    square of 2x (desktop) / 2.8x (phone, where the close-up reaches further below the box) the fill square
+//    (k * 0.9 * min(box w, box h)), centred on the box: 100.8vw / 133.2vh desktop, 236.9vw / 100.8vh phone.
 //  - flow mode (reduced motion, no WebGL): the full hero pose (hero key: fill 0.9; the render is 1.3x / 1.15x that
 //    square). Devices without WebGL keep it as the hero image.
 function HeroPoster({ flow }) {
@@ -205,7 +206,7 @@ function HeroPoster({ flow }) {
   const reduced = useStoryUi((s) => s.reduced);
   const size = flow
     ? { desktop: 'min(65.52vw, 86.58vh)', phone: 'min(97.29vw, 41.4vh)', phoneTop: '32vh' }
-    : { desktop: 'min(100.8vw, 133.2vh)', phone: 'min(169.2vw, 72vh)', phoneTop: '20vh' };
+    : { desktop: 'min(100.8vw, 133.2vh)', phone: 'min(236.9vw, 100.8vh)', phoneTop: '20vh' };
   const src = flow ? ['/img/hero/boot-desktop.webp', '/img/hero/boot-phone.webp'] : ['/img/hero/macro-desktop.webp', '/img/hero/macro-phone.webp'];
   return (
     <Box
@@ -382,7 +383,7 @@ export function HeroSection({ product, flow }) {
   const p = pal('hero');
   const from = product?.colourways?.length ? Math.min(...product.colourways.map((c) => c.price)) : null;
   return (
-    <Panel id="hero" side="left" phoneTop="55%" extra={<><HeroPoster flow={flow} /><Sparkles />{flow ? null : <><IntroCaptions ink={p.ink} /><IntroRail ink={p.ink} /></>}</>}>
+    <Panel id="hero" side="left" phoneTop={flow ? 'calc(var(--stage-h, 100svh) * 0.55)' : '55%'} sx={flow ? { '@media (max-width:899.95px)': { height: 'auto', minHeight: 'calc(var(--stage-h, 100svh) + 110px)' } } : undefined} extra={<><HeroPoster flow={flow} /><Sparkles />{flow ? null : <><IntroCaptions ink={p.ink} /><IntroRail ink={p.ink} /></>}</>}>
       <Eyebrow>Goldstar Nepal · G10-401</Eyebrow>
       <Headline component="h1" id="story-hero-h" sx={{ fontSize: { xs: 'clamp(40px, 12vw, 54px)', md: 'clamp(64px, 7vw, 120px)' } }}>
         Explore further.
