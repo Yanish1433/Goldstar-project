@@ -12,6 +12,7 @@ import Heritage from './Heritage.jsx';
 import Reviews3DV2 from './Reviews3DV2.jsx';
 import QuickViewModal from './QuickViewModal.jsx';
 import { useRefreshOnResize } from './motion.js';
+import { useLandingLenis } from './smooth.js';
 
 // The store's front page ("/"): a scroll story. Every section has its own move, all scrubbed to the scroll (so
 // they run backwards when you scroll up), all on one easing family, one duration scale and one accent (gold).
@@ -22,7 +23,7 @@ import { useRefreshOnResize } from './motion.js';
 //   5 DetailGallery    pinned horizontal strip of close-ups with counter-parallax
 //   6 Heritage         a "50" that counts with the scroll over a photo zooming out
 //   7 Reviews3DV2      the Goldstar reviews (kept)
-// No WebGL on this page; the G10 3D story is one link away (/g10). The Footer comes from Layout.
+// Smooth scrolling: Lenis on the GSAP ticker (smooth.js), desktop only. No WebGL on this page; the G10 3D story is one link away (/g10). The Footer comes from Layout.
 // The display face is self-hosted (public/fonts, preloaded in index.html) and declared here, so it only exists on
 // the landing; the size-adjusted local fallback keeps the swap from moving the layout.
 const FONT_CSS = `
@@ -48,6 +49,7 @@ export default function LandingV2() {
   useTitle('Goldstar · Walking the world for over five decades');
   const rootRef = useRef(null);
   useRefreshOnResize(rootRef);
+  useLandingLenis(); // smooth wheel scrolling on desktop (off on touch and under reduced motion)
   const [modal, setModal] = useState({ open: false, product: null, colour: null });
   const openQuickView = useCallback((product, colour) => setModal({ open: true, product, colour }), []);
   const close = useCallback(() => setModal((m) => ({ ...m, open: false })), []);

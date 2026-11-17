@@ -27,3 +27,42 @@ describe('landing ScrollTrigger order', () => {
     err.mockRestore();
   });
 });
+
+import { startLenis, LENIS_OPTS } from '../src/landing-v2/smooth.js';
+
+describe('landing Lenis owner', () => {
+  const fakes = () => {
+    const ticker = { fns: new Set(), add: vi.fn((f) => ticker.fns.add(f)), remove: vi.fn((f) => ticker.fns.delete(f)), lagSmoothing: vi.fn() };
+    const made = [];
+    class Lenis { constructor(o) { this.o = o; this.destroyed = false; made.push(this); } on(e, f) { this.ev = [e, f]; } raf() {} destroy() { this.destroyed = true; } }
+    return { gsap: { ticker }, ST: { update: () => {} }, Lenis, made, ticker };
+  };
+
+  it('creates one instance on the GSAP ticker and tears it down fully', () => {
+    window.__lenis = null;
+    const f = fakes();
+    const stop = startLenis(f.gsap, f.ST, f.Lenis);
+    expect(f.made).toHaveLength(1);
+    expect(f.made[0].o).toMatchObject({ autoRaf: false, syncTouch: false, lerp: LENIS_OPTS.lerp });
+    expect(f.made[0].ev[0]).toBe('scroll');
+    expect(window.__lenis).toBe(f.made[0]);
+    expect(f.ticker.fns.size).toBe(1);
+    expect(f.ticker.lagSmoothing).toHaveBeenLastCalledWith(0);
+    stop();
+    expect(f.made[0].destroyed).toBe(true);
+    expect(f.ticker.fns.size).toBe(0);
+    expect(window.__lenis).toBe(null);
+    expect(f.ticker.lagSmoothing).toHaveBeenLastCalledWith(500, 33);
+  });
+
+  it('never makes a second instance when another owner (the /g10 story) holds the scroll', () => {
+    const other = {};
+    window.__lenis = other;
+    const f = fakes();
+    const stop = startLenis(f.gsap, f.ST, f.Lenis);
+    expect(f.made).toHaveLength(0);
+    stop();
+    expect(window.__lenis).toBe(other);
+    window.__lenis = null;
+  });
+});

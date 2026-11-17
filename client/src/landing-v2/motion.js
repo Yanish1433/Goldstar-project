@@ -2,8 +2,8 @@ import { useEffect, useLayoutEffect } from 'react';
 
 // GSAP + ScrollTrigger are imported on demand (after first paint), so neither is in the initial JS for `/`.
 // Every section builds its tweens inside one gsap.context scoped to its own root, and the context is reverted on
-// unmount: navigating / -> /g10 -> back leaves no stale pins or triggers behind. No Lenis on the landing (the /g10
-// story runs its own), only native scroll.
+// unmount: navigating / -> /g10 -> back leaves no stale pins or triggers behind. Smooth
+// scrolling (Lenis) lives in smooth.js.
 let gsapPromise = null;
 export function loadGsap() {
   if (!gsapPromise) {

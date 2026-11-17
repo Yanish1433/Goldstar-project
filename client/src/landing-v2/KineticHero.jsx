@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import Box from '@mui/material/Box';
-import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_MONO, PHOTO_TILE, PHONE } from './tokensV2.js';
+import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_MONO, PHOTO_TILE_NEUTRAL, PHONE } from './tokensV2.js';
 import { Cta } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
 import { HERO_SHOT } from './shots.js';
@@ -31,7 +31,7 @@ const lineSx = {
   lineHeight: 0.8,
   letterSpacing: '-0.012em',
   whiteSpace: 'nowrap',
-  color: t.ivory,
+  color: t.blendInk, // pure white: under `difference` it gives neutral ink on the window, near-white on the dark
   willChange: 'transform',
 };
 
@@ -121,7 +121,7 @@ export default function KineticHero() {
             height={1600}
             fetchPriority="high"
             decoding="async"
-            sx={{ width: `calc(${WIN.h} * 0.98)`, height: 'auto', aspectRatio: '1', mixBlendMode: 'multiply', filter: PHOTO_TILE, [PHONE]: { width: `calc(${WIN.hPhone} * 1.02)` }, willChange: 'transform' }}
+            sx={{ width: `calc(${WIN.h} * 0.98)`, height: 'auto', aspectRatio: '1', mixBlendMode: 'multiply', filter: PHOTO_TILE_NEUTRAL, [PHONE]: { width: `calc(${WIN.hPhone} * 1.02)` }, willChange: 'transform' }}
           />
           <Box data-hend sx={{ position: 'absolute', left: 0, right: 0, bottom: { xs: '9svh', md: '7svh' }, textAlign: 'center', color: t.inkOnPaper, px: 2, opacity: 0, visibility: 'hidden' }}>
             <Box component="p" sx={{ ...EYEBROW, color: t.inkOnPaper2, m: 0 }}>G10-401 · Trek Everyday</Box>

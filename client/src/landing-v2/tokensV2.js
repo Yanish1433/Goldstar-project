@@ -43,6 +43,7 @@ export const tokensV2 = {
   cream: C.paper,
   creamDark: C.paperDim,
   white: C.paper,
+  blendInk: '#FFFFFF', // the hero headline under mix-blend-mode: difference (pure white inverts to neutral ink)
   ink: C.inkOnPaper,
   inkSecondary: C.inkOnPaper2,
   inkMuted: C.inkOnPaper3,
@@ -75,6 +76,9 @@ export const PHOTO_MONO = 'grayscale(1) sepia(0.28) brightness(0.62) contrast(1.
 // Studio photos on the ivory tiles: their off-white sweep is lifted to pure white so `multiply` melts it into the
 // tile (no visible photo box). Used with mixBlendMode: 'multiply'.
 export const PHOTO_TILE = 'brightness(1.09) contrast(1.03)';
+// The hero pair under the `difference`-blended headline: neutral, so the inverted letters read as clean ink/white
+// instead of picking up the photo's colour cast (a pale green where they crossed the black boots).
+export const PHOTO_TILE_NEUTRAL = `${PHOTO_TILE} grayscale(1)`;
 export const PHOTO_LIVE = 'grayscale(0) sepia(0) brightness(0.86) contrast(1.04)';
 
 // One focus ring for both grounds: a gold line with a dark halo, visible on the ground and on ivory surfaces.
