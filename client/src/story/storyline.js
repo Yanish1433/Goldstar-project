@@ -102,14 +102,23 @@ export const HOLD = {
 
 // Stage boxes: where the shoe lives on screen, as fractions of the viewport (centre x/y, width, height).
 // Copy is laid out in the complementary area, so text never sits on the shoe.
-// Phones: the stage is the top half and the copy sits below it. From the performance chapter on, the phone boxes
-// are near full width and over half the screen tall, so the boot fills >= 85% of the viewport width (the hero keeps
-// its own smaller box, matched by the HeroPoster render in Sections.jsx).
+// Three layouts (storyLayout below picks one from the viewport; the CSS in Sections.jsx uses the same rules):
+//  - desktop (>= 900 px wide, not a short landscape): copy beside the boot.
+//  - phone (portrait, < 900 px wide; tablets too): the stage is the top half and the copy sits below it. From the
+//    performance chapter on, the boxes are near full width and over half the screen tall, so the boot fills >= 85% of
+//    the viewport width. The intro boxes are height-bound (w*W > h*H on every portrait screen), so the boot is as big
+//    as fits above the caption block (58%) on short phones and spans ~85-92% of the width on tall ones; each beat has
+//    its own box (intro, intro2, intro3) because the side-on and tipped poses are wider/flatter than the 3/4 front.
+//    Sizes are fitted to the boot's real silhouette (test/fixtures/bootHull.json) in test/storyline.test.js.
+//  - landscape (a phone on its side, any width, <= 500 px tall): side by side like desktop, the copy in a left column
+//    (~44%) and the boot in the right half, below the AppBar.
 export const LAYOUTS = {
   desktop: {
     hero: { cx: 0.68, cy: 0.55, w: 0.56, h: 0.74 },
-    // the hero's opening: the whole boot, centred, with a caption band along the bottom
+    // the hero's opening: the whole boot, centred, with a caption band along the bottom (same box for each beat)
     intro: { cx: 0.5, cy: 0.41, w: 0.8, h: 0.62 },
+    intro2: { cx: 0.5, cy: 0.41, w: 0.8, h: 0.62 },
+    intro3: { cx: 0.5, cy: 0.41, w: 0.8, h: 0.62 },
     right: { cx: 0.68, cy: 0.55, w: 0.56, h: 0.74 },
     left: { cx: 0.32, cy: 0.55, w: 0.56, h: 0.74 },
     mid: { cx: 0.53, cy: 0.55, w: 0.42, h: 0.86 },
@@ -117,13 +126,35 @@ export const LAYOUTS = {
   },
   phone: {
     hero: { cx: 0.5, cy: 0.32, w: 0.94, h: 0.4 },
-    intro: { cx: 0.5, cy: 0.33, w: 0.64, h: 0.9 }, // width-bound: the boot spans the phone; above the caption block (starts at 55%)
+    intro: { cx: 0.5, cy: 0.335, w: 1.1, h: 0.44 }, // 3/4 front (tallest)
+    intro2: { cx: 0.5, cy: 0.335, w: 1.1, h: 0.36 }, // side-on (widest)
+    intro3: { cx: 0.5, cy: 0.335, w: 1.1, h: 0.355 }, // tipped
     right: { cx: 0.5, cy: 0.33, w: 0.98, h: 0.53 },
     left: { cx: 0.5, cy: 0.33, w: 0.98, h: 0.53 },
     mid: { cx: 0.5, cy: 0.32, w: 0.98, h: 0.55 },
-    centre: { cx: 0.5, cy: 0.36, w: 0.94, h: 0.42 },
+    centre: { cx: 0.5, cy: 0.33, w: 0.94, h: 0.38 },
+  },
+  landscape: {
+    hero: { cx: 0.72, cy: 0.56, w: 0.5, h: 0.74 },
+    intro: { cx: 0.725, cy: 0.56, w: 0.9, h: 0.745 },
+    intro2: { cx: 0.725, cy: 0.56, w: 0.9, h: 0.755 },
+    intro3: { cx: 0.725, cy: 0.56, w: 0.9, h: 0.755 },
+    right: { cx: 0.72, cy: 0.56, w: 0.5, h: 0.74 },
+    left: { cx: 0.28, cy: 0.56, w: 0.5, h: 0.74 },
+    mid: { cx: 0.72, cy: 0.56, w: 0.5, h: 0.78 },
+    centre: { cx: 0.72, cy: 0.56, w: 0.48, h: 0.72 },
   },
 };
+
+// The layout for a viewport (CSS px). Must agree with the media queries in Sections.jsx:
+// landscape = (orientation: landscape) and (max-height: 500px); phone = narrower than 900 otherwise.
+export const LANDSCAPE_MAX_H = 500;
+export function storyLayout(w, h) {
+  if (w > h && h <= LANDSCAPE_MAX_H) return 'landscape';
+  return w < 900 ? 'phone' : 'desktop';
+}
+// Phones and short landscapes show numbered dots on the boot and a legend in the copy (no label cards).
+export const compactLabels = (layout) => layout !== 'desktop';
 
 // Pose defaults. Units: R = framing radius (rig units, the shoe is 3 long), angles in radians.
 // rx/ry/rz: shoe rotation (Euler 'YXZ': yaw ry, then roll rx about the length axis, then pitch rz).
@@ -166,10 +197,10 @@ export const KEYS = [
   { t: 0, ...BASE, box: 'intro', R: 1.6, fill: INTRO_POSE.logo.fill, ry: INTRO_POSE.logo.ry, rz: 0.03, el: INTRO_POSE.logo.el, shadow: 1 },
   { t: 28, ry: INTRO_POSE.logo.ry - 0.1, ease: 'linear' },
   // 2. Turn to the lace hardware, side-on.
-  { t: 46, ry: INTRO_POSE.hardware.ry, el: INTRO_POSE.hardware.el, fill: INTRO_POSE.hardware.fill, ease: 'inOut' },
+  { t: 46, box: 'intro2', ry: INTRO_POSE.hardware.ry, el: INTRO_POSE.hardware.el, fill: INTRO_POSE.hardware.fill, ease: 'inOut' },
   { t: 64, ry: INTRO_POSE.hardware.ry + 0.1, ease: 'linear' },
   // 3. Tip it toward the camera for the outsole lugs (contact shadow off while it is tipped).
-  { t: 84, ry: INTRO_POSE.lugs.ry, el: INTRO_POSE.lugs.el, rx: INTRO_POSE.lugs.rx, fill: INTRO_POSE.lugs.fill, shadow: 0, ease: 'inOut' },
+  { t: 84, box: 'intro3', ry: INTRO_POSE.lugs.ry, el: INTRO_POSE.lugs.el, rx: INTRO_POSE.lugs.rx, fill: INTRO_POSE.lugs.fill, shadow: 0, ease: 'inOut' },
   { t: INTRO.glide[0], ry: INTRO_POSE.lugs.ry + 0.1, ease: 'linear' },
   // Glide from the centre to the hero pose on the right (done before the headline arrives), then settle.
   { t: INTRO.glide[1], box: 'hero', fill: 0.92, rx: 0, ry: HERO_Y - 0.1, rz: 0.04, el: 0.14, shadow: 1, ease: 'inOut' },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HOLD, INTRO, INTRO_BEATS, KEYS, LAYOUTS, PALETTE, SECTIONS, START, TOTAL, TRACKS, TRANSITION, backgroundAt, colourIndexAt, copyTrack, endOf, introBeat, pinOf, trackAt, samplePose, sectionAt } from '../src/story/storyline.js';
+import { HOLD, INTRO, INTRO_BEATS, KEYS, LAYOUTS, storyLayout, compactLabels, PALETTE, SECTIONS, START, TOTAL, TRACKS, TRANSITION, backgroundAt, colourIndexAt, copyTrack, endOf, introBeat, pinOf, trackAt, samplePose, sectionAt } from '../src/story/storyline.js';
 import { STORY_MODEL, LABEL_ORDER, CALLOUTS, BADGES, COLOURWAYS, partColours } from '../src/story/model.config.js';
 
 // WCAG relative luminance / contrast.
@@ -187,89 +187,84 @@ describe('phone framing from the performance chapter on (captain addendum 4b)', 
   });
 });
 
-// Project the assembled boot's bounding box with the same camera maths as Stage.jsx (orbit camera at the distance that
-// fits R*frame in fill*min(box), view offset to the box centre, shoe rotated 'YXZ' and lifted, focus point subtracted).
-const BOOT = [3, 2.1394880766826345, 1.345957823419904]; // rig units, measured from g10-hd.glb (buildParts size)
-const rotM = (rx, ry, rz) => {
-  const c = Math.cos;
-  const s = Math.sin;
-  const Ry = [[c(ry), 0, s(ry)], [0, 1, 0], [-s(ry), 0, c(ry)]];
-  const Rx = [[1, 0, 0], [0, c(rx), -s(rx)], [0, s(rx), c(rx)]];
-  const Rz = [[c(rz), -s(rz), 0], [s(rz), c(rz), 0], [0, 0, 1]];
-  const mul = (A, B) => A.map((r) => [0, 1, 2].map((j) => r[0] * B[0][j] + r[1] * B[1][j] + r[2] * B[2][j]));
-  return mul(mul(Ry, Rx), Rz);
-};
-function projectBoot(o, W, H) {
-  const t = Math.tan((30 / 2) * (Math.PI / 180));
-  const m = o.fill * Math.min(o.w * W, o.h * H);
-  const d = (o.R * STORY_MODEL.frame * H) / (m * t);
-  const pos = [Math.sin(o.az) * Math.cos(o.el) * d, Math.sin(o.el) * d, Math.cos(o.az) * Math.cos(o.el) * d];
-  const f = pos.map((v) => -v / d);
-  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-  const r0 = cross(f, [0, 1, 0]);
-  const rl = Math.hypot(...r0);
-  const r = r0.map((v) => v / rl);
-  const u = cross(r, f);
-  const R = rotM(o.rx, o.ry, o.rz);
-  let x0 = Infinity;
-  let x1 = -Infinity;
-  let y0 = Infinity;
-  let y1 = -Infinity;
-  [-1, 1].forEach((sx) => [-1, 1].forEach((sy) => [-1, 1].forEach((sz) => {
-    const p = [(sx * BOOT[0]) / 2 - o.fx, (sy * BOOT[1]) / 2 - o.fy, (sz * BOOT[2]) / 2 - o.fz];
-    const w = [0, 1, 2].map((i) => R[i][0] * p[0] + R[i][1] * p[1] + R[i][2] * p[2]);
-    w[1] += o.lift;
-    const q = [w[0] - pos[0], w[1] - pos[1], w[2] - pos[2]];
-    const X = q[0] * r[0] + q[1] * r[1] + q[2] * r[2];
-    const Y = q[0] * u[0] + q[1] * u[1] + q[2] * u[2];
-    const Z = q[0] * f[0] + q[1] * f[1] + q[2] * f[2];
-    const px = ((X / (Z * t * (W / H)) + 1) / 2) * W + o.cx * W - W / 2;
-    const py = ((1 - Y / (Z * t)) / 2) * H + o.cy * H - H / 2;
-    x0 = Math.min(x0, px);
-    x1 = Math.max(x1, px);
-    y0 = Math.min(y0, py);
-    y1 = Math.max(y1, py);
-  })));
-  return { x0, x1, y0, y1, cx: (x0 + x1) / 2 / W, cy: (y0 + y1) / 2 / H };
-}
+import { projectBoot, AABB } from './fitModel.js';
 
 describe('hero intro: the whole boot, centred and big, turned by scroll (reversible)', () => {
-  // [W, H, layout, appbar px]. The captions sit below the boot: a bottom band on desktop (from 81% of the height) and
-  // under it from 55% on phones, so the boot's projected box must stay above that line (and below the AppBar).
-  const VIEWPORTS = [[1440, 900, 'desktop', 68], [1841, 822, 'desktop', 68], [1366, 650, 'desktop', 68], [1920, 1080, 'desktop', 68], [1024, 768, 'desktop', 68], [375, 740, 'phone', 64], [390, 844, 'phone', 64], [360, 640, 'phone', 64], [414, 896, 'phone', 64], [320, 568, 'phone', 64]];
   const sweep = (fn, step = 0.5) => { for (let t = 0; t <= INTRO.end; t += step) fn(t); };
-  it('ends on the full hero pose, which is the hold; the opening is the intro box', () => {
-    expect(HOLD.hero).toBe(INTRO.end);
-    expect(samplePose(INTRO.end).R).toBeCloseTo(1.6, 6);
-    ['desktop', 'phone'].forEach((l) => expect(samplePose(HOLD.hero, l)).toMatchObject({ fx: 0, fy: 0, fz: 0, rx: 0, ry: -0.65, rz: 0.04, el: 0.14, shadow: 1 }));
-    ['desktop', 'phone'].forEach((l) => expect(samplePose(0, l)).toMatchObject(LAYOUTS[l].intro));
+  // Every size of the responsive matrix (client/scripts/responsive-matrix.mjs), with the layout storyLayout picks.
+  // Where the captions are: desktop, a bottom band from 81% of the height; phone, under the boot from 58%;
+  // landscape, a left column (rail 56 px + 38vw), so there the boot must stay right of it. AppBar: 68 / 64 px.
+  const MATRIX = [[320, 568], [360, 640], [360, 800], [375, 667], [375, 812], [390, 844], [393, 852], [412, 915], [414, 896], [430, 932],
+    [667, 375], [844, 390], [932, 430], [740, 360], [768, 1024], [820, 1180], [1024, 768], [1024, 1366], [1280, 720], [1366, 650], [1440, 900], [1536, 730], [1841, 822], [1920, 1080], [2560, 1080], [2560, 1440]];
+  const VIEWPORTS = MATRIX.map(([W, H]) => {
+    const l = storyLayout(W, H);
+    return [W, H, l, l === 'desktop' ? 68 : 64];
   });
-  it('T=0 is as large as the Add to cart pose (same framing radius), aimed at the boot centre at every intro step', () => {
-    ['desktop', 'phone'].forEach((l) => {
-      const a = samplePose(0, l);
-      const s = samplePose(HOLD.studio, l);
-      expect(a.fill * Math.min(a.w, a.h)).toBeGreaterThanOrEqual(s.fill * Math.min(s.w, s.h) * (l === 'phone' ? 0.9 : 1) - 1e-9);
-      expect(a.R).toBe(s.R);
-    });
-    sweep((t) => { const p = samplePose(t); expect([p.fx, p.fy, p.fz]).toEqual([0, 0, 0]); });
+  const free = (W, H, l, appbar) => ({
+    x0: l === 'landscape' ? 56 + 0.38 * W + 12 : 0.015 * W,
+    x1: 0.985 * W,
+    y0: appbar + 6,
+    y1: l === 'desktop' ? 0.81 * H : l === 'phone' ? 0.58 * H - 8 : H - 10,
+  });
+  it('picks the layout from the viewport: landscape phones side by side, portrait < 900 stacked, the rest desktop', () => {
+    expect(storyLayout(844, 390)).toBe('landscape');
+    expect(storyLayout(932, 430)).toBe('landscape');
+    expect(storyLayout(667, 375)).toBe('landscape');
+    expect(storyLayout(390, 844)).toBe('phone');
+    expect(storyLayout(820, 1180)).toBe('phone');
+    expect(storyLayout(1024, 768)).toBe('desktop');
+    expect(storyLayout(1024, 1366)).toBe('desktop');
+    expect(storyLayout(1366, 650)).toBe('desktop');
+    expect(storyLayout(2560, 1080)).toBe('desktop');
+    expect(compactLabels('landscape') && compactLabels('phone') && !compactLabels('desktop')).toBe(true);
+  });
+  it('every layout has every box', () => {
+    Object.values(LAYOUTS).forEach((boxes) => expect(Object.keys(boxes).sort()).toEqual(Object.keys(LAYOUTS.desktop).sort()));
+  });
+  it('the silhouette model is the real boot: inside its AABB, and much tighter than it at the 3/4 front opening', () => {
+    const o = samplePose(0, 'desktop');
+    const h = projectBoot(o, 1440, 900);
+    const a = projectBoot(o, 1440, 900, AABB);
+    expect(h.x0).toBeGreaterThanOrEqual(a.x0);
+    expect(h.x1).toBeLessThanOrEqual(a.x1);
+    expect((h.x1 - h.x0) / (a.x1 - a.x0)).toBeLessThan(0.85);
+    // measured in the browser (canvas pixels, alpha > 150) at 1440x900, T=0: x 500-986, y 144-659
+    expect(Math.abs(h.x0 - 500)).toBeLessThan(6);
+    expect(Math.abs(h.y1 - 659)).toBeLessThan(6);
   });
   VIEWPORTS.forEach(([W, H, l, appbar]) => {
-    it(`${W}x${H}: the whole boot stays inside the viewport, below the AppBar and clear of the captions at every intro step`, () => {
-      const bottom = (l === 'desktop' ? 0.81 : 0.55) * H;
-      for (let t = 0; t <= INTRO.glide[0]; t += 5) {
+    it(`${W}x${H} (${l}): the whole boot stays inside the viewport, below the AppBar and clear of the captions at every intro step`, () => {
+      const f = free(W, H, l, appbar);
+      for (let t = 0; t <= INTRO.glide[0]; t += 2) {
         const b = projectBoot(samplePose(t, l), W, H);
-        expect(b.x0, `x0 @${t}`).toBeGreaterThanOrEqual(0.015 * W);
-        expect(b.x1, `x1 @${t}`).toBeLessThanOrEqual(0.985 * W);
-        expect(b.y0, `top @${t}`).toBeGreaterThanOrEqual(appbar);
-        expect(b.y1, `bottom @${t}`).toBeLessThanOrEqual(bottom);
+        expect(b.x0, `x0 @${t}`).toBeGreaterThanOrEqual(f.x0);
+        expect(b.x1, `x1 @${t}`).toBeLessThanOrEqual(f.x1);
+        expect(b.y0, `top @${t}`).toBeGreaterThanOrEqual(f.y0);
+        expect(b.y1, `bottom @${t}`).toBeLessThanOrEqual(f.y1);
+      }
+      // the glide to the hero box stays on screen too
+      for (let t = INTRO.glide[0]; t <= INTRO.end; t += 2) {
+        const b = projectBoot(samplePose(t, l), W, H);
+        expect(b.x0 >= 0 && b.x1 <= W && b.y0 >= appbar && b.y1 <= H, `glide @${t}`).toBe(true);
       }
     });
-    it(`${W}x${H}: the opening boot is centred (within 5% of the viewport centre; phones sit above their captions)`, () => {
+    it(`${W}x${H} (${l}): the opening boot is the hero: centred in its space and large`, () => {
+      const f = free(W, H, l, appbar);
       const b = projectBoot(samplePose(0, l), W, H);
-      expect(Math.abs(b.cx - 0.5)).toBeLessThanOrEqual(0.05);
-      if (l === 'desktop') expect(Math.abs(b.cy - 0.5)).toBeLessThanOrEqual(0.05);
-      else expect(b.cy).toBeLessThanOrEqual(0.4);
+      const midX = l === 'landscape' ? (f.x0 + f.x1) / 2 / W : 0.5;
+      expect(Math.abs(b.cx - midX)).toBeLessThanOrEqual(0.05);
+      if (l === 'desktop') expect(Math.abs(b.cy - 0.5)).toBeLessThanOrEqual(0.06); // real silhouette: ~0.45 (the AABB centre is 0.5)
+      else expect(Math.abs(b.cy * H - (f.y0 + f.y1) / 2)).toBeLessThanOrEqual(0.05 * H);
+      // phones: at least 66% of the width (short phones are bound by the height above the captions, tall ones by the width)
+      if (l === 'phone' && W < 600) expect((b.x1 - b.x0) / W).toBeGreaterThanOrEqual(H / W < 1.9 ? 0.66 : 0.8);
+      if (l === 'landscape') expect((b.y1 - b.y0) / (f.y1 - f.y0)).toBeGreaterThanOrEqual(0.75);
     });
+  });
+  it('phone beats: the 3/4 front opening is the tallest box, the side-on and tipped poses get flatter ones (so each fits)', () => {
+    expect(LAYOUTS.phone.intro.h).toBeGreaterThan(LAYOUTS.phone.intro2.h);
+    INTRO.beatT.forEach((t, i) => expect(samplePose(t, 'phone')).toMatchObject(LAYOUTS.phone[['intro', 'intro2', 'intro3'][i]]));
+    // the intro boxes are height-bound on every portrait screen up to 2.4:1
+    ['intro', 'intro2', 'intro3'].forEach((k) => expect(LAYOUTS.phone[k].w).toBeGreaterThanOrEqual(LAYOUTS.phone[k].h * 2.4));
   });
   it('each beat turns the whole boot so its part faces the camera; the outsole beat tips but is never sole-up, shadow off', () => {
     const [p1, p2, p3] = INTRO.beatT.map((t) => samplePose(t));

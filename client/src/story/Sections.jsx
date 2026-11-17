@@ -13,9 +13,16 @@ const pal = (id) => PALETTE[SECTIONS.find((s) => s.id === id).colour];
 const WIDE = { fontVariationSettings: '"wdth" 112', fontStretch: '112%' };
 const LABEL_TEXT = { fontSize: 13, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' };
 
+// Layout media queries (they must agree with storyLayout in storyline.js, which picks the 3D boxes):
+// a phone on its side (any width, <= 500 px tall) is side by side, copy left, boot right; portrait < 900 is stacked.
+// LAND rules are written after the xs/md ones so they win where both apply (e.g. 932x430 is >= 900 wide).
+export const LAND = '@media (orientation: landscape) and (max-height: 500px)';
+const SHORT = '@media (max-width:899.95px) and (orientation: portrait) and (max-height: 700px)'; // SE-class phones
+const STAGE_H = 'var(--stage-h, 100svh)';
+
 // --- Type ------------------------------------------------------------------------------------------
 export const Eyebrow = ({ children, ...p }) => (
-  <Box component="p" data-copy sx={{ m: 0, fontSize: { xs: 12, md: 13 }, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', opacity: 0.9 }} {...p}>
+  <Box component="p" data-copy sx={{ m: 0, fontSize: { xs: 12, md: 13 }, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', opacity: 0.9, [LAND]: { fontSize: 11 } }} {...p}>
     {children}
   </Box>
 );
@@ -24,7 +31,7 @@ export const Headline = ({ children, component = 'h2', sx, ...p }) => (
   <Box
     component={component}
     data-copy
-    sx={{ m: 0, fontWeight: 800, ...WIDE, lineHeight: 0.94, letterSpacing: '-0.03em', fontSize: { xs: 'clamp(34px, 10vw, 46px)', md: 'clamp(52px, 5.4vw, 92px)' }, textWrap: 'balance', ...sx }}
+    sx={{ m: 0, fontWeight: 800, ...WIDE, lineHeight: 0.94, letterSpacing: '-0.03em', fontSize: { xs: 'clamp(34px, 10vw, 46px)', md: 'clamp(52px, 5.4vw, 92px)' }, textWrap: 'balance', [SHORT]: { fontSize: 'clamp(30px, 9.4vw, 40px)' }, [LAND]: { fontSize: 'clamp(24px, min(4.6vw, 9vh), 40px)' }, ...sx }}
     {...p}
   >
     {children}
@@ -32,7 +39,7 @@ export const Headline = ({ children, component = 'h2', sx, ...p }) => (
 );
 
 export const Body = ({ children, sx, ...p }) => (
-  <Box component="p" data-copy sx={{ m: 0, fontSize: { xs: 16, md: 19 }, lineHeight: 1.5, maxWidth: '34ch', fontWeight: 450, ...sx }} {...p}>
+  <Box component="p" data-copy sx={{ m: 0, fontSize: { xs: 16, md: 19 }, lineHeight: 1.5, maxWidth: '34ch', fontWeight: 450, [SHORT]: { fontSize: 15, lineHeight: 1.4 }, [LAND]: { fontSize: 14, lineHeight: 1.4, maxWidth: '42ch' }, ...sx }} {...p}>
     {children}
   </Box>
 );
@@ -57,6 +64,8 @@ const pill = (ink, bg, filled) => ({
   '&:hover': { transform: 'translateY(-2px)' },
   '&:focus-visible': { outline: `3px solid ${ink}`, outlineOffset: 3 },
   '&[aria-disabled="true"]': { opacity: 0.55, cursor: 'not-allowed', transform: 'none' },
+  [SHORT]: { minHeight: 44, px: 2, fontSize: 14 },
+  [LAND]: { minHeight: 44, px: 2, fontSize: 14 },
 });
 
 export const PillLink = ({ to, children, ink, bg, filled = true, sx, ...p }) => (
@@ -77,15 +86,19 @@ const COPY_DESKTOP = {
   leftNarrow: { left: '5vw', top: 0, bottom: 0, width: 'min(27vw, 420px)', justifyContent: 'center' },
   centre: { left: '6vw', right: '6vw', top: 0, bottom: 0, justifyContent: 'space-between' },
 };
+// Short landscape: one copy column (left, or right when the boot is on the left), below the AppBar, safe-area aware.
+const LAND_L = { left: 'max(20px, env(safe-area-inset-left))', right: 'auto', width: '42vw' };
+const LAND_R = { right: 'max(20px, env(safe-area-inset-right))', left: 'auto', width: '42vw' };
+const COPY_LAND = { left: LAND_L, leftNarrow: LAND_L, centre: { ...LAND_L, width: '44vw' }, right: LAND_R, rightWide: LAND_R };
 
-export function Panel({ id, side = 'left', children, extra, sx, phoneTop = '57%' }) {
+export function Panel({ id, side = 'left', children, extra, sx, phoneTop = '57%', shortTop }) {
   const p = pal(id);
   return (
     <Box
       component="section"
       id={`story-${id}`}
       aria-labelledby={`story-${id}-h`}
-      sx={{ position: 'relative', height: 'var(--stage-h, 100svh)', minHeight: { xs: 560, md: 600 }, overflow: 'hidden', color: p.ink, '--ink': p.ink, '--bg': p.bg, '--accent': p.accent, zIndex: 1, ...sx }}
+      sx={{ position: 'relative', height: 'var(--stage-h, 100svh)', minHeight: { xs: 560, md: 600 }, [LAND]: { minHeight: 0 }, overflow: 'hidden', color: p.ink, '--ink': p.ink, '--bg': p.bg, '--accent': p.accent, zIndex: 1, ...sx }}
     >
       {extra}
       <Box
@@ -99,9 +112,11 @@ export function Panel({ id, side = 'left', children, extra, sx, phoneTop = '57%'
           left: { xs: 20 },
           right: { xs: 20 },
           top: { xs: phoneTop },
-          bottom: { xs: 20 },
+          bottom: { xs: 'calc(20px + env(safe-area-inset-bottom))' },
+          [SHORT]: { gap: '8px', ...(shortTop ? { top: shortTop } : null) },
           // (one media block: a separate `pt: { md }` would share this key and be overwritten)
           '@media (min-width:900px)': { left: 'auto', right: 'auto', paddingTop: 'var(--appbar-h, 64px)', ...COPY_DESKTOP[side] },
+          [LAND]: { top: 'var(--appbar-h, 64px)', bottom: 0, paddingTop: '8px', paddingBottom: '10px', gap: '8px', justifyContent: 'center', ...COPY_LAND[side] },
         }}
       >
         {children}
@@ -124,7 +139,8 @@ function useDisplayColour() {
 
 function SwatchRow({ value, onPick, ink, label = 'Colour', compact }) {
   return (
-    <Box role="radiogroup" aria-label={label} sx={{ display: 'flex', gap: { xs: 0.5, md: 1.5 }, flexWrap: 'wrap' }}>
+    // SE-class phones: names hidden (each swatch keeps its aria-label), so the row fits under the boot.
+    <Box role="radiogroup" aria-label={label} sx={{ display: 'flex', gap: { xs: 0.5, md: 1.5 }, flexWrap: 'wrap', [SHORT]: { '& [data-swatch-name]': { display: 'none' } } }}>
       {COLOURWAYS.map((c) => {
         const on = c.key === value;
         return (
@@ -140,7 +156,7 @@ function SwatchRow({ value, onPick, ink, label = 'Colour', compact }) {
           >
             <Box component="span" sx={{ width: { xs: 40, md: 52 }, height: { xs: 40, md: 52 }, borderRadius: '12px', backgroundColor: c.hex, boxShadow: on ? `0 0 0 3px ${ink}` : 'inset 0 0 0 2px rgba(255,255,255,0.35)', transition: 'box-shadow 180ms ease' }} />
             {compact ? null : (
-              <Box component="span" sx={{ fontSize: { xs: 10, md: 11 }, fontWeight: 800, letterSpacing: { xs: '0.04em', md: '0.08em' }, textTransform: 'uppercase', lineHeight: 1.15, maxWidth: { xs: 74, md: 84 }, textAlign: 'center', opacity: on ? 1 : 0.8 }}>
+              <Box component="span" data-swatch-name sx={{ fontSize: { xs: 10, md: 11 }, fontWeight: 800, letterSpacing: { xs: '0.04em', md: '0.08em' }, textTransform: 'uppercase', lineHeight: 1.15, maxWidth: { xs: 74, md: 84 }, textAlign: 'center', opacity: on ? 1 : 0.8 }}>
                 {c.name}
               </Box>
             )}
@@ -156,7 +172,7 @@ function SwatchRow({ value, onPick, ink, label = 'Colour', compact }) {
 function stageRect() {
   const pose = samplePose(live.T, useStoryUi.getState().layout);
   const W = window.innerWidth;
-  const H = window.innerHeight;
+  const H = live.vh > 1 ? live.vh * 100 : window.innerHeight;
   const s = Math.min(pose.w * W, pose.h * H) * pose.fill * 0.8;
   return { left: pose.cx * W - s / 2, top: pose.cy * H - s / 2, width: s, height: s, right: pose.cx * W + s / 2, bottom: pose.cy * H + s / 2, x: pose.cx * W - s / 2, y: pose.cy * H - s / 2 };
 }
@@ -199,15 +215,18 @@ function Sparkles() {
 //  - scrub mode: the whole boot at T=0 (key 0: box 'intro', fill 1.42, 3/4 front). The render is a square of k times
 //    the fill square (fill * min(box w, box h)), centred on the box (k = 1.1 desktop, 1.25 phone), so the shadow fits:
 //    desktop min(125vw, 96.8vh) at (50vw, 41vh); phone 113.6vw at (50vw, 33vh) (the phone box is width-bound).
+//    phone: the intro box is height-bound (h 0.44 of the stage height at 33.5%), so min(195vw, 78.1% of it);
+//    short landscape (a phone on its side): its own render (lite model, like the canvas there), k 1.25, box (72.5vw,
+//    56%) w 0.9 h 0.745 -> min(159.75vw, 132.2% of the stage height).
 //  - flow mode (reduced motion, no WebGL): the full hero pose (hero key: fill 0.9; the render is 1.3x / 1.15x that
 //    square). Devices without WebGL keep it as the hero image.
 function HeroPoster({ flow }) {
   const ready = useStoryUi((s) => s.canvasReady);
   const reduced = useStoryUi((s) => s.reduced);
   const size = flow
-    ? { desktop: 'min(65.52vw, 86.58vh)', phone: 'min(97.29vw, 41.4vh)', phoneTop: '32vh' }
-    : { desktop: 'min(125vw, 96.8vh)', phone: '113.6vw', phoneTop: '33vh' };
-  const src = flow ? ['/img/hero/boot-desktop.webp', '/img/hero/boot-phone.webp'] : ['/img/hero/intro-desktop.webp', '/img/hero/intro-phone.webp'];
+    ? { desktop: 'min(65.52vw, 86.58vh)', phone: 'min(97.29vw, 41.4vh)', phoneTop: '32vh', land: `min(58.5vw, calc(${STAGE_H} * 0.866))`, landX: '72vw', landY: 0.56 }
+    : { desktop: 'min(125vw, 96.8vh)', phone: `min(195vw, calc(${STAGE_H} * 0.781))`, phoneTop: `calc(${STAGE_H} * 0.335)`, land: `min(159.75vw, calc(${STAGE_H} * 1.3224))`, landX: '72.5vw', landY: 0.56 };
+  const src = flow ? ['/img/hero/boot-desktop.webp', '/img/hero/boot-phone.webp'] : ['/img/hero/intro-desktop.webp', '/img/hero/intro-phone.webp', '/img/hero/intro-land.webp'];
   return (
     <Box
       component="picture"
@@ -224,10 +243,12 @@ function HeroPoster({ flow }) {
         opacity: ready ? 0 : 1,
         transition: reduced ? 'none' : 'opacity 600ms ease',
         '@media (max-width:899.95px)': { '--s': size.phone, left: 'calc(50vw - var(--s) / 2)', top: `calc(${size.phoneTop} - var(--s) / 2)` },
+        [LAND]: { '--s': size.land, left: `calc(${size.landX} - var(--s) / 2)`, top: `calc(${STAGE_H} * ${size.landY} - var(--s) / 2)` },
         '& img': { display: 'block', width: '100%', height: '100%' },
       }}
     >
-      <source media="(max-width: 899.95px)" srcSet={src[1]} width={720} height={720} />
+      {src[2] ? <source media="(orientation: landscape) and (max-height: 500px)" srcSet={src[2]} width={900} height={900} /> : null}
+      <source media="(max-width: 899.95px) and (orientation: portrait), (max-width: 899.95px) and (min-height: 501px)" srcSet={src[1]} width={720} height={720} />
       <img src={src[0]} alt="" width={1100} height={1100} fetchPriority="high" decoding="async" />
     </Box>
   );
@@ -263,7 +284,7 @@ export function applyIntro(T) {
   intro.btns.forEach((el, i) => (i === b.index ? el?.setAttribute('aria-current', 'step') : el?.removeAttribute('aria-current')));
 }
 
-const RAIL_H = { xs: 150, md: 'clamp(190px, 34vh, 300px)' };
+const RAIL_H = { xs: 150, md: 'clamp(190px, 34vh, 300px)', land: `min(150px, calc(${STAGE_H} - var(--appbar-h, 64px) - 110px))` };
 
 // The scroll rail: a vertical track with one real button per beat (>= 44px hit area, visible focus), a thumb that
 // follows the intro's progress and a "Scroll" label that flips to "Scroll back" with the last beat.
@@ -290,8 +311,9 @@ function IntroRail({ ink }) {
       data-end="false"
       sx={{
         position: 'absolute', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pointerEvents: 'none',
-        left: { xs: 4, md: 'calc(3vw - 2px)' }, top: { xs: '56%', md: '50%' }, transform: { xs: 'none', md: 'translateY(-50%)' },
+        left: { xs: 'calc(4px + env(safe-area-inset-left))', md: 'calc(3vw - 2px)' }, top: { xs: '59%', md: '50%' }, transform: { xs: 'none', md: 'translateY(-50%)' },
         mt: { md: 'calc(var(--appbar-h, 64px) / 2)' }, width: 44,
+        [LAND]: { left: 'calc(4px + env(safe-area-inset-left))', top: '50%', transform: 'translateY(-50%)', marginTop: 'calc(var(--appbar-h, 64px) / 2)' },
         '& [data-label]': { ...LABEL_TEXT, fontSize: { xs: 9, md: 10 }, letterSpacing: { xs: '0.06em', md: '0.14em' }, textAlign: 'center', lineHeight: 1.2, width: 44, userSelect: 'none' },
         '& [data-label] svg': { animation: 'gsCue 1.8s ease-in-out infinite', '@media (prefers-reduced-motion: reduce)': { animation: 'none' } },
         '@keyframes gsCue': { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(4px)' } },
@@ -304,7 +326,7 @@ function IntroRail({ ink }) {
         <Box component="span" data-when="start" sx={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>Scroll<ArrowDown size={14} strokeWidth={2.5} /></Box>
         <Box component="span" data-when="end" sx={{ flexDirection: 'column', alignItems: 'center', gap: 0.5 }}><ArrowUp size={14} strokeWidth={2.5} />Scroll back</Box>
       </Box>
-      <Box data-thumb sx={{ position: 'relative', width: 44, height: RAIL_H, '--p': 0 }}>
+      <Box data-thumb sx={{ position: 'relative', width: 44, height: { xs: RAIL_H.xs, md: RAIL_H.md }, [LAND]: { height: RAIL_H.land }, '--p': 0 }}>
         <Box aria-hidden="true" sx={{ position: 'absolute', left: 'calc(50% - 1px)', top: 0, bottom: 0, width: 2, borderRadius: 1, backgroundColor: ink, opacity: 0.25 }} />
         <Box aria-hidden="true" sx={{ position: 'absolute', left: 'calc(50% - 1px)', top: 0, width: 2, borderRadius: 1, backgroundColor: ink, height: 'calc(var(--p) * 100%)' }} />
         <Box aria-hidden="true" sx={{ position: 'absolute', left: 'calc(50% - 6px)', top: 'calc(var(--p) * 100% - 6px)', width: 12, height: 12, borderRadius: '50%', backgroundColor: ink, boxShadow: `0 0 0 4px ${ink}33`, zIndex: 1 }} />
@@ -351,10 +373,13 @@ function IntroCaptions({ ink }) {
       data-intro
       sx={{
         position: 'absolute', zIndex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: { xs: 1.25, md: 2 }, boxSizing: 'border-box', color: ink, pointerEvents: 'none',
-        left: 56, right: 20, top: '55%', bottom: 20,
+        // phones: under the boot, from 58% (the intro boxes in storyline.js keep the boot above this line)
+        left: 56, right: 20, top: '58%', bottom: 'calc(20px + env(safe-area-inset-bottom))',
         // Desktop: the boot is centred, so the captions sit in a band along the bottom-left, below its bounding box.
         // (one media block: a separate md key would share it and be overwritten)
         '@media (min-width:900px)': { left: 'calc(3vw + 60px)', right: 'auto', top: 'auto', bottom: 'max(20px, 3.2vh)', justifyContent: 'flex-end', width: 'min(46vw, 680px)' },
+        // short landscape: a left column beside the rail, the boot on the right
+        [LAND]: { left: 'calc(56px + env(safe-area-inset-left))', right: 'auto', width: '38vw', top: 'calc(var(--appbar-h, 64px) + 8px)', bottom: '12px', justifyContent: 'center', gap: '8px' },
       }}
     >
       <Box aria-hidden="true" sx={{ fontSize: { xs: 12, md: 13 }, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' }}>Goldstar Nepal · G10-401</Box>
@@ -362,7 +387,7 @@ function IntroCaptions({ ink }) {
         {INTRO_CAPTIONS.map((c, i) => (
           <li key={c.n} style={i === 0 ? undefined : { opacity: 0 }}>
             <Box sx={{ fontSize: { xs: 12, md: 13 }, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', mb: { xs: 0.75, md: 1.25 } }}>{String(c.n).padStart(2, '0')} · {c.label}</Box>
-            <Box sx={{ fontWeight: 800, ...WIDE, lineHeight: 1, letterSpacing: '-0.02em', fontSize: { xs: 'clamp(26px, 7.4vw, 34px)', md: 'clamp(24px, 2.2vw, 40px)' }, textWrap: 'balance' }}>{c.text}</Box>
+            <Box sx={{ fontWeight: 800, ...WIDE, lineHeight: 1, letterSpacing: '-0.02em', fontSize: { xs: 'clamp(26px, 7.4vw, 34px)', md: 'clamp(24px, 2.2vw, 40px)' }, [LAND]: { fontSize: 'clamp(20px, 6.4vh, 30px)' }, textWrap: 'balance' }}>{c.text}</Box>
           </li>
         ))}
       </Box>
@@ -385,9 +410,9 @@ export function HeroSection({ product, flow }) {
   const p = pal('hero');
   const from = product?.colourways?.length ? Math.min(...product.colourways.map((c) => c.price)) : null;
   return (
-    <Panel id="hero" side="left" phoneTop={flow ? 'calc(var(--stage-h, 100svh) * 0.55)' : '55%'} sx={flow ? { '@media (max-width:899.95px)': { height: 'auto', minHeight: 'calc(var(--stage-h, 100svh) + 110px)' } } : undefined} extra={<><HeroPoster flow={flow} /><Sparkles />{flow ? null : <><IntroCaptions ink={p.ink} /><IntroRail ink={p.ink} /></>}</>}>
+    <Panel id="hero" side="left" phoneTop={flow ? 'calc(var(--stage-h, 100svh) * 0.55)' : '55%'} sx={flow ? { '@media (max-width:899.95px)': { height: 'auto', minHeight: 'calc(var(--stage-h, 100svh) + 110px)' }, [LAND]: { height: STAGE_H, minHeight: 0 } } : { [SHORT]: { '& [data-copybox]': { top: '49%', gap: '10px' } } }} extra={<><HeroPoster flow={flow} /><Sparkles />{flow ? null : <><IntroCaptions ink={p.ink} /><IntroRail ink={p.ink} /></>}</>}>
       <Eyebrow>Goldstar Nepal · G10-401</Eyebrow>
-      <Headline component="h1" id="story-hero-h" sx={{ fontSize: { xs: 'clamp(40px, 12vw, 54px)', md: 'clamp(64px, 7vw, 120px)' } }}>
+      <Headline component="h1" id="story-hero-h" sx={{ fontSize: { xs: 'clamp(40px, 12vw, 54px)', md: 'clamp(64px, 7vw, 120px)' }, [SHORT]: { fontSize: 'clamp(34px, 11vw, 46px)' }, [LAND]: { fontSize: 'clamp(28px, min(5.4vw, 10vh), 46px)' } }}>
         Explore further.
         <Box component="span" sx={{ display: 'block', color: '#FFFFFF' }}>Goldstar Trek.</Box>
       </Headline>
@@ -419,7 +444,7 @@ export const PerformanceSection = forwardRef(function PerformanceSection(_, degR
 
 function Legend({ items, accent }) {
   return (
-    <Box component="ol" data-copy sx={{ display: { xs: 'grid', md: 'none' }, gridTemplateColumns: '1fr 1fr', columnGap: 2, rowGap: 0.75, m: 0, p: 0, listStyle: 'none', fontSize: 15 }}>
+    <Box component="ol" data-copy sx={{ display: { xs: 'grid', md: 'none' }, gridTemplateColumns: '1fr 1fr', columnGap: 2, rowGap: 0.75, m: 0, p: 0, listStyle: 'none', fontSize: 15, [LAND]: { display: 'grid', fontSize: 14 } }}>
       {items.map((it, i) => (
         <Box component="li" key={it.key} sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
           <Box component="span" sx={{ fontWeight: 800, color: accent, minWidth: '1.2em' }}>{i + 1}</Box>
@@ -435,10 +460,10 @@ const srOnly = { position: 'absolute', width: 1, height: 1, overflow: 'hidden', 
 export function CalloutsSection() {
   const p = pal('callouts');
   return (
-    <Panel id="callouts" side="leftNarrow" phoneTop="62%">
+    <Panel id="callouts" side="leftNarrow" phoneTop="62%" shortTop="57%">
       <Eyebrow>02 · Details</Eyebrow>
       <Headline id="story-callouts-h" sx={{ fontSize: { md: 'clamp(48px, 4.6vw, 78px)' } }}>Made for the trail.</Headline>
-      <Body sx={{ display: { xs: 'none', md: 'block' } }}>Every part of the G10-401 has a job to do on the mountain.</Body>
+      <Body sx={{ display: { xs: 'none', md: 'block' }, [LAND]: { display: 'none' } }}>Every part of the G10-401 has a job to do on the mountain.</Body>
       <Legend items={CALLOUTS} accent={p.accent} />
       <Box component="ul" sx={srOnly}>{CALLOUTS.map((c) => <li key={c.key}>{c.title}: {c.sub}</li>)}</Box>
     </Panel>
@@ -449,10 +474,10 @@ export function AnatomySection() {
   const p = pal('anatomy');
   const parts = STORY_MODEL.parts;
   return (
-    <Panel id="anatomy" side="leftNarrow" phoneTop="64%">
+    <Panel id="anatomy" side="leftNarrow" phoneTop="64%" shortTop="58%">
       <Eyebrow>03 · Layers</Eyebrow>
       <Headline id="story-anatomy-h" sx={{ fontSize: { md: 'clamp(46px, 4.4vw, 74px)' }, textTransform: 'uppercase', lineHeight: 0.9 }}>Designed to endure.</Headline>
-      <Body sx={{ display: { xs: 'none', md: 'block' } }}>Eight layers, from the rubber outsole to the padded collar, built to take a beating and keep going.</Body>
+      <Body sx={{ display: { xs: 'none', md: 'block' }, [LAND]: { display: 'none' } }}>Eight layers, from the rubber outsole to the padded collar, built to take a beating and keep going.</Body>
       <Legend items={BADGES} accent={p.accent} />
       <Box component="ul" sx={srOnly}>
         {LABEL_ORDER.map((k) => <li key={k}>{parts[k].label}: {parts[k].detail}</li>)}
@@ -474,7 +499,7 @@ export function SoleSection() {
           width={620}
           height={262}
           loading="lazy"
-          sx={{ display: 'block', width: { xs: 'min(62vw, 250px)', md: 'min(30vw, 440px)' }, height: 'auto', filter: 'drop-shadow(0 18px 30px rgba(60,40,0,0.35))', transform: 'rotate(-4deg)' }}
+          sx={{ display: 'block', width: { xs: 'min(62vw, 250px)', md: 'min(30vw, 440px)' }, [SHORT]: { width: 'min(52vw, 200px)' }, [LAND]: { width: 'min(24vw, 34vh, 200px)' }, height: 'auto', filter: 'drop-shadow(0 18px 30px rgba(60,40,0,0.35))', transform: 'rotate(-4deg)' }}
         />
       </Box>
       <Headline id="story-sole-h">Traction grip.</Headline>
@@ -493,7 +518,7 @@ function Rail({ product, display, ink }) {
       data-copy
       role="group"
       aria-label={`Photos of the G10-401 in ${real.name}`}
-      sx={{ display: 'flex', flexDirection: { xs: 'row', md: 'column' }, gap: 1, position: { md: 'absolute' }, left: { md: '-112px' }, top: { md: '50%' }, mt: { md: '-170px' } }}
+      sx={{ display: 'flex', flexDirection: { xs: 'row', md: 'column' }, gap: 1, position: { md: 'absolute' }, left: { md: '-112px' }, top: { md: '50%' }, mt: { md: '-170px' }, [LAND]: { position: 'static', flexDirection: 'row', mt: 0, '& img': { width: 40, height: 40 } }, [SHORT]: { display: 'none' } }}
     >
       {imgs.map((im) => (
         <Box key={im.thumb} component="img" src={im.thumb} alt="" loading="lazy" width={76} height={76} sx={{ width: { xs: 48, md: 76 }, height: { xs: 48, md: 76 }, objectFit: 'cover', borderRadius: '10px', backgroundColor: '#EDE7DC', boxShadow: `0 0 0 2px ${ink}33` }} />
@@ -507,11 +532,11 @@ export function ColourSection({ product }) {
   const display = useDisplayColour();
   const real = productColour(product, display);
   return (
-    <Panel id="colour" side="left" sx={{ '@media (min-width:900px)': { '& [data-copybox]': { left: 'calc(6vw + 120px)' } } }}>
+    <Panel id="colour" side="left" sx={{ '@media (min-width:900px)': { '& [data-copybox]': { left: 'calc(6vw + 120px)' } }, [LAND]: { minHeight: 0, '& [data-copybox]': { left: LAND_L.left } } }}>
       <Eyebrow>05 · Colour customisation</Eyebrow>
       <Headline id="story-colour-h">Pick your colour.</Headline>
       <Box data-copy aria-live="polite" sx={{ display: 'flex', alignItems: 'baseline', gap: 2, flexWrap: 'wrap' }}>
-        <Box sx={{ fontSize: { xs: 24, md: 38 }, fontWeight: 800, ...WIDE, letterSpacing: '-0.02em' }}>{display.name}</Box>
+        <Box sx={{ fontSize: { xs: 24, md: 38 }, [SHORT]: { fontSize: 20 }, [LAND]: { fontSize: 20 }, fontWeight: 800, ...WIDE, letterSpacing: '-0.02em' }}>{display.name}</Box>
         <Box sx={{ fontSize: { xs: 16, md: 19 }, fontWeight: 700 }}>{real ? formatNPR(real.price) : 'Coming soon'}</Box>
       </Box>
       <Box data-copy><SwatchRow value={display.key} onPick={pickColour} ink={p.ink} /></Box>
@@ -568,7 +593,7 @@ function DragSurface() {
       el.removeEventListener('wheel', wheel);
     };
   }, []);
-  return <Box ref={ref} aria-hidden="true" sx={{ position: 'absolute', left: { xs: 0, md: '18%' }, right: { xs: 0, md: '18%' }, top: { xs: '10%', md: '16%' }, height: { xs: '42%', md: '62%' }, cursor: 'grab', touchAction: 'pan-y', zIndex: 0 }} />;
+  return <Box ref={ref} aria-hidden="true" sx={{ position: 'absolute', left: { xs: 0, md: '18%' }, right: { xs: 0, md: '18%' }, top: { xs: '10%', md: '16%' }, height: { xs: '42%', md: '62%' }, [LAND]: { left: '46%', right: 0, top: '18%', height: '76%' }, cursor: 'grab', touchAction: 'pan-y', zIndex: 0 }} />;
 }
 
 const zoomBy = (k) => {
@@ -599,16 +624,16 @@ export function StudioSection({ product }) {
   const iconBtn = { width: 44, height: 44, borderRadius: '50%', border: `2px solid ${p.ink}`, background: 'transparent', color: p.ink, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', '&:focus-visible': { outline: `3px solid ${p.ink}`, outlineOffset: 2 } };
   return (
     <Panel id="studio" side="centre" phoneTop="50%" extra={<DragSurface />} sx={{ '& [data-copybox]': { pointerEvents: 'none' }, '& [data-ui]': { position: 'relative', zIndex: 1, pointerEvents: 'auto' } }}>
-      <Box data-ui sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, pt: { md: 3 } }}>
+      <Box data-ui sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, pt: { md: 3 }, [LAND]: { pt: 0 } }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 0.5, md: 1.5 } }}>
           <Eyebrow>06 · {display.name}</Eyebrow>
-          <Headline id="story-studio-h" sx={{ fontSize: { xs: 'clamp(30px, 8.5vw, 38px)', md: 'clamp(44px, 4vw, 68px)' }, textTransform: 'uppercase' }}>Add to cart.</Headline>
+          <Headline id="story-studio-h" sx={{ fontSize: { xs: 'clamp(30px, 8.5vw, 38px)', md: 'clamp(44px, 4vw, 68px)' }, [LAND]: { fontSize: 'clamp(22px, 7vh, 32px)' }, textTransform: 'uppercase' }}>Add to cart.</Headline>
         </Box>
-        <Box data-copy sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1, ...LABEL_TEXT, mt: 4 }}>
+        <Box data-copy sx={{ display: { xs: 'none', md: 'flex' }, [LAND]: { display: 'none' }, alignItems: 'center', gap: 1, ...LABEL_TEXT, mt: 4 }}>
           <MoveHorizontal size={18} strokeWidth={2.25} aria-hidden="true" /> Drag the boot to turn it
         </Box>
       </Box>
-      <Box data-ui data-copy sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'stretch', md: 'flex-end' }, justifyContent: 'space-between', gap: { xs: 1.25, md: 3 }, pb: { md: 5 } }}>
+      <Box data-ui data-copy sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'stretch', md: 'flex-end' }, justifyContent: 'space-between', gap: { xs: 1.25, md: 3 }, pb: { md: 5 }, [LAND]: { flexDirection: 'column', alignItems: 'stretch', gap: 1, pb: 0 } }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, md: 1.5 } }}>
           <SwatchRow value={display.key} onPick={pickColour} ink={p.ink} compact />
           {real?.sizes?.length ? (
@@ -675,11 +700,11 @@ export function StageLabels() {
       const k = `${setKey}:${it.key}`;
       const Icon = it.icon ? ICONS[it.icon] : null;
       return (
-        <Box key={k} ref={set(k, 'root')} sx={{ position: 'absolute', inset: 0, opacity: 0, visibility: 'hidden', color: p.ink }}>
+        <Box key={k} ref={set(k, 'root')} data-label-card sx={{ position: 'absolute', inset: 0, opacity: 0, visibility: 'hidden', color: p.ink }}>
           <svg width="100%" height="100%" style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
             <path ref={set(k, 'line')} d="M0 0" fill="none" stroke={p.accent} strokeWidth="1.5" />
           </svg>
-          <Box ref={set(k, 'dot')} sx={{ position: 'absolute', left: { xs: -11, md: -6 }, top: { xs: -11, md: -6 }, width: { xs: 22, md: 12 }, height: { xs: 22, md: 12 }, borderRadius: '50%', backgroundColor: p.accent, color: p.bg, boxShadow: `0 0 0 4px ${p.accent}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800 }}>
+          <Box ref={set(k, 'dot')} data-label-dot sx={{ position: 'absolute', left: { xs: -11, md: -6 }, top: { xs: -11, md: -6 }, width: { xs: 22, md: 12 }, height: { xs: 22, md: 12 }, borderRadius: '50%', backgroundColor: p.accent, color: p.bg, boxShadow: `0 0 0 4px ${p.accent}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800 }}>
             <Box component="span" sx={{ display: { xs: 'inline', md: 'none' } }}>{i + 1}</Box>
           </Box>
           <Box ref={set(k, 'card')} sx={{ position: 'absolute', left: 0, top: 0, width: 'min(19vw, 290px)' }}>
@@ -716,13 +741,13 @@ export function FinaleSection() {
       component="section"
       id="story-finale"
       aria-labelledby="story-finale-h"
-      sx={{ position: 'relative', height: 'var(--stage-h, 100svh)', minHeight: 520, overflow: 'hidden', color: p.ink, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', px: { xs: 2, md: 4 }, boxSizing: 'border-box' }}
+      sx={{ position: 'relative', height: 'var(--stage-h, 100svh)', minHeight: 520, [LAND]: { minHeight: 0 }, overflow: 'hidden', color: p.ink, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', px: { xs: 2, md: 4 }, boxSizing: 'border-box' }}
     >
       <Box data-glow aria-hidden="true" sx={{ position: 'absolute', left: '50%', top: '50%', width: '120vmax', height: '120vmax', transform: 'translate(-50%, -50%)', background: 'radial-gradient(closest-side, rgba(255,201,60,0.22), rgba(255,201,60,0.06) 45%, transparent 70%)', pointerEvents: 'none' }} />
-      <Box data-line component="p" sx={{ m: 0, mb: { xs: 3, md: 4 }, fontWeight: 800, ...WIDE, textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 0.95, textAlign: 'center', fontSize: { xs: 'clamp(26px, 8vw, 34px)', md: 'clamp(34px, 3.4vw, 54px)' }, color: p.accent, position: 'relative' }}>
+      <Box data-line component="p" sx={{ m: 0, mb: { xs: 3, md: 4 }, fontWeight: 800, ...WIDE, textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 0.95, textAlign: 'center', fontSize: { xs: 'clamp(26px, 8vw, 34px)', md: 'clamp(34px, 3.4vw, 54px)' }, [LAND]: { fontSize: 'clamp(20px, 6.5vh, 30px)', mb: 1.5 }, color: p.accent, position: 'relative' }}>
         Your adventure begins now.
       </Box>
-      <Box data-star aria-hidden="true" sx={{ width: { xs: 56, md: 96 }, height: { xs: 56, md: 96 }, mb: { xs: 1.5, md: 2.5 }, position: 'relative' }}>
+      <Box data-star aria-hidden="true" sx={{ width: { xs: 56, md: 96 }, height: { xs: 56, md: 96 }, mb: { xs: 1.5, md: 2.5 }, [LAND]: { width: 36, height: 36, mb: 1 }, position: 'relative' }}>
         <svg viewBox="0 0 24 24" width="100%" height="100%" style={{ overflow: 'visible' }}>
           <path data-star-path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z" fill={p.accent} stroke={p.accent} strokeWidth="0.8" strokeLinejoin="round" />
         </svg>
@@ -732,7 +757,7 @@ export function FinaleSection() {
         id="story-finale-h"
         aria-label="Goldstar"
         data-word
-        sx={{ m: 0, fontWeight: 900, ...WIDE, lineHeight: 0.86, whiteSpace: 'nowrap', maxWidth: '100%', fontSize: 'min(calc((100vw - 32px) / 6.9), 240px)', '@media (min-width:600px)': { fontSize: 'min(calc((100vw - 120px) / 6.9), 240px)' }, color: p.ink, position: 'relative' }}
+        sx={{ m: 0, fontWeight: 900, ...WIDE, lineHeight: 0.86, whiteSpace: 'nowrap', maxWidth: '100%', fontSize: 'min(calc((100vw - 32px) / 6.9), 240px)', '@media (min-width:600px)': { fontSize: 'min(calc((100vw - 120px) / 6.9), 240px)' }, [LAND]: { fontSize: 'min(calc((100vw - 120px) / 6.9), 21vh)' }, color: p.ink, position: 'relative' }}
       >
         {WORD.split('').map((ch, i) => (
           <Box key={i} component="span" aria-hidden="true" sx={{ display: 'inline-block', overflow: 'hidden', verticalAlign: 'top', pb: '0.04em' }}>
@@ -740,10 +765,10 @@ export function FinaleSection() {
           </Box>
         ))}
       </Box>
-      <Box data-sub lang="ne" sx={{ fontFamily: 'Mukta', fontWeight: 600, fontSize: { xs: 30, md: 'clamp(36px, 4vw, 64px)' }, lineHeight: 1.1, mt: { xs: 1, md: 1.5 }, color: p.accent, position: 'relative' }}>
+      <Box data-sub lang="ne" sx={{ fontFamily: 'Mukta', fontWeight: 600, fontSize: { xs: 30, md: 'clamp(36px, 4vw, 64px)' }, lineHeight: 1.1, mt: { xs: 1, md: 1.5 }, [LAND]: { fontSize: 24, mt: 0.5 }, color: p.accent, position: 'relative' }}>
         गोल्डस्टार
       </Box>
-      <Box data-sub sx={{ mt: { xs: 3, md: 4 }, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', justifyContent: 'center', position: 'relative' }}>
+      <Box data-sub sx={{ mt: { xs: 3, md: 4 }, [LAND]: { mt: 1.5 }, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', justifyContent: 'center', position: 'relative' }}>
         <PillLink to="/shop" ink={p.ink} bg={p.bg}>Shop all</PillLink>
       </Box>
     </Box>

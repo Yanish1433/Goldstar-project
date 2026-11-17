@@ -9,6 +9,22 @@ gsap.registerPlugin(ScrollTrigger);
 
 const colourOf = (i) => PALETTE[SECTIONS[i].colour];
 
+// The story's screen height: the SMALL viewport (100svh: the browser bars shown), so panels, pins, the canvas and the
+// scrub all use one height that does not jump when a phone's URL bar slides away (which only resizes innerHeight).
+// Desktop: equal to innerHeight. Older browsers without svh: innerHeight.
+let probe = null;
+export function stageHeight() {
+  if (typeof document === 'undefined') return 0;
+  if (!probe) {
+    probe = document.createElement('div');
+    probe.setAttribute('aria-hidden', 'true');
+    probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:100vh;height:100svh;visibility:hidden;pointer-events:none';
+  }
+  if (!probe.isConnected) document.body.appendChild(probe);
+  const h = probe.getBoundingClientRect().height;
+  return h > 0 ? Math.min(h, window.innerHeight) : window.innerHeight;
+}
+
 // The one scroll owner. Motion mode: Lenis smooths the native scroll and drives ScrollTrigger from the GSAP
 // ticker; each section is pinned for its `pin` vh; one master timeline (duration = TOTAL vh) is scrubbed by
 // the story's scroll and carries every DOM animation (copy in/out, background + ink crossfade, the brand
@@ -22,8 +38,10 @@ export function useStoryEngine({ rootRef, bgRef, reduced, onTime }) {
     if (!root || !bg) return undefined;
     const doc = document.documentElement;
     const setVh = () => {
-      live.vh = window.innerHeight / 100;
-      root.style.setProperty('--stage-h', `${window.innerHeight}px`);
+      const h = stageHeight();
+      live.vh = h / 100;
+      root.style.setProperty('--stage-h', `${h}px`);
+      document.documentElement.style.setProperty('--stage-h', `${h}px`); // the fixed canvas + poster outside #story
     };
     setVh();
 
@@ -57,7 +75,7 @@ export function useStoryEngine({ rootRef, bgRef, reduced, onTime }) {
     gsap.ticker.lagSmoothing(0);
     window.__lenis = lenis; // used by in-page links (scroll to a section)
 
-    const vh = () => window.innerHeight / 100;
+    const vh = () => live.vh;
     const ctx = gsap.context(() => {
       // 1. Pins, in DOM order.
       SECTIONS.forEach((s) => {
@@ -160,13 +178,14 @@ export function useStoryEngine({ rootRef, bgRef, reduced, onTime }) {
       lenis.destroy();
       if (window.__lenis === lenis) window.__lenis = null;
       doc.style.removeProperty('--story-ink');
+      doc.style.removeProperty('--stage-h');
     };
   }, [rootRef, bgRef, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 // Scroll to the start of a section's pin (Lenis when present, native otherwise).
 export function scrollToSection(id, offset = 0) {
-  const target = (START[id] + offset) * (window.innerHeight / 100);
+  const target = (START[id] + offset) * (live.vh > 1 ? live.vh : window.innerHeight / 100);
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   if (reduced) {
     document.getElementById(`story-${id}`)?.scrollIntoView({ block: 'start' });

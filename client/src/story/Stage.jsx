@@ -7,7 +7,7 @@ import { gsap } from 'gsap';
 import { STORY_MODEL, CALLOUTS, BADGES, partColours } from './model.config.js';
 import { buildParts, createTinter, disposeParts, sharpenTextures } from './splitModel.js';
 import StudioLights from '../three/StudioLights.jsx';
-import { trackAt, makePose, samplePose } from './storyline.js';
+import { compactLabels, trackAt, makePose, samplePose } from './storyline.js';
 import { live, touch, useStoryUi } from './state.js';
 
 const FOV = 30;
@@ -158,7 +158,7 @@ function positionLabels(built, rigGroup, camera, W, H, layout, v) {
   const L = live.labels;
   if (!L) return;
   const T = live.T;
-  const phone = layout === 'phone';
+  const phone = compactLabels(layout); // phones + short landscapes: numbered dots, legend in the copy
   rigGroup.updateMatrixWorld();
   LABEL_SETS.forEach(([setKey, list]) => {
     const els = L[setKey];
@@ -251,7 +251,7 @@ export default function Stage({ rootRef }) {
     <div
       aria-hidden="true"
       data-stage-ready={ready ? 'true' : 'false'}
-      style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: ready ? 1 : 0, transition: reduced ? 'none' : 'opacity 600ms ease' }}
+      style={{ position: 'fixed', left: 0, top: 0, width: '100%', height: 'var(--stage-h, 100%)', zIndex: 0, pointerEvents: 'none', opacity: ready ? 1 : 0, transition: reduced ? 'none' : 'opacity 600ms ease' }}
     >
       <Canvas
         frameloop="never"

@@ -1,30 +1,32 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
+import GlobalStyles from '@mui/material/GlobalStyles';
 import { gsap } from 'gsap';
 import { useTitle } from '../components/Page.jsx';
 import { useProduct } from '../api/hooks.js';
-import { detectTier, layoutFor } from '../three/tier.js';
-import { PALETTE, SECTIONS, START, colourIndexAt, endOf, pinOf, sectionAt } from '../story/storyline.js';
+import { detectTier } from '../three/tier.js';
+import { PALETTE, SECTIONS, START, colourIndexAt, endOf, pinOf, sectionAt, storyLayout } from '../story/storyline.js';
 import { useStoryUi } from '../story/state.js';
-import { useStoryEngine } from '../story/useStoryEngine.js';
-import { AnatomySection, applyIntro, CalloutsSection, ColourSection, FinaleSection, HeroSection, PerformanceSection, SoleSection, StageLabels, StudioSection } from '../story/Sections.jsx';
+import { stageHeight, useStoryEngine } from '../story/useStoryEngine.js';
+import { AnatomySection, LAND, applyIntro, CalloutsSection, ColourSection, FinaleSection, HeroSection, PerformanceSection, SoleSection, StageLabels, StudioSection } from '../story/Sections.jsx';
 import { COLOURWAYS, DEFAULT_COLOUR } from '../story/model.config.js';
 import Quiet3D from '../components/Quiet3D.jsx';
 
 const Stage = lazy(() => import('../story/Stage.jsx'));
 
 function useEnv() {
-  // Tier, layout and reduced motion are decided before the first paint (a static device never mounts WebGL).
+  // Tier, layout (storyLayout: aspect-aware, a phone on its side gets the side-by-side layout) and reduced motion are
+  // decided before the first paint (a static device never mounts WebGL).
   useState(() => {
     const reduced = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    useStoryUi.setState({ tier: detectTier(), layout: layoutFor(window.innerWidth), reduced, section: 0, userColour: null, canvasReady: false, stageFailed: false });
+    useStoryUi.setState({ tier: detectTier(), layout: storyLayout(window.innerWidth, stageHeight()), reduced, section: 0, userColour: null, canvasReady: false, stageFailed: false });
     return null;
   });
   useEffect(() => {
     const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
     const onMq = () => useStoryUi.getState().set({ reduced: !!mq.matches });
     const onResize = () => {
-      const layout = layoutFor(window.innerWidth);
+      const layout = storyLayout(window.innerWidth, stageHeight());
       if (layout !== useStoryUi.getState().layout) useStoryUi.getState().set({ layout });
     };
     mq?.addEventListener?.('change', onMq);
@@ -76,6 +78,13 @@ export default function Home() {
 
   useStoryEngine({ rootRef, bgRef, reduced: flow, onTime: (T) => onTimeRef.current?.(T) });
 
+  // Phones and short landscapes: the floating WhatsApp button would sit on the pinned copy and its buttons (as on the
+  // landing, which hides it on phones too); WhatsApp stays in the footer below the story.
+  useEffect(() => {
+    document.documentElement.setAttribute('data-story', '');
+    return () => document.documentElement.removeAttribute('data-story');
+  }, []);
+
   // The canvas mounts after the first paint (idle), so the hero poster paints first and the 3D fades in over it.
   useEffect(() => {
     if (tier === 'static') return undefined;
@@ -106,6 +115,7 @@ export default function Home() {
       data-flow={flow ? 'true' : 'false'}
       sx={{ position: 'relative', mt: 'calc(var(--appbar-h, 64px) * -1)', isolation: 'isolate' }}
     >
+      <GlobalStyles styles={{ [`@media (max-width:899.95px), ${LAND.replace('@media ', '')}`]: { 'html[data-story] a[aria-label="Chat with Goldstar on WhatsApp"]': { display: 'none' } } }} />
       <Box
         ref={bgRef}
         aria-hidden="true"
