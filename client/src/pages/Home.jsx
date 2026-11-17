@@ -90,7 +90,7 @@ export default function Home() {
     };
   }, [tier]);
 
-  // The intro captions arrive on load (time-based, once; the hero headline waits for the end of the close-up). Reduced motion: no movement.
+  // The intro captions arrive on load (time-based, once; the hero headline waits for the end of the glide). Reduced motion: no movement.
   useLayoutEffect(() => {
     if (flow) return undefined;
     const ctx = gsap.context(() => {

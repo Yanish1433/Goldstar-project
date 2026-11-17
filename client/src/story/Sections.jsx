@@ -196,9 +196,9 @@ function Sparkles() {
 // LCP poster: a transparent render of the first frame, placed with the stage-box maths of storyline.js, so it sits
 // under the live boot and crossfades into it when the canvas is ready (the crossfade starts only once the canvas
 // has mounted its first frame, onReady in Stage.jsx).
-//  - scrub mode: the macro close-up at T=0 (key 0: box 'macro', fill 0.9, R 0.72 on the tongue logo). The render is a
-//    square of 2x (desktop) / 2.8x (phone, where the close-up reaches further below the box) the fill square
-//    (k * 0.9 * min(box w, box h)), centred on the box: 100.8vw / 133.2vh desktop, 236.9vw / 100.8vh phone.
+//  - scrub mode: the whole boot at T=0 (key 0: box 'intro', fill 1.42, 3/4 front). The render is a square of k times
+//    the fill square (fill * min(box w, box h)), centred on the box (k = 1.1 desktop, 1.25 phone), so the shadow fits:
+//    desktop min(125vw, 96.8vh) at (50vw, 41vh); phone 113.6vw at (50vw, 33vh) (the phone box is width-bound).
 //  - flow mode (reduced motion, no WebGL): the full hero pose (hero key: fill 0.9; the render is 1.3x / 1.15x that
 //    square). Devices without WebGL keep it as the hero image.
 function HeroPoster({ flow }) {
@@ -206,8 +206,8 @@ function HeroPoster({ flow }) {
   const reduced = useStoryUi((s) => s.reduced);
   const size = flow
     ? { desktop: 'min(65.52vw, 86.58vh)', phone: 'min(97.29vw, 41.4vh)', phoneTop: '32vh' }
-    : { desktop: 'min(100.8vw, 133.2vh)', phone: 'min(236.9vw, 100.8vh)', phoneTop: '20vh' };
-  const src = flow ? ['/img/hero/boot-desktop.webp', '/img/hero/boot-phone.webp'] : ['/img/hero/macro-desktop.webp', '/img/hero/macro-phone.webp'];
+    : { desktop: 'min(125vw, 96.8vh)', phone: '113.6vw', phoneTop: '33vh' };
+  const src = flow ? ['/img/hero/boot-desktop.webp', '/img/hero/boot-phone.webp'] : ['/img/hero/intro-desktop.webp', '/img/hero/intro-phone.webp'];
   return (
     <Box
       component="picture"
@@ -216,8 +216,8 @@ function HeroPoster({ flow }) {
       sx={{
         '--s': size.desktop,
         position: 'absolute',
-        left: 'calc(68vw - var(--s) / 2)',
-        top: 'calc(55vh - var(--s) / 2)',
+        left: flow ? 'calc(68vw - var(--s) / 2)' : 'calc(50vw - var(--s) / 2)',
+        top: flow ? 'calc(55vh - var(--s) / 2)' : 'calc(41vh - var(--s) / 2)',
         width: 'var(--s)',
         height: 'var(--s)',
         pointerEvents: 'none',
@@ -233,9 +233,10 @@ function HeroPoster({ flow }) {
   );
 }
 
-// --- Hero close-up intro ---------------------------------------------------------------------------------
-// The first screen is a macro close-up of the boot that pulls back to the full pose as you scroll (storyline.js
-// INTRO). The copy side holds three staged captions and a scroll rail: both are driven by the same story time T
+// --- Hero intro ------------------------------------------------------------------------------------------
+// The first screen shows the whole boot, centred and big, and turns it by scroll so tongue logo, metal hardware and
+// outsole each face the camera in turn, then it glides to the hero pose (storyline.js INTRO). The captions (bottom band
+// on desktop, under the boot on phones) and the scroll rail are driven by the same story time T
 // as the 3D (applyIntro, called from the engine's onTime), so they scrub with it and play backward exactly.
 // Caption text comes from the part data in model.config.js (STORY_MODEL.parts), nothing is invented here.
 const introPart = (k) => STORY_MODEL.parts[k];
@@ -351,8 +352,9 @@ function IntroCaptions({ ink }) {
       sx={{
         position: 'absolute', zIndex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: { xs: 1.25, md: 2 }, boxSizing: 'border-box', color: ink, pointerEvents: 'none',
         left: 56, right: 20, top: '55%', bottom: 20,
+        // Desktop: the boot is centred, so the captions sit in a band along the bottom-left, below its bounding box.
         // (one media block: a separate md key would share it and be overwritten)
-        '@media (min-width:900px)': { left: 'calc(3vw + 60px)', right: 'auto', top: 0, bottom: 0, width: 'min(28vw, 440px)', paddingTop: 'var(--appbar-h, 64px)' },
+        '@media (min-width:900px)': { left: 'calc(3vw + 60px)', right: 'auto', top: 'auto', bottom: 'max(20px, 3.2vh)', justifyContent: 'flex-end', width: 'min(46vw, 680px)' },
       }}
     >
       <Box aria-hidden="true" sx={{ fontSize: { xs: 12, md: 13 }, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' }}>Goldstar Nepal · G10-401</Box>
@@ -360,7 +362,7 @@ function IntroCaptions({ ink }) {
         {INTRO_CAPTIONS.map((c, i) => (
           <li key={c.n} style={i === 0 ? undefined : { opacity: 0 }}>
             <Box sx={{ fontSize: { xs: 12, md: 13 }, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', mb: { xs: 0.75, md: 1.25 } }}>{String(c.n).padStart(2, '0')} · {c.label}</Box>
-            <Box sx={{ fontWeight: 800, ...WIDE, lineHeight: 1, letterSpacing: '-0.02em', fontSize: { xs: 'clamp(26px, 7.4vw, 34px)', md: 'clamp(30px, 3.1vw, 52px)' }, textWrap: 'balance' }}>{c.text}</Box>
+            <Box sx={{ fontWeight: 800, ...WIDE, lineHeight: 1, letterSpacing: '-0.02em', fontSize: { xs: 'clamp(26px, 7.4vw, 34px)', md: 'clamp(24px, 2.2vw, 40px)' }, textWrap: 'balance' }}>{c.text}</Box>
           </li>
         ))}
       </Box>
