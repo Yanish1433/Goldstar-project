@@ -16,7 +16,8 @@ export const HERO_LINES = ['Walk the', 'world'];
 export const HERO_LABEL = 'Walk the world. Goldstar shoes, made in Nepal for over five decades.';
 
 // The disc and the card (CSS lengths, so the still composition needs no JS).
-const DISC = { xs: 'min(76vw, 36svh, 340px)', md: 'min(38vw, 62svh, 620px)' };
+// Phones / tablets: as big as its grid cell allows (the cell is a size container), so short and tall screens both fill.
+const DISC = { xs: 'min(88cqw, 94cqh, 460px)', md: 'min(38vw, 62svh, 620px)' };
 const CARD = 0.6; // card side, as a share of the disc
 
 const lineSx = {
@@ -70,8 +71,9 @@ export default function KineticHero() {
         .to(b.chars, { xPercent: 300, yPercent: (i) => (i % 2 ? 18 : -14), rotate: (i) => (i % 2 ? 8 : -6), stagger: { each: 0.03, from: 'start' }, duration: 0.55 }, 0)
         .to('[data-hcopy]', { y: 50, autoAlpha: 0, duration: 0.22 }, 0)
         .to('[data-heyebrow]', { y: -30, autoAlpha: 0, duration: 0.22 }, 0)
-        // The disc floods the screen (a scale, so it stays on the compositor).
-        .fromTo('[data-disc]', { scale: 1 }, { scale: () => geo().cover, duration: 0.7, ease: 'power2.in' }, 0.08)
+        // The disc floods the screen (a transform). No will-change / 3D layer on the disc and the card: a layer
+        // rasterised at rest size and scaled up 5x goes soft; repainting a flat circle per frame is cheap.
+        .fromTo('[data-disc]', { scale: 1 }, { scale: () => geo().cover, duration: 0.7, ease: 'power2.in', force3D: false }, 0.08)
         // The card straightens and glides to the centre of the screen, a little above the brand line.
         .fromTo('[data-hcard]', { x: 0, y: 0, rotate: -6, scale: 1 }, {
           x: () => { const g = geo(); return g.W / 2 - g.cx; },
@@ -80,8 +82,9 @@ export default function KineticHero() {
           scale: phone ? 1.15 : 1.12,
           duration: 0.75,
           ease: 'power2.inOut',
+          force3D: false,
         }, 0.08)
-        .fromTo('[data-hcard] img', { scale: 1 }, { scale: 1.08, duration: 0.75 }, 0.08)
+        .fromTo('[data-hcard] img', { scale: 1 }, { scale: 1.08, duration: 0.75, force3D: false }, 0.08)
         // The stars spin up and drift (depth: the near one travels further).
         .to('[data-hstar="1"]', { rotate: 220, yPercent: -160, xPercent: -40, scale: 1.4, duration: 1 }, 0)
         .to('[data-hstar="2"]', { rotate: -160, yPercent: -90, xPercent: 60, duration: 1 }, 0)
@@ -103,7 +106,7 @@ export default function KineticHero() {
           sx={{
             position: 'absolute', inset: 0, display: 'grid', boxSizing: 'border-box',
             pt: { xs: 'calc(var(--appbar-h, 56px) + 14px)', md: 'calc(var(--appbar-h, 64px) + 3svh)' },
-            pb: { xs: 'calc(20px + env(safe-area-inset-bottom))', md: '6svh' },
+            pb: { xs: 'calc(88px + env(safe-area-inset-bottom))', md: '6svh' }, // phones: clear of the WhatsApp button
             px: { xs: 2, md: '4vw' },
             gap: { xs: 2, md: '3vw' },
             gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1.15fr) minmax(0, 1fr)' },
@@ -120,10 +123,10 @@ export default function KineticHero() {
           </Box>
 
           {/* The disc and the card with the pair. */}
-          <Box sx={{ position: 'relative', zIndex: 2, gridColumn: { xs: 1, md: 2 }, gridRow: { xs: 2, md: '1 / span 2' }, display: 'grid', placeItems: 'center', minHeight: 0 }}>
+          <Box sx={{ position: 'relative', zIndex: 2, gridColumn: { xs: 1, md: 2 }, gridRow: { xs: 2, md: '1 / span 2' }, display: 'grid', placeItems: 'center', minHeight: 0, containerType: { xs: 'size', md: 'normal' } }}>
             <Box data-dwrap sx={{ position: 'relative', width: DISC, aspectRatio: '1', display: 'grid', placeItems: 'center' }}>
-              <Box data-disc aria-hidden="true" sx={{ position: 'absolute', inset: 0, borderRadius: '50%', backgroundColor: t.blue, willChange: 'transform' }} />
-              <Box data-hcard sx={{ position: 'relative', width: `${CARD * 100}%`, aspectRatio: '1', borderRadius: { xs: `${t.radiusMd}px`, md: `${t.radiusLg}px` }, backgroundColor: t.white, boxShadow: t.shadowOnBlue, overflow: 'hidden', transform: 'rotate(-6deg)', willChange: 'transform', display: 'grid', placeItems: 'center' }}>
+              <Box data-disc aria-hidden="true" sx={{ position: 'absolute', inset: 0, borderRadius: '50%', backgroundColor: t.blue }} />
+              <Box data-hcard sx={{ position: 'relative', width: `${CARD * 100}%`, aspectRatio: '1', borderRadius: { xs: `${t.radiusMd}px`, md: `${t.radiusLg}px` }, backgroundColor: t.white, boxShadow: t.shadowOnBlue, overflow: 'hidden', transform: 'rotate(-6deg)', display: 'grid', placeItems: 'center' }}>
                 <Box
                   component="img"
                   src={HERO_SHOT.src}
@@ -134,7 +137,7 @@ export default function KineticHero() {
                   height={1600}
                   fetchPriority="high"
                   decoding="async"
-                  sx={{ width: '108%', maxWidth: 'none', height: 'auto', aspectRatio: '1', mixBlendMode: 'multiply', filter: PHOTO_TILE, willChange: 'transform' }}
+                  sx={{ width: '108%', maxWidth: 'none', height: 'auto', aspectRatio: '1', mixBlendMode: 'multiply', filter: PHOTO_TILE }}
                 />
               </Box>
             </Box>
@@ -144,7 +147,7 @@ export default function KineticHero() {
             <Box component="p" sx={{ m: 0, fontSize: { xs: 15, md: 18 }, lineHeight: 1.55, color: t.ink2, [PHONE]: { display: 'none' } }}>
               Trek boots and everyday sneakers, made in Kathmandu and worn from the Terai to the Khumbu.
             </Box>
-            <Box sx={{ display: 'flex', gap: { xs: 1, md: 1.5 }, flexWrap: { xs: 'nowrap', md: 'wrap' }, '& > a': { [PHONE]: { px: 2, fontSize: 14, flex: '1 1 auto' } } }}>
+            <Box sx={{ display: 'flex', gap: { xs: 1, md: 1.5 }, flexWrap: { xs: 'nowrap', md: 'wrap' }, '& > a': { [PHONE]: { px: 2, fontSize: 14, flex: '1 1 auto' } }, '@media (max-width:359.95px)': { flexWrap: 'wrap' } }}>
               <Cta to="/shop" variant="solid">Shop all footwear</Cta>
               <Cta to="/g10">G10 in 3D</Cta>
             </Box>
@@ -154,7 +157,7 @@ export default function KineticHero() {
         {/* Two sand stars (decorative): the brand's star, drifting at their own depth. */}
         <Box aria-hidden="true" sx={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none' }}>
           <StarShape data-hstar="1" sx={{ position: 'absolute', width: { xs: 44, md: 'clamp(56px, 5.5vw, 92px)' }, right: { xs: '7%', md: '40%' }, top: { xs: '36%', md: '20%' }, transform: 'rotate(-12deg)', willChange: 'transform' }} />
-          <StarShape data-hstar="2" sx={{ position: 'absolute', width: { xs: 26, md: 'clamp(30px, 2.6vw, 44px)' }, left: { xs: '8%', md: 'auto' }, right: { md: '5%' }, top: { xs: '72%', md: '80%' }, transform: 'rotate(14deg)', willChange: 'transform' }} />
+          <StarShape data-hstar="2" sx={{ position: 'absolute', width: { xs: 26, md: 'clamp(30px, 2.6vw, 44px)' }, left: { xs: '5%', md: 'auto' }, right: { md: '5%' }, top: { xs: '58%', md: '80%' }, transform: 'rotate(14deg)', willChange: 'transform' }} />
         </Box>
 
         {/* The brand line, revealed in white on the flooded blue at the end of the scene. */}

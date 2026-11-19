@@ -41,7 +41,7 @@ export function Star({ size = 22 }) {
 // light store bar (the white wordmark with a glow used to vanish on the white bar on /shop), navy and Goldstar royal
 // blue on the landing's frosted white bar (the landing is a white "daylight" page, tokens in landing-v2/tokensV2.js).
 const BAR = {
-  brand: { ink: '#0B1A48', sub: '#2A27E9', hover: '#2A27E9', ground: 'rgba(255,255,255,0.86)', line: 'rgba(11,26,72,0.10)' },
+  brand: { ink: '#0B1A48', sub: '#2A27E9', hover: '#2A27E9', ground: 'rgba(255,255,255,0.94)', line: 'rgba(11,26,72,0.10)' },
   dark: { ink: '#F2EDE3', sub: '#E2B857', hover: '#E2B857', ground: 'rgba(13,12,10,0.82)', line: 'rgba(242,237,227,0.12)' },
   light: { ink: '#16120E', sub: '#75561A', hover: '#75561A', ground: 'rgba(246,242,234,0.88)', line: 'rgba(22,18,14,0.10)' },
 };
