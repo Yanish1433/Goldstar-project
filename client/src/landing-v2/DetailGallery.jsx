@@ -57,12 +57,12 @@ export default function DetailGallery() {
                 <Box sx={{ position: 'relative', aspectRatio: '5 / 4', borderRadius: `${t.radiusLg}px`, overflow: 'hidden', backgroundColor: t.white, boxShadow: t.shadowCard }}>
                   <Box data-gimg component="img" src={shot(d.img).src} srcSet={shot(d.img).srcSet} sizes="(max-width: 899.95px) 82vw, 44vw" alt={d.alt} loading="lazy" decoding="async" width={1600} height={1600}
                     sx={{ position: 'absolute', top: 0, left: '-6%', width: '112%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply', filter: PHOTO_TILE, p: { xs: 1, md: 3 }, boxSizing: 'border-box', willChange: 'transform' }} />
-                  <Box data-gno aria-hidden="true" component="span" sx={{ ...KINETIC, position: 'absolute', right: { xs: 12, md: 24 }, bottom: { xs: -8, md: -18 }, fontSize: { xs: 96, md: 'clamp(120px, 12vw, 200px)' }, fontWeight: 300, color: t.blue, opacity: 0.14, lineHeight: 1 }}>{d.no}</Box>
+                  <Box data-gno aria-hidden="true" component="span" sx={{ ...KINETIC, position: 'absolute', right: { xs: 12, md: 24 }, bottom: { xs: -8, md: -18 }, fontSize: { xs: 68, md: 'clamp(84px, 8.4vw, 140px)' }, fontWeight: 300, color: t.blue, opacity: 0.14, lineHeight: 1 }}>{d.no}</Box>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
                   <Box component="span" sx={{ ...EYEBROW, color: t.blue, fontVariantNumeric: 'tabular-nums' }}>{d.no}</Box>
                   <Box>
-                    <Box component="h3" sx={{ ...KINETIC, fontSize: { xs: 30, md: 40 }, fontWeight: 760 }}>{d.title}</Box>
+                    <Box component="h3" sx={{ ...KINETIC, fontSize: { xs: 24, md: 32 }, fontWeight: 760 }}>{d.title}</Box>
                     <Box component="p" sx={{ m: 0, mt: 0.75, fontSize: { xs: 14, md: 16 }, lineHeight: 1.55, color: t.ink2, maxWidth: '44ch' }}>{d.line}</Box>
                   </Box>
                 </Box>

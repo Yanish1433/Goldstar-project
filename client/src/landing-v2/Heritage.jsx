@@ -67,7 +67,7 @@ export default function Heritage() {
                 <Box component="span" data-count sx={{ ...KINETIC, fontWeight: 900, fontSize: { xs: 'clamp(140px, 44vw, 210px)', md: 'clamp(170px, min(17vw, 30svh), 300px)' }, lineHeight: 0.78, fontVariantNumeric: 'tabular-nums', minWidth: '1.05ch' }}>{YEARS}</Box>
                 <Box component="span" data-plus sx={{ ...KINETIC, fontWeight: 300, fontSize: { xs: 60, md: 'clamp(80px, min(8vw, 14svh), 140px)' }, color: t.onBlue, lineHeight: 0.8 }}>+</Box>
               </Box>
-              <Box component="h2" id="heritage-heading" data-hl sx={{ ...KINETIC, fontWeight: 760, fontSize: { xs: 'clamp(40px, 12vw, 60px)', md: 'clamp(52px, min(5vw, 9svh), 96px)' }, lineHeight: 0.9, color: t.onBlue }}>
+              <Box component="h2" id="heritage-heading" data-hl sx={{ ...KINETIC, fontWeight: 760, fontSize: { xs: 'clamp(28px, 9vw, 44px)', md: 'clamp(40px, min(3.8vw, 7svh), 72px)' }, lineHeight: 0.9, color: t.onBlue }}>
                 {HERITAGE_LINES.map((l) => (
                   <Box key={l} component="span" sx={{ display: 'block', overflow: 'hidden', pb: '0.04em' }}>
                     <Box component="span" sx={{ display: 'block' }}>{l}</Box>

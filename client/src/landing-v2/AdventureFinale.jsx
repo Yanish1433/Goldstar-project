@@ -10,9 +10,10 @@ import { useSectionMotion } from './motion.js';
 // star spins in, the lines fade up. Reduced motion: the still composition (motion never runs).
 // The band ends on a sand rule, so the royal blue never touches the footer's navy directly.
 export const FINALE_WORD = 'GOLDSTAR';
-// "GOLDSTAR" at weight 900, wdth 112, -0.02em is WORD_EM ems wide (measured in Chromium); the font size is the
+// "GOLDSTAR" at weight 900, wdth 112, -0.02em is 6.46 ems wide (measured in Chromium; WORD_EM keeps a hair of
+// margin); the font size is the
 // width available divided by that, so the word runs edge to edge and never overflows (320 px to 1920 px).
-const WORD_EM = 6.62;
+const WORD_EM = 6.5;
 
 export default function AdventureFinale() {
   const ref = useRef(null);
@@ -35,8 +36,8 @@ export default function AdventureFinale() {
       sx={{
         position: 'relative', overflow: 'hidden', backgroundColor: t.blue, color: t.onBlue, textAlign: 'center',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        minHeight: { xs: '86svh', md: '100svh' }, boxSizing: 'border-box', px: { xs: 2, sm: 4 },
-        pt: { xs: 10, md: 'calc(var(--appbar-h, 64px) + 6svh)' }, pb: { xs: 10, md: '10svh' },
+        minHeight: { xs: 'min(78svh, 640px)', md: 'min(100svh, 1000px)' }, boxSizing: 'border-box', px: { xs: 2, sm: 4 },
+        pt: { xs: 9, md: 'calc(var(--appbar-h, 64px) + 4svh)' }, pb: { xs: 9, md: '6svh' },
         borderBottom: `6px solid ${t.sand}`,
       }}
     >

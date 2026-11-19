@@ -100,6 +100,7 @@ export default function KineticHero() {
           force3D: false,
         }, 0.08)
         .fromTo('[data-arch] img', { scale: 1 }, { scale: 1.06, duration: 0.75, force3D: false }, 0.08)
+        .to('[data-ashadow]', { opacity: 0, duration: 0.4 }, 0.45)
         // The stars spin up and drift (depth: the near one travels further).
         .to('[data-hstar="1"]', { rotate: 220, yPercent: -160, xPercent: -40, scale: 1.4, duration: 1 }, 0)
         .to('[data-hstar="2"]', { rotate: -160, yPercent: -90, xPercent: 60, duration: 1 }, 0)
@@ -125,11 +126,11 @@ export default function KineticHero() {
             px: { xs: 2, md: '4vw' },
             gap: { xs: 2, md: '3vw' },
             gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1.15fr) minmax(0, 1fr)' },
-            gridTemplateRows: { xs: 'auto minmax(0, 1fr) auto', md: 'minmax(0, 1fr) auto' },
+            gridTemplateRows: { xs: 'auto minmax(0, 1fr) auto', md: 'minmax(0, 1fr) minmax(0, 1fr)' },
           }}
         >
           {/* Headline block. aria-label on the h1; SplitText's letters are aria-hidden. */}
-          <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: '2.4svh' }, gridColumn: 1, gridRow: 1, alignSelf: { md: 'center' }, minWidth: 0 }}>
+          <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: '2.4svh' }, gridColumn: 1, gridRow: 1, alignSelf: { md: 'end' }, minWidth: 0 }}>
             <Box data-heyebrow component="p" sx={{ ...EYEBROW, m: 0 }}>Goldstar · Made in Nepal</Box>
             <Box component="h1" id="landing-h1" aria-label={HERO_LABEL} sx={{ ...KINETIC, m: 0 }}>
               <Box component="span" data-hline aria-hidden="true" sx={lineSx}>{HERO_LINES[0]}</Box>
@@ -141,7 +142,9 @@ export default function KineticHero() {
           <Box sx={{ position: 'relative', zIndex: 2, gridColumn: { xs: 1, md: 2 }, gridRow: { xs: 2, md: '1 / span 2' }, display: 'grid', placeItems: 'center', minHeight: 0, containerType: { xs: 'size', md: 'normal' } }}>
             <Box data-awrap sx={{ position: 'relative', width: ARCH_W, aspectRatio: `${HERO_PHOTO.width} / ${HERO_PHOTO.height}` }}>
               <Box data-flood aria-hidden="true" sx={{ position: 'absolute', left: '6%', width: '88%', top: '6%', aspectRatio: '1', borderRadius: '50%', backgroundColor: t.photoGround }} />
-              <Box data-arch sx={{ position: 'absolute', inset: 0, borderRadius: ARCH_RADIUS, overflow: 'hidden', backgroundColor: t.photoGround, boxShadow: t.shadowElevated }}>
+              <Box data-arch sx={{ position: 'absolute', inset: 0 }}>
+                <Box data-ashadow aria-hidden="true" sx={{ position: 'absolute', inset: 0, borderRadius: ARCH_RADIUS, boxShadow: t.shadowElevated }} />
+                <Box sx={{ position: 'absolute', inset: 0, borderRadius: ARCH_RADIUS, overflow: 'hidden', backgroundColor: t.photoGround }}>
                 <Box
                   component="img"
                   src={HERO_PHOTO.src}
@@ -154,11 +157,12 @@ export default function KineticHero() {
                   decoding="async"
                   sx={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', transformOrigin: '50% 60%' }}
                 />
+                </Box>
               </Box>
             </Box>
           </Box>
 
-          <Box data-hcopy sx={{ position: 'relative', zIndex: 1, gridColumn: 1, gridRow: { xs: 3, md: 2 }, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: { md: 420 } }}>
+          <Box data-hcopy sx={{ position: 'relative', zIndex: 1, gridColumn: 1, gridRow: { xs: 3, md: 2 }, alignSelf: { md: 'start' }, pt: { md: '2svh' }, display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 3 }, maxWidth: { md: 440 } }}>
             <Box component="p" sx={{ m: 0, fontSize: { xs: 15, md: 18 }, lineHeight: 1.55, color: t.ink2, [PHONE]: { display: 'none' } }}>
               Trek boots and everyday sneakers, made in Kathmandu and worn from the Terai to the Khumbu.
             </Box>
@@ -178,7 +182,7 @@ export default function KineticHero() {
         {/* The brand line, revealed in navy on the flooded sky at the end of the scene. */}
         <Box data-hend sx={{ position: 'absolute', zIndex: 4, left: 0, right: 0, bottom: { xs: '9svh', md: '6svh' }, textAlign: 'center', color: t.ink, px: 2, opacity: 0, visibility: 'hidden' }}>
           <Box component="p" sx={{ ...EYEBROW, color: t.ink, m: 0 }}>Goldstar · Made in Nepal</Box>
-          <Box component="p" sx={{ ...KINETIC, fontWeight: 800, fontSize: { xs: 'clamp(22px, 6.4vw, 30px)', md: 'clamp(30px, 3vw, 50px)' }, mt: 1, mx: 'auto', maxWidth: '22ch', textWrap: 'balance' }}>Walking the world for over five decades</Box>
+          <Box component="p" sx={{ ...KINETIC, fontWeight: 800, fontSize: { xs: 'clamp(17px, 5.2vw, 28px)', md: 'clamp(30px, 3vw, 50px)' }, mt: 1, mx: 'auto', maxWidth: '22ch', textWrap: 'balance' }}>Walking the world for over five decades</Box>
         </Box>
       </Box>
     </Box>
