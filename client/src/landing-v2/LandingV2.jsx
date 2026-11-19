@@ -4,6 +4,7 @@ import { useTitle } from '../components/Page.jsx';
 import { tokensV2 as t } from './tokensV2.js';
 import KineticHero from './KineticHero.jsx';
 import Ticker from './Ticker.jsx';
+import CollectionStack from './CollectionStack.jsx';
 import CategoryCards from './CategoryCards.jsx';
 import PopShelf from './PopShelf.jsx';
 import DetailGallery from './DetailGallery.jsx';
@@ -18,12 +19,13 @@ import { useLandingLenis } from './smooth.js';
 // they run backwards when you scroll up), all on one easing family, one duration scale and one palette (white / cream, navy ink, royal blue, sand).
 //   1 KineticHero      the headline flies apart, the group photo's sky floods the screen, the arch glides to the centre
 //   2 Ticker           the collection names, driven sideways by the scroll in opposite directions
-//   3 CategoryCards    three tall photo cards (Trek Everyday, Sneakers, Casual Shoes) rise in, photos drift inside
-//   4 PopShelf         the centrepiece: shoes pop up out of their plinths (quick view + add to cart)
-//   5 DetailGallery    pinned horizontal strip of close-ups with counter-parallax
-//   6 Heritage         a blue arch rises, then a sand "50" counts with the scroll
-//   7 Reviews3DV2      the Goldstar reviews (kept)
-//   8 AdventureFinale  the /g10 finale on the landing: "Your adventure begins now.", the star, GOLDSTAR edge to edge
+//   3 CollectionStack  Women / Men / Kids as a deck of sticky cards that slide up and pile over each other (white ground)
+//   4 CategoryCards    three tall photo cards (Trek Everyday, Sneakers, Casual Shoes) rise in, photos drift inside (cream)
+//   5 PopShelf         the centrepiece: shoes pop up out of their plinths (quick view + add to cart)
+//   6 DetailGallery    pinned horizontal strip of close-ups with counter-parallax
+//   7 Heritage         a blue arch rises, then a sand "50" counts with the scroll
+//   8 Reviews3DV2      the Goldstar reviews (kept)
+//   9 AdventureFinale  pinned, slow finale: "Your adventure begins now.", the star, GOLDSTAR letter by letter
 // Display type: the global Archivo Variable on its width axis (KINETIC in tokensV2), no landing-only font file.
 // Smooth scrolling: Lenis on the GSAP ticker (smooth.js), desktop only. No WebGL on this page; the G10 3D story is one link away (/g10). The Footer comes from Layout.
 export default function LandingV2() {
@@ -53,6 +55,7 @@ export default function LandingV2() {
     >
       <KineticHero />
       <Ticker />
+      <CollectionStack />
       <CategoryCards />
       <PopShelf onQuickView={openQuickView} />
       <DetailGallery />

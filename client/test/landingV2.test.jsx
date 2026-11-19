@@ -11,6 +11,7 @@ import { tokensV2, KINETIC } from '../src/landing-v2/tokensV2.js';
 import LandingV2 from '../src/landing-v2/LandingV2.jsx';
 import KineticHero, { HERO_LINES, HERO_PHOTO } from '../src/landing-v2/KineticHero.jsx';
 import Ticker, { RANGES } from '../src/landing-v2/Ticker.jsx';
+import CollectionStack, { COLLECTIONS } from '../src/landing-v2/CollectionStack.jsx';
 import CategoryCards, { CATEGORIES, CATEGORY_LINKS } from '../src/landing-v2/CategoryCards.jsx';
 import AdventureFinale, { FINALE_WORD } from '../src/landing-v2/AdventureFinale.jsx';
 import mockProducts from '../src/api/mock/products.json';
@@ -222,6 +223,33 @@ describe('Landing sections', () => {
     expect(within(region).getAllByRole('listitem').map((li) => li.textContent)).toEqual(RANGES);
   });
 
+  it('CollectionStack: Women, Men and Kids as a sticky deck, each linking into a real shop category, photos on disk', () => {
+    const { container } = renderWithProviders(<CollectionStack />);
+    expect(screen.getByRole('heading', { level: 2, name: /Who.s walking/i })).toBeInTheDocument();
+    expect(COLLECTIONS.map((c) => c.title)).toEqual(['Women', 'Men', 'Kids']);
+    const slugs = new Set(mockProducts.flatMap((p) => p.categories));
+    const cat = readdirSync(join(here, '../public/img/catalogue'));
+    COLLECTIONS.forEach((c) => {
+      const link = screen.getByRole('link', { name: new RegExp(`^Shop ${c.title}`) });
+      expect(link).toHaveAttribute('href', c.to);
+      const q = new URL(c.to, 'http://x').searchParams.get('category');
+      if (q) expect(slugs.has(q)).toBe(true);
+      expect(c.photo.src).not.toMatch(/trek-woman|urban-man/);
+      [c.photo.src, ...(c.photo.srcSet || '').split(', ').filter(Boolean).map((x) => x.split(' ')[0])]
+        .forEach((src) => expect(cat).toContain(src.split('/').pop()));
+    });
+    const cards = container.querySelectorAll('[data-ccard]');
+    expect(cards).toHaveLength(3);
+    cards.forEach((el) => expect(getComputedStyle(el).position).toBe('sticky'));
+  });
+
+  it('the stack (audience) and the category cards (activity) never repeat a title or a photo', () => {
+    const titles = [...COLLECTIONS, ...CATEGORIES].map((c) => c.title.toLowerCase());
+    expect(new Set(titles).size).toBe(titles.length);
+    const photos = [...COLLECTIONS, ...CATEGORIES].map((c) => c.photo.src);
+    expect(new Set(photos).size).toBe(photos.length);
+  });
+
   it('CategoryCards: Trek Everyday, Sneakers and Casual Shoes, each one link into a real shop category', () => {
     const { container } = renderWithProviders(<CategoryCards />);
     expect(screen.getByRole('heading', { level: 2, name: /Made for every road/i })).toBeInTheDocument();
@@ -308,11 +336,11 @@ describe('Landing sections', () => {
     expect(screen.getByText(/Suman Gurung/i)).toBeInTheDocument();
   });
 
-  it('LandingV2: every section in order, hero first and the adventure finale last, one h1, no canvas', () => {
+  it('LandingV2: every section in order (hero, ticker, stack, categories, shelf, details, heritage, reviews, finale), one h1, no canvas', () => {
     const { container } = renderWithProviders(<LandingV2 />);
     expect(screen.getByRole('heading', { level: 1, name: /Walk the world/i })).toBeInTheDocument();
     const ids = [...container.querySelectorAll('#landing-v2 > section')].map((el) => el.id || el.getAttribute('aria-label'));
-    expect(ids).toEqual(['hero', 'Goldstar collections', 'categories', 'all-shoes', 'details', 'heritage', 'reviews-section', 'adventure']);
+    expect(ids).toEqual(['hero', 'Goldstar collections', 'collections', 'categories', 'all-shoes', 'details', 'heritage', 'reviews-section', 'adventure']);
     expect(container.querySelectorAll('h1')).toHaveLength(1);
     expect(container.querySelector('canvas')).toBeNull();
   });
