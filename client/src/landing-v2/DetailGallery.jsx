@@ -36,7 +36,7 @@ export default function DetailGallery() {
   });
 
   return (
-    <Box component="section" id="details" aria-labelledby="details-heading" sx={{ position: 'relative', backgroundColor: t.ground, color: t.ivory }}>
+    <Box component="section" id="details" aria-labelledby="details-heading" sx={{ position: 'relative', backgroundColor: t.cream, color: t.ink }}>
       <Box ref={ref}>
         <Box data-gpin sx={{ minHeight: { md: '100svh' }, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'center', pt: { xs: 8, md: 'calc(var(--appbar-h, 64px) + 24px)' }, pb: { xs: 8, md: 5 }, overflow: 'hidden' }}>
           <Box sx={{ ...GUTTER, maxWidth: 1440, mx: 'auto', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 2, mb: { xs: 4, md: 'clamp(20px, 4svh, 48px)' } }}>
@@ -54,16 +54,16 @@ export default function DetailGallery() {
           >
             {DETAILS.map((d) => (
               <Box component="li" key={d.no} sx={{ flex: '0 0 auto', width: { xs: '82vw', sm: '60vw', md: 'min(44vw, calc((100svh - var(--appbar-h, 64px) - 300px) * 1.25))' }, minWidth: { md: 420 }, scrollSnapAlign: 'start', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Box sx={{ position: 'relative', aspectRatio: '5 / 4', borderRadius: `${t.radiusLg}px`, overflow: 'hidden', backgroundColor: t.paper }}>
+                <Box sx={{ position: 'relative', aspectRatio: '5 / 4', borderRadius: `${t.radiusLg}px`, overflow: 'hidden', backgroundColor: t.white, boxShadow: t.shadowCard }}>
                   <Box data-gimg component="img" src={shot(d.img).src} srcSet={shot(d.img).srcSet} sizes="(max-width: 899.95px) 82vw, 44vw" alt={d.alt} loading="lazy" decoding="async" width={1600} height={1600}
                     sx={{ position: 'absolute', top: 0, left: '-6%', width: '112%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply', filter: PHOTO_TILE, p: { xs: 1, md: 3 }, boxSizing: 'border-box', willChange: 'transform' }} />
-                  <Box data-gno aria-hidden="true" component="span" sx={{ ...KINETIC, position: 'absolute', right: { xs: 12, md: 24 }, bottom: { xs: -8, md: -18 }, fontSize: { xs: 96, md: 'clamp(120px, 12vw, 200px)' }, fontWeight: 300, color: t.inkOnPaper, opacity: 0.12, lineHeight: 1 }}>{d.no}</Box>
+                  <Box data-gno aria-hidden="true" component="span" sx={{ ...KINETIC, position: 'absolute', right: { xs: 12, md: 24 }, bottom: { xs: -8, md: -18 }, fontSize: { xs: 96, md: 'clamp(120px, 12vw, 200px)' }, fontWeight: 300, color: t.blue, opacity: 0.14, lineHeight: 1 }}>{d.no}</Box>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'baseline' }}>
-                  <Box component="span" sx={{ ...EYEBROW, color: t.gold, fontVariantNumeric: 'tabular-nums' }}>{d.no}</Box>
+                  <Box component="span" sx={{ ...EYEBROW, color: t.blue, fontVariantNumeric: 'tabular-nums' }}>{d.no}</Box>
                   <Box>
                     <Box component="h3" sx={{ ...KINETIC, fontSize: { xs: 30, md: 40 }, fontWeight: 760 }}>{d.title}</Box>
-                    <Box component="p" sx={{ m: 0, mt: 0.75, fontSize: { xs: 14, md: 16 }, lineHeight: 1.55, color: t.ivoryDim, maxWidth: '44ch' }}>{d.line}</Box>
+                    <Box component="p" sx={{ m: 0, mt: 0.75, fontSize: { xs: 14, md: 16 }, lineHeight: 1.55, color: t.ink2, maxWidth: '44ch' }}>{d.line}</Box>
                   </Box>
                 </Box>
               </Box>

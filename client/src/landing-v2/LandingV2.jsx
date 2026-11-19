@@ -15,13 +15,13 @@ import { useRefreshOnResize } from './motion.js';
 import { useLandingLenis } from './smooth.js';
 
 // The store's front page ("/"): a scroll story. Every section has its own move, all scrubbed to the scroll (so
-// they run backwards when you scroll up), all on one easing family, one duration scale and one accent (gold).
-//   1 KineticHero      the headline splits apart, the ivory window opens from the centre, the pair scales up
+// they run backwards when you scroll up), all on one easing family, one duration scale and one palette (white / cream, navy ink, royal blue, sand).
+//   1 KineticHero      the headline flies apart, the royal-blue disc floods the screen, the pair glides to the centre
 //   2 Ticker           the collection names, driven sideways by the scroll in opposite directions
 //   3 CollectionStack  sticky cards that pile up and sink back (Trek Everyday, Sneak into Comfort, Women, Kids)
 //   4 PopShelf         the centrepiece: shoes pop up out of their plinths (quick view + add to cart)
 //   5 DetailGallery    pinned horizontal strip of close-ups with counter-parallax
-//   6 Heritage         a "50" that counts with the scroll over a photo zooming out
+//   6 Heritage         a blue arch rises, then a sand "50" counts with the scroll
 //   7 Reviews3DV2      the Goldstar reviews (kept)
 // Smooth scrolling: Lenis on the GSAP ticker (smooth.js), desktop only. No WebGL on this page; the G10 3D story is one link away (/g10). The Footer comes from Layout.
 // The display face is self-hosted (public/fonts, preloaded in index.html) and declared here, so it only exists on
@@ -61,13 +61,13 @@ export default function LandingV2() {
       className="gs-landing"
       sx={{
         position: 'relative',
-        // The AppBar is fixed; Layout's spacer holds its height. The landing pulls up under it: the hero is dark and
-        // the bar is transparent over it until the first scroll.
+        // The AppBar is fixed; Layout's spacer holds its height. The landing pulls up under it: the hero is white and
+        // the bar is transparent (navy ink) over it until the first scroll, then frosted white.
         mt: 'calc(var(--appbar-h, 64px) * -1)',
         backgroundColor: t.ground,
-        color: t.ivory,
+        color: t.ink,
         overflowX: 'clip',
-        '& ::selection': { backgroundColor: t.gold, color: t.onGold },
+        '& ::selection': { backgroundColor: t.blue, color: t.onBlue },
       }}
     >
       {fontFaces}

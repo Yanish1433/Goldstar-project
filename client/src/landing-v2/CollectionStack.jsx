@@ -57,26 +57,26 @@ function Card({ c, i, count }) {
         aria-label={`Shop ${c.title}${count ? `, ${count} styles` : ''}`}
         sx={{
           position: 'relative', height: '100%', display: 'grid', gridTemplateColumns: { xs: '1fr', md: '5fr 6fr' }, gridTemplateRows: { xs: 'auto 1fr', md: '1fr' },
-          borderRadius: { xs: `${t.radiusLg}px`, md: `${t.radiusXl}px` }, overflow: 'hidden', textDecoration: 'none', color: t.ivory,
-          backgroundColor: t.groundRaised, boxShadow: `inset 0 0 0 1px ${t.line}, ${t.shadowFloating}`, ...FOCUS_RING,
+          borderRadius: { xs: `${t.radiusLg}px`, md: `${t.radiusXl}px` }, overflow: 'hidden', textDecoration: 'none', color: t.ink,
+          backgroundColor: t.white, boxShadow: `inset 0 0 0 1px ${t.line}, ${t.shadowFloating}`, ...FOCUS_RING,
           '& [data-arrow]': { transition: `transform 500ms ${EASE_CSS}, background-color 240ms ease, color 240ms ease` },
-          [FINE_POINTER]: { '&:hover [data-arrow]': { transform: 'rotate(45deg)', backgroundColor: t.gold, color: t.onGold } },
+          [FINE_POINTER]: { '&:hover [data-arrow]': { transform: 'rotate(45deg)', backgroundColor: t.blue, borderColor: t.blue, color: t.onBlue } },
         }}
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 2, p: { xs: 2.5, md: 5 }, minWidth: 0 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box component="span" sx={{ ...EYEBROW, fontVariantNumeric: 'tabular-nums' }}>{c.no} / {String(COLLECTIONS.length).padStart(2, '0')}</Box>
+            <Box component="span" sx={{ ...EYEBROW, color: t.ink3, fontVariantNumeric: 'tabular-nums' }}>{c.no} / {String(COLLECTIONS.length).padStart(2, '0')}</Box>
             <Box data-arrow component="span" aria-hidden="true" sx={{ width: 48, height: 48, borderRadius: '50%', display: 'grid', placeItems: 'center', border: `1px solid ${t.lineStrong}` }}>
               <ArrowUpRight size={22} strokeWidth={1.5} />
             </Box>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: 2.5 } }}>
             <Box component="h3" sx={{ ...KINETIC, fontSize: { xs: 'clamp(48px, 15vw, 72px)', md: 'clamp(72px, 7.4vw, 136px)' }, fontWeight: 820, lineHeight: 0.86 }}>{c.title}</Box>
-            <Box component="p" sx={{ m: 0, maxWidth: '40ch', fontSize: { xs: 15, md: 17 }, lineHeight: 1.55, color: t.ivoryDim, [PHONE]: { fontSize: 14 } }}>{c.line}</Box>
-            <Box component="span" sx={{ ...EYEBROW, color: t.gold }}>{c.note || (count ? `${count} styles online` : 'Shop online')}</Box>
+            <Box component="p" sx={{ m: 0, maxWidth: '40ch', fontSize: { xs: 15, md: 17 }, lineHeight: 1.55, color: t.ink2, [PHONE]: { fontSize: 14 } }}>{c.line}</Box>
+            <Box component="span" sx={{ ...EYEBROW, color: t.blue }}>{c.note || (count ? `${count} styles online` : 'Shop online')}</Box>
           </Box>
         </Box>
-        <Box sx={{ position: 'relative', overflow: 'hidden', backgroundColor: c.tile ? t.paper : t.groundLift, m: { xs: 1, md: 1.5 }, mt: { xs: 0, md: 1.5 }, ml: { md: 0 }, borderRadius: { xs: `${t.radiusMd}px`, md: `${t.radiusLg}px` }, minHeight: 0 }}>
+        <Box sx={{ position: 'relative', overflow: 'hidden', backgroundColor: c.tile ? t.cream : t.creamDeep, m: { xs: 1, md: 1.5 }, mt: { xs: 0, md: 1.5 }, ml: { md: 0 }, borderRadius: { xs: `${t.radiusMd}px`, md: `${t.radiusLg}px` }, minHeight: 0 }}>
           <Box
             data-cphoto
             component="img"
@@ -95,7 +95,7 @@ function Card({ c, i, count }) {
             }}
           />
         </Box>
-        <Box data-cdim aria-hidden="true" sx={{ position: 'absolute', inset: 0, backgroundColor: t.ground, opacity: 0, pointerEvents: 'none', borderRadius: 'inherit' }} />
+        <Box data-cdim aria-hidden="true" sx={{ position: 'absolute', inset: 0, backgroundColor: t.ink, opacity: 0, pointerEvents: 'none', borderRadius: 'inherit' }} />
       </Box>
     </Box>
   );
@@ -117,7 +117,7 @@ export default function CollectionStack() {
           scrollTrigger: { trigger: next, start: 'top 70%', end: () => `top ${parseFloat(getComputedStyle(next).top) || 80}px`, scrub: true, invalidateOnRefresh: true },
         });
         gsap.fromTo(card.querySelector('[data-cdim]'), { opacity: 0 }, {
-          opacity: 0.55, ease: 'none',
+          opacity: 0.32, ease: 'none',
           scrollTrigger: { trigger: next, start: 'top 55%', end: () => `top ${parseFloat(getComputedStyle(next).top) || 80}px`, scrub: true, invalidateOnRefresh: true },
         });
       }
@@ -128,14 +128,14 @@ export default function CollectionStack() {
   });
 
   return (
-    <Box component="section" id="collections" aria-labelledby="col-heading" sx={{ position: 'relative', backgroundColor: t.ground, color: t.ivory, py: { xs: 10, md: 16 } }}>
+    <Box component="section" id="collections" aria-labelledby="col-heading" sx={{ position: 'relative', backgroundColor: t.cream, color: t.ink, py: { xs: 10, md: 16 } }}>
       <Box ref={ref} sx={WRAP}>
         <Box data-chead sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { md: 'flex-end' }, gap: 3, mb: { xs: 5, md: 8 } }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <Eyebrow>The collections</Eyebrow>
             <Display id="col-heading">Four ways to walk.</Display>
           </Box>
-          <Box component="p" sx={{ m: 0, maxWidth: '36ch', fontSize: { xs: 16, md: 18 }, lineHeight: 1.6, color: t.ivoryDim }}>
+          <Box component="p" sx={{ m: 0, maxWidth: '36ch', fontSize: { xs: 16, md: 18 }, lineHeight: 1.6, color: t.ink2 }}>
             From Kathmandu pavements to the Annapurna circuit, pick a starting point.
           </Box>
         </Box>

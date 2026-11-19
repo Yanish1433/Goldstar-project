@@ -1,4 +1,10 @@
-import '@testing-library/jest-dom/vitest';
+// jest-dom's matchers, extended onto this runner's own `expect`. ('@testing-library/jest-dom/vitest' is loaded as an
+// external module under vitest 5 and extends a second copy of `expect`, so every toBeInTheDocument failed with
+// "Invalid Chai property".)
+import { expect } from 'vitest';
+import * as matchers from '@testing-library/jest-dom/matchers';
+
+expect.extend(matchers);
 
 if (!window.matchMedia) {
   window.matchMedia = (q) => ({ matches: false, media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, onchange: null, dispatchEvent: () => false });

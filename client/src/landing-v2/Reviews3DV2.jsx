@@ -87,7 +87,7 @@ function Card3D({ rev }) {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Box sx={{ display: 'flex', gap: 0.5 }}>
               {Array.from({ length: rev.rating }, (_, i) => (
-                <Star key={i} size={16} fill={tokensV2.goldDeep} color={tokensV2.goldDeep} />
+                <Star key={i} size={16} fill={tokensV2.sand} color={tokensV2.sandDeep} />
               ))}
             </Box>
             <Box
@@ -171,7 +171,7 @@ export default function Reviews3DV2() {
       sx={{
         py: { xs: 8, md: 14 },
         backgroundColor: tokensV2.ground,
-        color: tokensV2.ivory,
+        color: tokensV2.ink,
       }}
     >
       <Box
@@ -198,8 +198,8 @@ export default function Reviews3DV2() {
               px: 2,
               py: 0.5,
               borderRadius: '999px',
-              backgroundColor: tokensV2.goldWash,
-              color: tokensV2.ivory,
+              backgroundColor: tokensV2.sandSoft,
+              color: tokensV2.ink,
               fontSize: 12,
               fontWeight: 800,
               letterSpacing: '0.08em',
@@ -207,7 +207,7 @@ export default function Reviews3DV2() {
               mb: 1.5,
             }}
           >
-            <Star size={14} fill={tokensV2.gold} color={tokensV2.gold} />
+            <Star size={14} fill={tokensV2.sand} color={tokensV2.sandDeep} />
             Rated 4.9/5 by 3,450+ Nepali Walkers
           </Box>
 
@@ -227,7 +227,7 @@ export default function Reviews3DV2() {
             sx={{
               mt: 1.5,
               fontSize: { xs: 15, md: 17 },
-              color: tokensV2.ivoryDim,
+              color: tokensV2.ink2,
               lineHeight: 1.6,
             }}
           >

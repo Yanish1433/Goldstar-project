@@ -38,8 +38,10 @@ export function Star({ size = 22 }) {
 }
 
 // Bar palettes. Every text colour here is AA (>= 4.5:1) on its bar: ivory on the dark bars, ink and deep gold on the
-// light store bar (the white wordmark with a glow used to vanish on the white bar on /shop).
+// light store bar (the white wordmark with a glow used to vanish on the white bar on /shop), navy and Goldstar royal
+// blue on the landing's frosted white bar (the landing is a white "daylight" page, tokens in landing-v2/tokensV2.js).
 const BAR = {
+  brand: { ink: '#0B1A48', sub: '#2A27E9', hover: '#2A27E9', ground: 'rgba(255,255,255,0.86)', line: 'rgba(11,26,72,0.10)' },
   dark: { ink: '#F2EDE3', sub: '#E2B857', hover: '#E2B857', ground: 'rgba(13,12,10,0.82)', line: 'rgba(242,237,227,0.12)' },
   light: { ink: '#16120E', sub: '#75561A', hover: '#75561A', ground: 'rgba(246,242,234,0.88)', line: 'rgba(22,18,14,0.10)' },
 };
@@ -58,7 +60,7 @@ function useScrolled(active) {
 }
 
 // The Goldstar logo. tone names the bar it sits on: 'dark' (ivory wordmark), 'light' (ink wordmark on the light
-// store bar), 'inherit' (the /g10 story's current ink).
+// store bar), 'brand' (navy wordmark, blue Nepali mark: the landing), 'inherit' (the /g10 story's current ink).
 function AnimatedGoldstarLogo({ tone = 'dark' }) {
   const reduced = useReducedMotion();
   const navigate = useNavigate();
@@ -165,7 +167,7 @@ function AnimatedGoldstarLogo({ tone = 'dark' }) {
   );
 }
 
-// tone: 'dark' | 'light' | 'inherit' (the bar, as for the logo).
+// tone: 'dark' | 'light' | 'brand' | 'inherit' (the bar, as for the logo).
 const navSx = (tone) => ({
   color: tone === 'inherit' ? 'inherit' : BAR[tone].ink,
   minHeight: 44,
@@ -222,7 +224,7 @@ function CartButton({ tone }) {
         ml: 0.5,
         mr: { xs: 0, md: -1.5 },
         color: tone === 'inherit' ? 'inherit' : BAR[tone].ink,
-        '&:hover': { color: tone === 'inherit' ? 'inherit' : BAR[tone].hover, backgroundColor: tone === 'light' ? 'rgba(22,18,14,0.06)' : 'rgba(242,237,227,0.08)' },
+        '&:hover': { color: tone === 'inherit' ? 'inherit' : BAR[tone].hover, backgroundColor: tone === 'light' ? 'rgba(22,18,14,0.06)' : tone === 'brand' ? 'rgba(42,39,233,0.08)' : 'rgba(242,237,227,0.08)' },
       }}
     >
       <Badge
@@ -276,11 +278,11 @@ export default function AppBar() {
   const story = isStoryPath(loc.pathname);
   const landing = isLandingPath(loc.pathname);
   const scrolled = useScrolled(landing);
-  // Bar states. Store pages: the light frosted bar with the ink logo. Landing: the dark frosted bar with the ivory
-  // logo, transparent only at scroll 0 over the dark hero. /g10: a low-alpha frosted bar that takes the story's ink
+  // Bar states. Store pages: the light frosted bar with the ink logo. Landing: the frosted white bar with the navy
+  // logo and royal-blue accents, transparent only at scroll 0 over the white hero. /g10: a low-alpha frosted bar that takes the story's ink
   // (its grounds change colour per chapter; an opaque bar would crop the boot and clash).
-  const tone = story ? 'inherit' : landing ? 'dark' : 'light'; // which bar: BAR.dark / BAR.light
-  const bar = landing ? BAR.dark : BAR.light;
+  const tone = story ? 'inherit' : landing ? 'brand' : 'light'; // which bar: BAR.brand / BAR.light
+  const bar = landing ? BAR.brand : BAR.light;
   const clear = landing && !scrolled;
 
   const links = (onClick, t = tone) => (
@@ -304,7 +306,7 @@ export default function AppBar() {
       component="header"
       position="fixed"
       elevation={0}
-      data-bar={story ? 'story' : clear ? 'clear' : landing ? 'dark' : 'light'}
+      data-bar={story ? 'story' : clear ? 'clear' : landing ? 'brand' : 'light'}
       sx={{
         zIndex: 1200,
         top: 0,
@@ -367,10 +369,10 @@ export default function AppBar() {
             anchor="right"
             open={menuOpen}
             onClose={closeMenu}
-            PaperProps={{ sx: { width: { xs: '100vw', sm: 360 }, height: '100%', backgroundColor: '#0D0C0A', color: BAR.dark.ink } }}
+            PaperProps={{ sx: { width: { xs: '100vw', sm: 360 }, height: '100%', backgroundColor: landing ? '#FFFFFF' : '#0D0C0A', color: landing ? BAR.brand.ink : BAR.dark.ink } }}
           >
             <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end' }}>
-              <IconButton aria-label="Close menu" onClick={closeMenu} sx={{ color: BAR.dark.ink }}>
+              <IconButton aria-label="Close menu" onClick={closeMenu} sx={{ color: landing ? BAR.brand.ink : BAR.dark.ink }}>
                 <X size={20} strokeWidth={1.75} aria-hidden="true" />
               </IconButton>
             </Box>
@@ -386,7 +388,7 @@ export default function AppBar() {
                 '& .MuiButton-root': { fontSize: 22, minHeight: 52 },
               }}
             >
-              {links(closeMenu, 'dark')}
+              {links(closeMenu, landing ? 'brand' : 'dark')}
             </Box>
           </Drawer>
         </Suspense>

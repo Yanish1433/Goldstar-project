@@ -52,18 +52,42 @@ const renderWithProviders = (ui) => {
   );
 };
 
-describe('Landing (dark-room) palette', () => {
+describe('Landing (daylight) palette', () => {
   describe('contrast (WCAG)', () => {
-    it('ivory ink on the ground meets AAA (>= 7:1)', () => expect(contrast(tokensV2.ivory, tokensV2.ground)).toBeGreaterThanOrEqual(7));
-    it('secondary ivory on the ground still meets AAA for running text (>= 7:1)', () => expect(contrast(tokensV2.ivoryDim, tokensV2.ground)).toBeGreaterThanOrEqual(7));
-    it('faint labels on the ground meet AA (>= 4.5:1)', () => expect(contrast(tokensV2.ivoryFaint, tokensV2.ground)).toBeGreaterThanOrEqual(4.5));
-    it('the gold accent on the ground meets AA (>= 4.5:1)', () => expect(contrast(tokensV2.gold, tokensV2.ground)).toBeGreaterThanOrEqual(4.5));
-    it('the gold accent on raised ground meets AA (>= 4.5:1)', () => expect(contrast(tokensV2.gold, tokensV2.groundRaised)).toBeGreaterThanOrEqual(4.5));
-    it('text on a gold button meets AA (>= 4.5:1)', () => expect(contrast(tokensV2.onGold, tokensV2.gold)).toBeGreaterThanOrEqual(4.5));
-    it('ink on ivory surfaces meets AAA (>= 7:1)', () => expect(contrast(tokensV2.inkOnPaper, tokensV2.paper)).toBeGreaterThanOrEqual(7));
-    it('secondary ink on ivory surfaces meets AA (>= 4.5:1)', () => expect(contrast(tokensV2.inkOnPaper2, tokensV2.paper)).toBeGreaterThanOrEqual(4.5));
-    it('the deep accent on ivory surfaces meets AA (>= 4.5:1)', () => expect(contrast(tokensV2.goldDeep, tokensV2.paper)).toBeGreaterThanOrEqual(4.5));
-    it('plain gold on ivory would fail AA for text (why goldDeep exists)', () => expect(contrast(tokensV2.gold, tokensV2.paper)).toBeLessThan(4.5));
+    it('navy ink on the white ground meets AAA (>= 7:1)', () => expect(contrast(tokensV2.ink, tokensV2.ground)).toBeGreaterThanOrEqual(7));
+    it('navy ink on the cream band meets AAA (>= 7:1)', () => expect(contrast(tokensV2.ink, tokensV2.cream)).toBeGreaterThanOrEqual(7));
+    it('secondary ink meets AAA for running text on white and cream (>= 7:1)', () => {
+      expect(contrast(tokensV2.ink2, tokensV2.ground)).toBeGreaterThanOrEqual(7);
+      expect(contrast(tokensV2.ink2, tokensV2.cream)).toBeGreaterThanOrEqual(7);
+    });
+    it('small labels meet AA on white and cream (>= 4.5:1)', () => {
+      expect(contrast(tokensV2.ink3, tokensV2.ground)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(tokensV2.ink3, tokensV2.cream)).toBeGreaterThanOrEqual(4.5);
+    });
+    it('royal blue text on white and cream meets AAA (>= 7:1)', () => {
+      expect(contrast(tokensV2.blue, tokensV2.ground)).toBeGreaterThanOrEqual(7);
+      expect(contrast(tokensV2.blue, tokensV2.cream)).toBeGreaterThanOrEqual(7);
+    });
+    it('white on a royal-blue button / band meets AAA (>= 7:1), also on the hover blue', () => {
+      expect(contrast(tokensV2.onBlue, tokensV2.blue)).toBeGreaterThanOrEqual(7);
+      expect(contrast(tokensV2.onBlue, tokensV2.blueDeep)).toBeGreaterThanOrEqual(7);
+    });
+    it('secondary ink on royal blue meets AA (>= 4.5:1)', () => expect(contrast(tokensV2.onBlue2, tokensV2.blue)).toBeGreaterThanOrEqual(4.5));
+    it('sand on royal blue meets AA (>= 4.5:1): sand is text only on blue', () => expect(contrast(tokensV2.sand, tokensV2.blue)).toBeGreaterThanOrEqual(4.5));
+    it('sand on white would fail AA for text (why sand is a fill there and sandDeep exists)', () => expect(contrast(tokensV2.sand, tokensV2.ground)).toBeLessThan(4.5));
+    it('sandDeep text on white, cream and the sand wash meets AA (>= 4.5:1)', () => {
+      expect(contrast(tokensV2.sandDeep, tokensV2.ground)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(tokensV2.sandDeep, tokensV2.cream)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(tokensV2.ink, tokensV2.sandSoft)).toBeGreaterThanOrEqual(7);
+    });
+    it('the focus ring (blue line, white halo) reads on white, cream and blue grounds (>= 3:1 non-text)', () => {
+      expect(contrast(tokensV2.blue, tokensV2.ground)).toBeGreaterThanOrEqual(3);
+      expect(contrast(tokensV2.white, tokensV2.blue)).toBeGreaterThanOrEqual(3);
+    });
+    it('no dark page ground: the white and cream grounds are light', () => {
+      expect(lum(tokensV2.ground)).toBeGreaterThan(0.9);
+      expect(lum(tokensV2.cream)).toBeGreaterThan(0.85);
+    });
   });
 
   it('only tokensV2.js holds colour values: no hex or hand-written rgba() in any landing component', () => {
@@ -74,7 +98,7 @@ describe('Landing (dark-room) palette', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('one accent hue: every chromatic token is the gold family (ground, ivory and ink are near-neutral)', () => {
+  it('two hue families only: every chromatic token is brand blue (blue, navy) or sand', () => {
     const hue = (hex) => {
       const n = parseInt(hex.slice(1), 16);
       const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => v / 255);
@@ -90,8 +114,16 @@ describe('Landing (dark-room) palette', () => {
       .forEach(([k, v]) => {
         const c = hue(v);
         if (!c || c.s < 0.2) return; // neutral
-        expect([k, c.h >= 25 && c.h <= 50]).toEqual([k, true]); // warm gold/amber family only
+        const blue = c.h >= 220 && c.h <= 250;
+        const sand = c.h >= 25 && c.h <= 50;
+        expect([k, blue || sand]).toEqual([k, true]);
       });
+  });
+
+  it('the brand colours are the ones goldstarshoes.com uses', () => {
+    expect(tokensV2.blue).toBe('#2A27E9');
+    expect(tokensV2.navy).toBe('#0B1A48');
+    expect(tokensV2.sand).toBe('#EBC989');
   });
 });
 
@@ -137,12 +169,17 @@ describe('Landing guards (round 2)', () => {
     // ink wordmark and the deep-gold Nepali mark on the light bar ground
     expect(contrast('#16120E', '#F6F2EA')).toBeGreaterThanOrEqual(4.5);
     expect(contrast('#75561A', '#F6F2EA')).toBeGreaterThanOrEqual(4.5);
-    // ivory wordmark on the landing's dark bar (and on the dark hero while the bar is clear at scroll 0)
-    expect(contrast('#F2EDE3', '#0D0C0A')).toBeGreaterThanOrEqual(4.5);
+    // the landing's bar: navy wordmark and royal-blue accents / focus ring on the frosted white bar and on the white
+    // hero while the bar is clear at scroll 0
+    expect(contrast('#0B1A48', '#FFFFFF')).toBeGreaterThanOrEqual(7);
+    expect(contrast('#2A27E9', '#FFFFFF')).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(tokensV2.ink, tokensV2.ground)).toBeGreaterThanOrEqual(7);
   });
 
-  it('the AppBar is clear only at the top of the landing, and frosted on /g10', () => {
-    expect(renderBar('/').container.querySelector('header')).toHaveAttribute('data-bar', 'clear');
+  it('the AppBar is clear only at the top of the landing (navy wordmark over the white hero), and frosted on /g10', () => {
+    const home = renderBar('/').container.querySelector('header');
+    expect(home).toHaveAttribute('data-bar', 'clear');
+    expect(getComputedStyle(home.querySelector('.brand-text')).color).toBe('rgb(11, 26, 72)');
     expect(renderBar('/g10').container.querySelector('header')).toHaveAttribute('data-bar', 'story');
   });
 });
@@ -150,13 +187,14 @@ describe('Landing guards (round 2)', () => {
 describe('Landing sections', () => {
   beforeEach(() => useCart.setState({ lines: [] }));
 
-  it('KineticHero: whole headline at first paint (aria-label on the h1), real LCP <img>, both CTAs, no canvas', () => {
+  it('KineticHero: whole headline at first paint (aria-label on the h1), real LCP <img>, both CTAs, no canvas, no backdrop photo', () => {
     const { container } = renderWithProviders(<KineticHero />);
     const h1 = screen.getByRole('heading', { level: 1, name: /Walk the world/i });
     HERO_LINES.forEach((l) => expect(h1).toHaveTextContent(new RegExp(l, 'i')));
     expect(screen.getByRole('link', { name: /Shop all footwear/i })).toHaveAttribute('href', '/shop');
     expect(screen.getByRole('link', { name: /^G10 in 3D/i })).toHaveAttribute('href', '/g10');
-    const img = container.querySelector('[data-win] img');
+    expect(container.querySelectorAll('img')).toHaveLength(1);
+    const img = container.querySelector('[data-hcard] img');
     expect(img).toHaveAttribute('fetchpriority', 'high');
     expect(img).toHaveAttribute('width', '1600');
     expect(img.getAttribute('srcset')).toMatch(/800w.*1600w/);

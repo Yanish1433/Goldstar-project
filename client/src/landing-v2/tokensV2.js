@@ -1,8 +1,12 @@
 // Landing design tokens: the ONLY file in landing-v2 that holds raw colour values.
-// Direction "dark-room" (.taste-skill/direction.json): one warm near-black ground from top to bottom, a soft ivory
-// ink, a dimmer ivory for secondary text, and Goldstar gold as the single accent (dark ground, large type and
-// hairlines only: gold on ivory fails AA for text, so on ivory surfaces the accent drops to goldDeep).
-// Product photos bring their own colour; UI chrome never does. Contrast pairs are tested in test/landingV2.test.jsx.
+// Direction "daylight" (round 3, the captain: "a joy colour that matches the vibe of Goldstar"). Taken from
+// goldstarshoes.com's own stylesheet: royal blue #2A27E9 is the brand's working colour (buttons, links, banners),
+// navy #0B1A48 its ink, a warm sand #EBC989 its second note, on white. So: a white / cream page ground, navy ink,
+// royal blue as the confident accent (CTAs, eyebrows, the full-bleed colour moments: the hero's disc, the ticker,
+// the heritage wipe) and sand as the warm accent. Two hue families only: brand blue (blue + navy) and sand.
+// Sand on white fails AA for text, so on light grounds sand is a fill / shape only; as text it lives on royal blue
+// (>= 4.5:1), and on light grounds its text form is sandDeep. Product photos show their true colour.
+// Contrast pairs are tested in test/landingV2.test.jsx.
 
 // 'rgba(r,g,b,a)' from a '#RRGGBB' token: components build translucent tints with this, never by hand.
 export const alpha = (hex, a) => {
@@ -11,57 +15,61 @@ export const alpha = (hex, a) => {
 };
 
 const C = {
-  ground: '#0D0C0A', // warm brown-black page ground
-  groundRaised: '#16140F',
-  groundLift: '#1F1C16',
-  ivory: '#F2EDE3', // primary ink on the ground
-  ivoryDim: '#BDB4A4', // secondary ink on the ground (>= 7:1)
-  ivoryFaint: '#948B7B', // small labels on the ground (>= 4.5:1)
-  gold: '#E2B857', // the one accent
-  goldDeep: '#75561A', // the accent on ivory surfaces (stars, small marks)
-  paper: '#F2EDE3', // lit surfaces: product tiles, review cards, modal
-  paperDim: '#E4DCCB',
-  inkOnPaper: '#16140F',
-  inkOnPaper2: '#4E4738',
-  inkOnPaper3: '#6B6353',
-  black: '#000000',
+  ground: '#FFFFFF', // page ground
+  cream: '#FAF6EE', // alternate band ground, product tiles
+  creamDeep: '#F1EAD9', // skeletons, pressed tiles
+  navy: '#0B1A48', // primary ink
+  ink2: '#3A4466', // secondary ink (>= 7:1 on white and cream)
+  ink3: '#5A6382', // small labels (>= 4.5:1 on white and cream)
+  blue: '#2A27E9', // royal blue: the brand accent
+  blueDeep: '#120FBF', // hover / pressed blue
+  onBlue: '#FFFFFF', // ink on royal blue
+  onBlue2: '#D9DBFF', // secondary ink on royal blue (>= 4.5:1)
+  sand: '#EBC989', // the warm accent: fills and shapes on light grounds, text only on blue
+  sandSoft: '#F7E9CB', // sand wash (pills, glows)
+  sandDeep: '#7A5915', // sand as text on light grounds (sale, ratings)
+  white: '#FFFFFF',
 };
 
 export const tokensV2 = {
   ...C,
-  line: alpha(C.ivory, 0.12),
-  lineStrong: alpha(C.ivory, 0.24),
-  lineOnPaper: alpha(C.inkOnPaper, 0.1),
-  goldWash: alpha(C.gold, 0.12),
-  goldLine: alpha(C.gold, 0.55),
-  veil: alpha(C.ground, 0.72),
-  scrim: alpha(C.ground, 0.78),
-  ivoryWash: alpha(C.ivory, 0.06),
-  onGold: C.inkOnPaper,
+  ink: C.navy,
+  line: alpha(C.navy, 0.1),
+  lineStrong: alpha(C.navy, 0.22),
+  lineOnBlue: alpha(C.onBlue, 0.28),
+  blueWash: alpha(C.blue, 0.08),
+  scrim: alpha(C.navy, 0.55),
+  onAccent: C.onBlue,
 
-  // Legacy names (QuickViewModal, Reviews3DV2 and the tests import them): mapped onto the restrained palette.
-  cream: C.paper,
-  creamDark: C.paperDim,
-  white: C.paper,
-  blendInk: '#FFFFFF', // the hero headline under mix-blend-mode: difference (pure white inverts to neutral ink)
-  ink: C.inkOnPaper,
-  inkSecondary: C.inkOnPaper2,
-  inkMuted: C.inkOnPaper3,
-  blue: C.inkOnPaper,
-  blueHover: C.groundLift,
-  blueWash: alpha(C.inkOnPaper, 0.06),
-  goldLight: C.gold,
-  saffron: C.gold,
-  tangerine: C.gold,
-  pine: C.groundRaised,
-  pineDark: C.ground,
-  sale: C.goldDeep,
+  // Legacy names (QuickViewModal, Reviews3DV2 and the tests import them): remapped deliberately onto the daylight
+  // palette (lit surfaces are white / cream, ink is navy, the accent is the real brand blue, gold means sand).
+  paper: C.ground,
+  paperDim: C.cream,
+  inkOnPaper: C.navy,
+  inkOnPaper2: C.ink2,
+  inkOnPaper3: C.ink3,
+  lineOnPaper: alpha(C.navy, 0.1),
+  ivory: C.navy,
+  ivoryDim: C.ink2,
+  ivoryFaint: C.ink3,
+  inkSecondary: C.ink2,
+  inkMuted: C.ink3,
+  blueHover: C.blueDeep,
+  gold: C.sand,
+  goldLight: C.sandSoft,
+  goldDeep: C.sandDeep,
+  goldWash: C.sandSoft,
+  saffron: C.sand,
+  tangerine: C.blue,
+  pine: C.navy,
+  pineDark: C.navy,
+  sale: C.sandDeep,
 
-  // Elevation: shadows are darkness, never colour.
-  shadowCard: `0 4px 20px ${alpha(C.black, 0.18)}, 0 1px 3px ${alpha(C.black, 0.12)}`,
-  shadowElevated: `0 14px 40px ${alpha(C.black, 0.32)}, 0 2px 8px ${alpha(C.black, 0.16)}`,
-  shadowFloating: `0 28px 72px ${alpha(C.black, 0.55)}, 0 4px 16px ${alpha(C.black, 0.24)}`,
-  photoShadow: `drop-shadow(0 18px 24px ${alpha(C.black, 0.28)})`,
+  // Elevation: soft navy-tinted shadows on the light grounds.
+  shadowCard: `0 4px 18px ${alpha(C.navy, 0.07)}, 0 1px 3px ${alpha(C.navy, 0.06)}`,
+  shadowElevated: `0 14px 36px ${alpha(C.navy, 0.12)}, 0 2px 8px ${alpha(C.navy, 0.06)}`,
+  shadowFloating: `0 28px 64px ${alpha(C.navy, 0.16)}, 0 4px 14px ${alpha(C.navy, 0.08)}`,
+  shadowOnBlue: `0 30px 60px ${alpha(C.blueDeep, 0.45)}, 0 6px 16px ${alpha(C.navy, 0.25)}`,
 
   radiusSm: 8,
   radiusMd: 16,
@@ -70,31 +78,24 @@ export const tokensV2 = {
   radiusPill: 999,
 };
 
-// Lifestyle photographs are pulled into the room: warm monochrome, a little darker. They take their own colour
-// back on hover/focus (see Categories), product photos are never treated.
-export const PHOTO_MONO = 'grayscale(1) sepia(0.28) brightness(0.62) contrast(1.06)';
-// Studio photos on the ivory tiles: their off-white sweep is lifted to pure white so `multiply` melts it into the
-// tile (no visible photo box). Used with mixBlendMode: 'multiply'.
+// Studio photos on white / cream tiles: their off-white sweep is lifted to pure white so `multiply` melts it into the
+// tile (no visible photo box). Used with mixBlendMode: 'multiply', on white or cream tiles only (never on blue: the
+// product would take the tint).
 export const PHOTO_TILE = 'brightness(1.09) contrast(1.03)';
-// The hero pair under the `difference`-blended headline: neutral, so the inverted letters read as clean ink/white
-// instead of picking up the photo's colour cast (a pale green where they crossed the black boots).
-export const PHOTO_TILE_NEUTRAL = `${PHOTO_TILE} grayscale(1)`;
-export const PHOTO_LIVE = 'grayscale(0) sepia(0) brightness(0.86) contrast(1.04)';
 
-// One focus ring for both grounds: a gold line with a dark halo, visible on the ground and on ivory surfaces.
+// One focus ring for every ground: a royal-blue line inside a white halo, visible on white, cream and on blue.
 export const FOCUS_RING = {
   '&:focus-visible': {
-    outline: `2px solid ${C.gold}`,
+    outline: `2px solid ${C.blue}`,
     outlineOffset: 2,
-    boxShadow: `0 0 0 6px ${C.inkOnPaper}`,
+    boxShadow: `0 0 0 6px ${C.white}`,
   },
 };
 export const FOCUS_RING_LIGHT = FOCUS_RING;
 
-// The landing's display face (round 2): Sofia Sans Extra Condensed, a variable condensed grotesk (wght 1-1000),
-// self-hosted from /fonts and scoped to the landing root (LandingV2 declares the @font-face; the global theme font is
-// untouched). Condensed caps stay legible at 20vw, split cleanly into letters and lines, and the weight axis can be
-// scrubbed with the scroll. The metric-matched fallback keeps the swap from shifting the layout.
+// The landing's display face: Sofia Sans Extra Condensed, a variable condensed grotesk (wght 1-1000), self-hosted
+// from /fonts and scoped to the landing root (LandingV2 declares the @font-face; the global theme font is
+// untouched). The metric-matched fallback keeps the swap from shifting the layout.
 export const KINETIC_FAMILY = '"Sofia Sans XC", "Sofia Sans XC Fallback", "Arial Narrow", sans-serif';
 export const KINETIC = {
   fontFamily: KINETIC_FAMILY,
@@ -113,7 +114,7 @@ export const DISPLAY_HEADING = {
   textWrap: 'balance',
 };
 
-// Section headings: the display face, uppercase, heavy. (Name kept from round 1, the look is new.)
+// Section headings: the display face, uppercase, heavy.
 export const DISPLAY_LIGHT = {
   ...KINETIC,
   fontWeight: 720,
@@ -123,10 +124,10 @@ export const DISPLAY_LIGHT = {
 
 export const EYEBROW = {
   fontSize: 12,
-  fontWeight: 600,
+  fontWeight: 700,
   letterSpacing: '0.22em',
   textTransform: 'uppercase',
-  color: C.ivoryFaint,
+  color: C.blue,
 };
 
 // One easing family for the whole page (GSAP 'expo.out' / 'power3.out' and this CSS curve). One duration scale.

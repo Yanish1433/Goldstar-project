@@ -13,16 +13,16 @@ import { shelfPhoto } from './shots.js';
 // 4. The centrepiece: "shoes pop up". The captain's favourite was the round-1 shoe shelf, where the cards came in
 // as you scrolled and each shoe lifted out of its tile; round 0's shelves had the same pop (the shoe scaled and
 // tipped out of its card on hover). This keeps that mechanic and makes it the scene:
-//   desktop: the shelf pins; the empty ivory plinths rise in, then the shoes pop up out of them one after another
-//   (from below the plinth floor, overshooting, tipping and settling), each with a gold ring and a contact shadow,
+//   desktop: the shelf pins; the empty cream plinths rise in, then the shoes pop up out of them one after another
+//   (from below the plinth floor, overshooting, tipping and settling), each with a royal-blue ring and a contact shadow,
 //   then the names and prices land. All scrubbed: scroll up and every shoe sinks back into its plinth.
 //   phones: no pin; each card pops as it crosses the screen (its own scrubbed trigger).
 // Quick view and add to cart work on every card at every point of the scene.
 const btn = {
   minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 1, px: 2,
-  borderRadius: t.radiusPill, border: `1px solid ${t.lineStrong}`, backgroundColor: 'transparent', color: t.ivory,
+  borderRadius: t.radiusPill, border: `1px solid ${t.lineStrong}`, backgroundColor: 'transparent', color: t.ink,
   font: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'border-color 200ms ease, background-color 200ms ease, color 200ms ease',
-  [FINE_POINTER]: { '&:hover': { borderColor: t.ivory } },
+  [FINE_POINTER]: { '&:hover': { borderColor: t.blue, backgroundColor: t.blue, color: t.onBlue } },
   ...FOCUS_RING,
 };
 
@@ -50,15 +50,15 @@ export function PopCard({ product, onQuickView }) {
 
   return (
     <Box component="article" data-card aria-label={product.name} sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.25, md: 2 }, height: '100%' }}>
-      <Box data-plinth sx={{ position: 'relative', borderRadius: `${t.radiusMd}px`, backgroundColor: t.paper, overflow: 'hidden', aspectRatio: '4 / 5', willChange: 'transform' }}>
-        {/* The gold ring that flashes behind a shoe as it pops (decorative). */}
-        <Box data-ring aria-hidden="true" sx={{ position: 'absolute', left: '50%', top: '52%', width: '70%', aspectRatio: '1', borderRadius: '50%', border: `1.5px solid ${t.goldDeep}`, transform: 'translate(-50%, -50%) scale(0.4)', opacity: 0, pointerEvents: 'none' }} />
+      <Box data-plinth sx={{ position: 'relative', borderRadius: `${t.radiusMd}px`, backgroundColor: t.cream, overflow: 'hidden', aspectRatio: '4 / 5', willChange: 'transform' }}>
+        {/* The blue ring that flashes behind a shoe as it pops (decorative). */}
+        <Box data-ring aria-hidden="true" sx={{ position: 'absolute', left: '50%', top: '52%', width: '70%', aspectRatio: '1', borderRadius: '50%', border: `2px solid ${t.blue}`, transform: 'translate(-50%, -50%) scale(0.4)', opacity: 0, pointerEvents: 'none' }} />
         {/* Contact shadow on the plinth floor. */}
-        <Box data-shadow aria-hidden="true" sx={{ position: 'absolute', left: '18%', right: '18%', bottom: '14%', height: '7%', borderRadius: '50%', backgroundColor: t.inkOnPaper, opacity: 0.16, filter: 'blur(10px)', pointerEvents: 'none' }} />
+        <Box data-shadow aria-hidden="true" sx={{ position: 'absolute', left: '18%', right: '18%', bottom: '14%', height: '7%', borderRadius: '50%', backgroundColor: t.ink, opacity: 0.16, filter: 'blur(10px)', pointerEvents: 'none' }} />
         <Box component={RouterLink} to={href} aria-label={`${product.name}, ${c.name}, ${formatNPR(c.price)}`} sx={{ position: 'absolute', inset: 0, display: 'block', ...FOCUS_RING, '&:focus-visible': { ...FOCUS_RING['&:focus-visible'], outlineOffset: -4 } }}>
           {/* Two wrappers: GSAP moves [data-shoe] (the pop), CSS moves [data-lift] (the hover), so they never fight. The
               blend sits on the outer wrapper: a transformed box isolates its children, so the group is what multiplies
-              into the ivory plinth. */}
+              into the cream plinth. */}
           <Box data-shoe sx={{ position: 'absolute', inset: 0, willChange: 'transform', mixBlendMode: 'multiply' }}>
             <Box data-lift sx={{ position: 'absolute', inset: 0, transition: `transform 700ms ${EASE_CSS}`, [FINE_POINTER]: { '[data-card]:hover &': { transform: 'translateY(-6%) rotate(-5deg) scale(1.06)' } } }}>
               <Box
@@ -78,8 +78,8 @@ export function PopCard({ product, onQuickView }) {
           </Box>
         </Box>
         <Box sx={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 1, pointerEvents: 'none' }}>
-          {sale ? <Box component="span" sx={{ ...EYEBROW, fontSize: 11, letterSpacing: '0.16em', color: t.goldDeep }}>Save {Math.round((1 - c.price / c.regularPrice) * 100)}%</Box> : null}
-          {isNew && !sale ? <Box component="span" sx={{ ...EYEBROW, fontSize: 11, letterSpacing: '0.16em', color: t.inkOnPaper2 }}>New</Box> : null}
+          {sale ? <Box component="span" sx={{ ...EYEBROW, fontSize: 11, letterSpacing: '0.16em', color: t.sandDeep }}>Save {Math.round((1 - c.price / c.regularPrice) * 100)}%</Box> : null}
+          {isNew && !sale ? <Box component="span" sx={{ ...EYEBROW, fontSize: 11, letterSpacing: '0.16em', color: t.blue }}>New</Box> : null}
         </Box>
         <Box
           component="button"
@@ -88,7 +88,7 @@ export function PopCard({ product, onQuickView }) {
           aria-label={`Quick view ${product.name}`}
           sx={{
             position: 'absolute', right: 10, bottom: 10, width: 44, height: 44, borderRadius: '50%', border: 'none', cursor: 'pointer',
-            display: 'grid', placeItems: 'center', backgroundColor: t.inkOnPaper, color: t.paper, ...FOCUS_RING,
+            display: 'grid', placeItems: 'center', backgroundColor: t.blue, color: t.onBlue, ...FOCUS_RING,
             transition: `transform 500ms ${EASE_CSS}, opacity 300ms ease`,
             [FINE_POINTER]: { opacity: 0, transform: 'translateY(8px)', '[data-card]:hover &, &:focus-visible': { opacity: 1, transform: 'none' } },
           }}
@@ -99,14 +99,14 @@ export function PopCard({ product, onQuickView }) {
       <Box data-info sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, md: 1.5 } }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.5, [PHONE]: { flexDirection: 'column', gap: 0.25 } }}>
           <Box sx={{ minWidth: 0 }}>
-            <Box component="h3" sx={{ ...KINETIC, fontSize: { xs: 26, md: 34 }, fontWeight: 760, lineHeight: 0.95, color: t.ivory }}>
+            <Box component="h3" sx={{ ...KINETIC, fontSize: { xs: 26, md: 34 }, fontWeight: 760, lineHeight: 0.95, color: t.ink }}>
               <Box component={RouterLink} to={href} tabIndex={-1} sx={{ color: 'inherit', textDecoration: 'none' }}>{product.name}</Box>
             </Box>
-            <Box component="p" sx={{ m: 0, mt: 0.5, fontSize: 13, color: t.ivoryDim }}>{c.name}{product.colourways.length > 1 ? ` · ${product.colourways.length} colours` : ''}</Box>
+            <Box component="p" sx={{ m: 0, mt: 0.5, fontSize: 13, color: t.ink2 }}>{c.name}{product.colourways.length > 1 ? ` · ${product.colourways.length} colours` : ''}</Box>
           </Box>
           <Box component="p" sx={{ m: 0, textAlign: { xs: 'left', md: 'right' }, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-            <Box component="span" sx={{ display: { xs: 'inline', md: 'block' }, fontSize: { xs: 15, md: 16 }, color: t.ivory, mr: { xs: 1, md: 0 } }}>{formatNPR(c.price)}</Box>
-            {sale ? <Box component="s" sx={{ fontSize: 12, color: t.ivoryFaint }}>{formatNPR(c.regularPrice)}</Box> : null}
+            <Box component="span" sx={{ display: { xs: 'inline', md: 'block' }, fontSize: { xs: 15, md: 16 }, fontWeight: 700, color: t.ink, mr: { xs: 1, md: 0 } }}>{formatNPR(c.price)}</Box>
+            {sale ? <Box component="s" sx={{ fontSize: 12, color: t.ink3 }}>{formatNPR(c.regularPrice)}</Box> : null}
           </Box>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
@@ -122,7 +122,7 @@ export function PopCard({ product, onQuickView }) {
                 onClick={() => setKey(x.key)}
                 sx={{ width: 44, height: 44, p: 0, border: 'none', background: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center', borderRadius: '50%', ...FOCUS_RING }}
               >
-                <Box component="span" sx={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: x.hex, boxShadow: x.key === c.key ? `0 0 0 2px ${t.ground}, 0 0 0 3px ${t.ivory}` : `inset 0 0 0 1px ${t.lineStrong}` }} />
+                <Box component="span" sx={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: x.hex, boxShadow: x.key === c.key ? `0 0 0 2px ${t.ground}, 0 0 0 4px ${t.blue}` : `inset 0 0 0 1px ${t.lineStrong}` }} />
               </Box>
             ))}
           </Box>
@@ -190,7 +190,7 @@ export default function PopShelf({ onQuickView }) {
 
   const list = items.length ? items : Array.from({ length: 5 }, () => null);
   return (
-    <Box component="section" id="all-shoes" aria-labelledby="rail-heading" sx={{ position: 'relative', backgroundColor: t.ground, color: t.ivory }}>
+    <Box component="section" id="all-shoes" aria-labelledby="rail-heading" sx={{ position: 'relative', backgroundColor: t.ground, color: t.ink }}>
       <Box ref={ref}>
         <Box
           data-pin
@@ -218,7 +218,7 @@ export default function PopShelf({ onQuickView }) {
           >
             {list.map((p, i) => (
               <Box component="li" key={p?.slug || i} sx={{ minWidth: 0 }}>
-                {p ? <PopCard product={p} onQuickView={onQuickView} /> : <Box aria-hidden="true" sx={{ aspectRatio: '4 / 5', borderRadius: `${t.radiusMd}px`, backgroundColor: t.groundLift }} />}
+                {p ? <PopCard product={p} onQuickView={onQuickView} /> : <Box aria-hidden="true" sx={{ aspectRatio: '4 / 5', borderRadius: `${t.radiusMd}px`, backgroundColor: t.cream }} />}
               </Box>
             ))}
           </Box>
