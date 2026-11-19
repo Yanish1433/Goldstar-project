@@ -161,5 +161,16 @@ export const EASE_CSS = 'cubic-bezier(0.16, 1, 0.3, 1)';
 export const TRANSITION_SPRING = EASE_CSS;
 
 export const PHONE = '@media (max-width:899.95px)';
+// Landscape phones: short and wide. A 932x430 phone is wider than PHONE's 900px, so without this it would take the
+// desktop layout and the full desktop pins. Height <= 500px in landscape: never matches a desktop window (1280x600,
+// 1366x657, 1536x730 are all taller), so desktop is unchanged. motion.js MQ uses the same query for its scrub/pin
+// choice. In sx put SHORT after any responsive (xs/md) value it overrides: later rules win.
+export const SHORT_QUERY = '(max-height:500px) and (orientation:landscape)';
+export const SHORT = `@media ${SHORT_QUERY}`;
+// Side gutters that clear a landscape notch (index.html sets viewport-fit=cover; the insets are 0 everywhere else).
+// Spread into an sx after the element's own px: on short landscape screens the gutter is max(its usual size, inset).
+export const safeX = (minPx = 16) => ({
+  [SHORT]: { paddingLeft: `max(${minPx}px, env(safe-area-inset-left))`, paddingRight: `max(${minPx}px, env(safe-area-inset-right))` },
+});
 export const FINE_POINTER = '@media (hover: hover) and (pointer: fine)';
 export const REDUCED = '@media (prefers-reduced-motion: reduce)';

@@ -120,7 +120,7 @@ function Card3D({ rev }) {
 
           <Typography
             sx={{
-              fontSize: 14,
+              fontSize: { xs: 15, md: 14 }, // phones: body text >= 15px
               lineHeight: 1.6,
               color: tokensV2.inkSecondary,
               m: 0,

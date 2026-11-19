@@ -12,6 +12,7 @@ import { useReducedMotion } from 'motion/react';
 import { ShoppingBag, Menu, X } from 'lucide-react';
 import { tokens } from '../theme/tokens.js';
 import { PAGE_PX } from './Page.jsx';
+import { SHORT } from '../landing-v2/tokensV2.js';
 import { useMe } from '../api/hooks.js';
 import { useCart, cartCount, cartVisibleCount } from '../store/cart.js';
 import { useUi } from '../store/ui.js';
@@ -338,7 +339,14 @@ export default function AppBar() {
             }),
       }}
     >
-      <Toolbar sx={{ px: PAGE_PX, maxWidth: 1440, width: '100%', mx: 'auto', boxSizing: 'border-box', gap: 1 }} disableGutters>
+      <Toolbar
+        sx={{
+          px: PAGE_PX, maxWidth: 1440, width: '100%', mx: 'auto', boxSizing: 'border-box', gap: 1,
+          // Landscape phones: a compact bar (more of the short screen for the page) whose ends clear a notch.
+          [SHORT]: { minHeight: 52, pl: 'max(16px, env(safe-area-inset-left))', pr: 'max(16px, env(safe-area-inset-right))' },
+        }}
+        disableGutters
+      >
         <AnimatedGoldstarLogo tone={tone} />
 
         <Box sx={{ flex: 1 }} />
@@ -374,7 +382,7 @@ export default function AppBar() {
             onClose={closeMenu}
             PaperProps={{ sx: { width: { xs: '100vw', sm: 360 }, height: '100%', backgroundColor: brand ? '#FFFFFF' : '#0D0C0A', color: brand ? BAR.brand.ink : BAR.dark.ink } }}
           >
-            <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end' }}>
+            <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end', [SHORT]: { p: 1, pr: 'max(8px, env(safe-area-inset-right))' } }}>
               <IconButton aria-label="Close menu" onClick={closeMenu} sx={{ color: brand ? BAR.brand.ink : BAR.dark.ink }}>
                 <X size={20} strokeWidth={1.75} aria-hidden="true" />
               </IconButton>
@@ -389,6 +397,7 @@ export default function AppBar() {
                 px: 3,
                 gap: 1.5,
                 '& .MuiButton-root': { fontSize: 22, minHeight: 52 },
+                [SHORT]: { gap: 0.5, pl: 'max(24px, env(safe-area-inset-left))', '& .MuiButton-root': { fontSize: 18, minHeight: 44 } },
               }}
             >
               {links(closeMenu, brand ? 'brand' : 'dark')}

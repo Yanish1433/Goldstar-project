@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Link as RouterLink } from 'react-router';
 import Box from '@mui/material/Box';
 import { Mail, MapPin, Phone } from 'lucide-react';
@@ -129,9 +130,53 @@ export function WhatsAppIcon({ size }) {
   return <BrandIcon name="whatsapp" size={size} />;
 }
 
+// Phones (and landscape phones): the floating button never covers a control. While the page scrolls it samples
+// what lies under it (elementsFromPoint, once per frame) and steps aside (fades out, not clickable) whenever a link,
+// button, input or price is beneath it; it comes back as soon as the spot is clear. Desktop keeps the plain button.
+export const WA_AVOID_QUERY = '(max-width:899.95px), (max-height:500px) and (orientation:landscape)';
+const CONTROL = 'a[href], button, input, select, textarea, label, [role="button"], [data-price]';
+export function useStepAside(ref) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof window === 'undefined' || !window.matchMedia || !document.elementsFromPoint) return undefined;
+    const mq = window.matchMedia(WA_AVOID_QUERY);
+    let raf = 0;
+    const check = () => {
+      raf = 0;
+      if (!mq.matches) { el.removeAttribute('data-aside'); return; }
+      const r = el.getBoundingClientRect();
+      const pts = [[0.5, 0.5], [0.15, 0.15], [0.85, 0.15], [0.15, 0.85], [0.85, 0.85]];
+      let hit = false;
+      for (const [fx, fy] of pts) {
+        const under = document.elementsFromPoint(r.left + r.width * fx, r.top + r.height * fy);
+        if (under.some((u) => u !== el && !el.contains(u) && u.closest(CONTROL) && !u.closest('[aria-hidden="true"]'))) { hit = true; break; }
+      }
+      if (hit) el.setAttribute('data-aside', '');
+      else el.removeAttribute('data-aside');
+    };
+    const queue = () => { if (!raf) raf = requestAnimationFrame(check); };
+    window.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', queue);
+    mq.addEventListener?.('change', queue);
+    // Content can move under a still button (images loading, a route change, a drawer closing).
+    const iv = setInterval(queue, 800);
+    queue();
+    return () => {
+      cancelAnimationFrame(raf);
+      clearInterval(iv);
+      window.removeEventListener('scroll', queue);
+      window.removeEventListener('resize', queue);
+      mq.removeEventListener?.('change', queue);
+    };
+  }, [ref]);
+}
+
 function WhatsAppButton() {
+  const ref = useRef(null);
+  useStepAside(ref);
   return (
     <Box
+      ref={ref}
       component="a"
       href={CONTACT.whatsapp}
       target="_blank"
@@ -148,6 +193,18 @@ function WhatsAppButton() {
         '@media print': { display: 'none' },
         // Landing on phones: the Buy bar carries WhatsApp instead, so nothing floats over the copy or the CTAs.
         '@media (max-width:899.95px)': { 'html[data-landing] &': { display: 'none' } },
+        // Landscape phones: smaller, and clear of a notch / the home indicator.
+        '@media (max-height:500px) and (orientation:landscape)': {
+          width: 48, height: 48, right: 'max(12px, env(safe-area-inset-right))', bottom: 'calc(12px + env(safe-area-inset-bottom) + var(--gs-bottom-ui, 0px))',
+          '& svg': { width: 24, height: 24 },
+        },
+        [`@media ${WA_AVOID_QUERY}`]: {
+          right: 'max(16px, env(safe-area-inset-right))',
+          transition: 'transform 200ms cubic-bezier(0.22,1,0.36,1), opacity 180ms ease, visibility 0s linear 0s, bottom 280ms cubic-bezier(0.22,1,0.36,1)',
+          '&:hover': { transform: 'none' }, // no sticky hover lift after a tap
+          // Fade only: a transform would move the box the check measures (and it would flip back and forth).
+          '&[data-aside]': { opacity: 0, visibility: 'hidden', pointerEvents: 'none', transition: 'opacity 180ms ease, visibility 0s linear 180ms' },
+        },
       }}
     >
       <BrandIcon name="whatsapp" size={28} />
@@ -167,7 +224,7 @@ export default function Footer() {
           backgroundImage: `radial-gradient(70% 45% at 50% 100%, rgba(226,184,87,0.10) 0%, rgba(226,184,87,0) 70%), linear-gradient(180deg, ${brand.nightRaised} 0%, ${brand.navyDeep} 62%, ${brand.navy} 100%)`,
         }}
       >
-        <Box sx={{ maxWidth: 1440, mx: 'auto', boxSizing: 'border-box', px: { xs: 2.5, sm: 3, lg: 4 }, pt: { xs: 7, md: 11 }, pb: { xs: 4, md: 5 } }}>
+        <Box sx={{ maxWidth: 1440, mx: 'auto', boxSizing: 'border-box', px: { xs: 2.5, sm: 3, lg: 4 }, pt: { xs: 7, md: 11 }, pb: { xs: 4, md: 5 }, '@media (max-height:500px) and (orientation:landscape)': { pl: 'max(24px, env(safe-area-inset-left))', pr: 'max(24px, env(safe-area-inset-right))' } }}>
           <Box
             sx={{
               display: 'grid', columnGap: { sm: 4, md: 6 }, rowGap: { xs: 5, md: 6 },
@@ -207,7 +264,10 @@ export default function Footer() {
         <Box aria-hidden="true" sx={{ height: { xs: 120, sm: 150, md: 200 }, mt: { xs: 2, md: 0 } }}>
           <Skyline />
         </Box>
-        <Box sx={{ backgroundColor: brand.night, color: brand.onNight2, px: 2.5, pt: 2.25, pb: 'calc(18px + var(--gs-bottom-ui, 0px))', textAlign: 'center' }}>
+        <Box sx={{ backgroundColor: brand.night, color: brand.onNight2, px: 2.5, pt: 2.25, pb: 'calc(18px + var(--gs-bottom-ui, 0px))', textAlign: 'center',
+          // Phones: the page ends with room for the floating WhatsApp button, so at the very bottom it sits over empty
+          // ground, never over the credits or the last links.
+          [`@media ${WA_AVOID_QUERY}`]: { pb: 'calc(88px + env(safe-area-inset-bottom) + var(--gs-bottom-ui, 0px))', pl: 'max(20px, env(safe-area-inset-left))', pr: 'max(20px, env(safe-area-inset-right))' } }}>
           <Box component="p" sx={{ m: 0, fontSize: { xs: 12, md: 13 }, fontWeight: 600, letterSpacing: '0.12em' }}>
             © 2025 GOLDSTAR SHOES | All Rights Reserved
           </Box>

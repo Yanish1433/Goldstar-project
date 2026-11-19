@@ -3,7 +3,7 @@ import { Link as RouterLink } from 'react-router';
 import Box from '@mui/material/Box';
 import { ArrowUpRight } from 'lucide-react';
 import { useCategories } from '../api/hooks.js';
-import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_TILE, FOCUS_RING, EASE_CSS, FINE_POINTER, PHONE } from './tokensV2.js';
+import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_TILE, FOCUS_RING, EASE_CSS, FINE_POINTER, PHONE, SHORT } from './tokensV2.js';
 import { Eyebrow, Display, WRAP } from './ui.jsx';
 import { useSectionMotion } from './motion.js';
 import { shot } from './shots.js';
@@ -33,6 +33,7 @@ export const COLLECTIONS = [
 ];
 
 const STICK = 'calc(var(--appbar-h, 64px) + 16px)';
+const count0 = 3; // cards in the deck (COLLECTIONS.length; the pile's offsets are sized for it)
 
 function Card({ c, i, count }) {
   return (
@@ -44,6 +45,8 @@ function Card({ c, i, count }) {
         top: `calc(${STICK} + ${i * 14}px)`,
         height: { xs: 'min(76svh, 620px)', md: 'min(calc(100svh - var(--appbar-h, 64px) - 64px), 680px)' },
         mb: { xs: '12svh', md: '14svh' },
+        // Landscape phones: the card fills the screen under the bar (the pile's 14px steps included).
+        [SHORT]: { height: `calc(100svh - ${STICK} - ${(count0 - 1) * 14 + 12}px)`, mb: '10svh' },
         '&:last-of-type': { mb: 0 },
         transformOrigin: '50% 0%',
         willChange: 'transform',
@@ -55,13 +58,15 @@ function Card({ c, i, count }) {
         aria-label={`Shop ${c.title}${count ? `, ${count} styles` : ''}`}
         sx={{
           position: 'relative', height: '100%', display: 'grid', gridTemplateColumns: { xs: '1fr', md: '5fr 6fr' }, gridTemplateRows: { xs: 'auto 1fr', md: '1fr' },
+          // Landscape phones: text beside the photo (stacked, the photo would be a sliver).
+          [SHORT]: { gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gridTemplateRows: '1fr' },
           borderRadius: { xs: `${t.radiusLg}px`, md: `${t.radiusXl}px` }, overflow: 'hidden', textDecoration: 'none', color: t.ink,
           backgroundColor: t.white, boxShadow: `inset 0 0 0 1px ${t.line}, ${t.shadowFloating}`, ...FOCUS_RING,
           '& [data-arrow]': { transition: `transform 500ms ${EASE_CSS}, background-color 240ms ease, color 240ms ease` },
           [FINE_POINTER]: { '&:hover [data-arrow]': { transform: 'rotate(45deg)', backgroundColor: t.blue, borderColor: t.blue, color: t.onBlue } },
         }}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 2, p: { xs: 2.5, md: 5 }, minWidth: 0 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 2, p: { xs: 2.5, md: 5 }, [SHORT]: { p: 2.5, gap: 1 }, minWidth: 0 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box component="span" sx={{ ...EYEBROW, color: t.ink3, fontVariantNumeric: 'tabular-nums' }}>{c.no} / {String(COLLECTIONS.length).padStart(2, '0')}</Box>
             <Box data-arrow component="span" aria-hidden="true" sx={{ width: 48, height: 48, borderRadius: '50%', display: 'grid', placeItems: 'center', border: `1px solid ${t.lineStrong}` }}>
@@ -69,12 +74,12 @@ function Card({ c, i, count }) {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: 2.5 } }}>
-            <Box component="h3" sx={{ ...KINETIC, fontSize: { xs: 'clamp(40px, 13vw, 64px)', md: 'clamp(64px, 6.4vw, 120px)' }, fontWeight: 800, lineHeight: 0.86 }}>{c.title}</Box>
-            <Box component="p" sx={{ m: 0, maxWidth: '40ch', fontSize: { xs: 15, md: 17 }, lineHeight: 1.55, color: t.ink2, [PHONE]: { fontSize: 14 } }}>{c.line}</Box>
+            <Box component="h3" sx={{ ...KINETIC, fontSize: { xs: 'clamp(40px, 13vw, 64px)', md: 'clamp(64px, 6.4vw, 120px)' }, [SHORT]: { fontSize: 'clamp(32px, 12svh, 52px)' }, fontWeight: 800, lineHeight: 0.86 }}>{c.title}</Box>
+            <Box component="p" sx={{ m: 0, maxWidth: '40ch', fontSize: { xs: 15, md: 17 }, lineHeight: 1.55, color: t.ink2, [PHONE]: { fontSize: 15 }, [SHORT]: { fontSize: 15, lineHeight: 1.45 } }}>{c.line}</Box>
             <Box component="span" sx={{ ...EYEBROW, color: t.blue }}>{c.note || (count ? `${count} styles online` : 'Shop online')}</Box>
           </Box>
         </Box>
-        <Box sx={{ position: 'relative', overflow: 'hidden', backgroundColor: c.tile ? t.cream : t.creamDeep, m: { xs: 1, md: 1.5 }, mt: { xs: 0, md: 1.5 }, ml: { md: 0 }, borderRadius: { xs: `${t.radiusMd}px`, md: `${t.radiusLg}px` }, minHeight: 0 }}>
+        <Box sx={{ position: 'relative', overflow: 'hidden', backgroundColor: c.tile ? t.cream : t.creamDeep, m: { xs: 1, md: 1.5 }, mt: { xs: 0, md: 1.5 }, ml: { md: 0 }, [SHORT]: { m: 1, ml: 0 }, borderRadius: { xs: `${t.radiusMd}px`, md: `${t.radiusLg}px` }, minHeight: 0 }}>
           <Box
             data-cphoto
             component="img"

@@ -1,6 +1,6 @@
 import { Fragment, useRef } from 'react';
 import Box from '@mui/material/Box';
-import { tokensV2 as t, alpha, KINETIC, FINE_POINTER } from './tokensV2.js';
+import { tokensV2 as t, alpha, KINETIC, FINE_POINTER, SHORT } from './tokensV2.js';
 import { Cta, StarShape } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
 
@@ -34,6 +34,8 @@ const WORD_SX = {
   ...KINETIC, fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 0.86, whiteSpace: 'nowrap',
   fontSize: `min(calc((100vw - 32px) / ${WORD_EM}), 300px)`,
   '@media (min-width:600px)': { fontSize: `min(calc((100vw - 96px) / ${WORD_EM}), 300px)` },
+  // Landscape phones: the word is capped by the height too, so the whole finale fits the pinned screen.
+  [SHORT]: { fontSize: `min(calc((100vw - 96px) / ${WORD_EM}), 21svh)` },
 };
 
 function Letters({ data }) {
@@ -99,22 +101,24 @@ export default function AdventureFinale() {
           position: 'relative', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           height: '100svh', minHeight: 520, boxSizing: 'border-box', px: { xs: 2, sm: 4 },
           pt: 'calc(var(--appbar-h, 64px) + 3svh)', pb: { xs: 5, md: '6svh' },
+          // Landscape phones: exactly one screen (a 520px stage would pin with its CTA below the fold).
+          [SHORT]: { minHeight: 0, pt: 'calc(var(--appbar-h, 52px) + 2svh)', pb: '3svh', pl: 'max(32px, env(safe-area-inset-left))', pr: 'max(32px, env(safe-area-inset-right))' },
           // A soft, static sand glow behind the word (only the children move).
           backgroundImage: `radial-gradient(ellipse 55% 38% at 50% 58%, ${alpha(t.sand, 0.16)}, ${alpha(t.sand, 0)} 70%)`,
         }}
       >
-        <Box component="p" data-flines sx={{ ...KINETIC, fontWeight: 800, color: t.sand, fontSize: { xs: 'clamp(22px, 7vw, 30px)', md: 'clamp(30px, 3.2vw, 58px)' }, lineHeight: 0.98, letterSpacing: '-0.02em' }}>
+        <Box component="p" data-flines sx={{ ...KINETIC, fontWeight: 800, color: t.sand, fontSize: { xs: 'clamp(22px, 7vw, 30px)', md: 'clamp(30px, 3.2vw, 58px)' }, lineHeight: 0.98, letterSpacing: '-0.02em', [SHORT]: { fontSize: 'clamp(18px, 7svh, 28px)' } }}>
           {FINALE_LINES.map((l, i) => (
             <Fragment key={l}>
               {i ? ' ' : null}
-              <Box component="span" sx={{ display: 'block', overflow: 'hidden', pb: '0.06em' }}>
+              <Box component="span" sx={{ display: 'block', overflow: 'hidden', pb: '0.06em', [SHORT]: { display: 'inline-block', verticalAlign: 'top' } }}>
                 <Box component="span" data-fline sx={{ display: 'block', transformOrigin: '0% 100%' }}>{l}</Box>
               </Box>
             </Fragment>
           ))}
         </Box>
-        <Box data-ffloat sx={{ my: { xs: 3, md: '4svh' } }}>
-          <StarShape data-fstar sx={{ width: { xs: 56, md: 'clamp(64px, 5.4vw, 104px)' } }} />
+        <Box data-ffloat sx={{ my: { xs: 3, md: '4svh' }, [SHORT]: { my: '2.5svh' } }}>
+          <StarShape data-fstar sx={{ width: { xs: 56, md: 'clamp(64px, 5.4vw, 104px)' }, [SHORT]: { width: 'clamp(28px, 11svh, 44px)' } }} />
         </Box>
         <Box sx={{ position: 'relative', maxWidth: '100%' }}>
           <Box component="h2" id="adventure-h" aria-label="Goldstar" sx={{ ...WORD_SX, color: t.onBlue }}>
@@ -134,11 +138,13 @@ export default function AdventureFinale() {
             </Box>
           </Box>
         </Box>
+        {/* The Nepali name and the pill: stacked (display: contents), side by side on landscape phones. */}
+        <Box sx={{ display: 'contents', [SHORT]: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, mt: '2.5svh' } }}>
         {/* Mukta is loaded at 600 only: no heavier weight here (it would be faux-bolded). */}
-        <Box data-fsub component="p" lang="ne" sx={{ m: 0, fontFamily: 'Mukta, sans-serif', fontWeight: 600, fontSize: { xs: 30, md: 'clamp(36px, 4vw, 68px)' }, lineHeight: 1.15, mt: { xs: 1.5, md: 2 }, color: t.sand }}>
+        <Box data-fsub component="p" lang="ne" sx={{ m: 0, fontFamily: 'Mukta, sans-serif', fontWeight: 600, fontSize: { xs: 30, md: 'clamp(36px, 4vw, 68px)' }, lineHeight: 1.15, mt: { xs: 1.5, md: 2 }, color: t.sand, [SHORT]: { fontSize: 'clamp(22px, 8svh, 32px)', mt: 0 } }}>
           गोल्डस्टार
         </Box>
-        <Box data-fsub sx={{ mt: { xs: 4, md: '5svh' } }}>
+        <Box data-fsub sx={{ mt: { xs: 4, md: '5svh' }, [SHORT]: { mt: 0 } }}>
           <Cta
             to="/shop"
             variant="solid"
@@ -151,6 +157,7 @@ export default function AdventureFinale() {
           >
             Shop all
           </Cta>
+        </Box>
         </Box>
       </Box>
     </Box>

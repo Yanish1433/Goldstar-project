@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import Box from '@mui/material/Box';
-import { tokensV2 as t, KINETIC, HERO_SCRIPT, EYEBROW, PHONE } from './tokensV2.js';
+import { tokensV2 as t, KINETIC, HERO_SCRIPT, EYEBROW, PHONE, SHORT } from './tokensV2.js';
 import { Cta, StarShape } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
 
@@ -45,7 +45,14 @@ export const HL_SIZE = {
   xs: `min(calc((100vw - 32px) / ${HL_EM}), 104px)`,
   md: `clamp(72px, calc(36vw / ${HL_EM}), min(15svh, 170px))`,
 };
-const h1Sx = { ...KINETIC, ...HERO_SCRIPT, fontSize: HL_SIZE, m: 0, transform: 'rotate(-4deg)', transformOrigin: '0% 100%', pl: '0.04em', pt: { xs: '0.1em', md: '0.28em' }, pb: '0.08em' };
+// Landscape phones (SHORT): two columns, the headline + CTAs left and the arch right, all in the first screen. The
+// headline is sized by the height (23svh: eyebrow + two lines + tilt + the CTA row fit in 100svh under the bar) and by
+// its column (about half the screen, minus the gutters).
+export const HL_SIZE_SHORT = `min(23svh, calc((50vw - 36px) / ${HL_EM}), 104px)`;
+const h1Sx = {
+  ...KINETIC, ...HERO_SCRIPT, fontSize: HL_SIZE, m: 0, transform: 'rotate(-4deg)', transformOrigin: '0% 100%', pl: '0.04em', pt: { xs: '0.1em', md: '0.28em' }, pb: '0.08em',
+  [SHORT]: { fontSize: HL_SIZE_SHORT, pt: '0.24em' },
+};
 const lineSx = {
   ...HERO_SCRIPT,
   display: 'block',
@@ -75,6 +82,7 @@ export default function KineticHero() {
       return { cx, cy, W: s.width, H: s.height, aw: w.width, ah: w.height, cover: (far * 2) / Math.max(1, w.width * 0.88) + 0.08 };
     };
     const [a, b] = splits;
+    const short = () => window.matchMedia(MQ.short).matches;
 
     const build = (phone) => {
       const tl = gsap.timeline({
@@ -105,8 +113,8 @@ export default function KineticHero() {
         // The arch glides to the centre of the screen, sized to leave room for the brand line below it.
         .fromTo('[data-arch]', { x: 0, y: 0, scale: 1 }, {
           x: () => { const g = geo(); return g.W / 2 - g.cx; },
-          y: () => { const g = geo(); return g.H * (phone ? 0.42 : 0.43) - g.cy; },
-          scale: () => { const g = geo(); return Math.min((g.H * (phone ? 0.56 : 0.62)) / g.ah, (g.W * 0.86) / g.aw); },
+          y: () => { const g = geo(); return g.H * (phone ? (short() ? 0.4 : 0.42) : 0.43) - g.cy; },
+          scale: () => { const g = geo(); return Math.min((g.H * (phone ? (short() ? 0.52 : 0.56) : 0.62)) / g.ah, (g.W * 0.86) / g.aw); },
           duration: 0.75,
           ease: 'power2.inOut',
           force3D: false,
@@ -133,7 +141,7 @@ export default function KineticHero() {
 
   return (
     <Box component="section" ref={ref} id="hero" aria-labelledby="landing-h1" sx={{ position: 'relative', backgroundColor: t.ground }}>
-      <Box data-stage sx={{ position: 'relative', minHeight: { xs: 'max(100svh, 600px)', md: 'max(100svh, 640px)' }, overflow: 'hidden', isolation: 'isolate', backgroundColor: t.ground }}>
+      <Box data-stage sx={{ position: 'relative', minHeight: { xs: 'max(100svh, 600px)', md: 'max(100svh, 640px)' }, [SHORT]: { minHeight: 'max(100svh, 300px)' }, overflow: 'hidden', isolation: 'isolate', backgroundColor: t.ground }}>
         <Box
           sx={{
             position: 'relative', minHeight: 'inherit', display: 'grid', boxSizing: 'border-box',
@@ -143,11 +151,17 @@ export default function KineticHero() {
             gap: { xs: 2, md: '3vw' },
             gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1.15fr) minmax(0, 1fr)' },
             gridTemplateRows: { xs: 'auto minmax(0, 1fr) auto', md: 'minmax(0, 1fr)' },
+            // Landscape phones: text column left, arch right, one row; the gutters clear a notch.
+            [SHORT]: {
+              pt: 'calc(var(--appbar-h, 52px) + 8px)', pb: 'max(12px, env(safe-area-inset-bottom))',
+              pl: 'max(16px, env(safe-area-inset-left))', pr: 'max(16px, env(safe-area-inset-right))',
+              gap: '20px', gridTemplateColumns: 'minmax(0, 1.12fr) minmax(0, 0.88fr)', gridTemplateRows: 'minmax(0, 1fr)',
+            },
           }}
         >
           {/* The arch with the group photo; the photo-sky circle behind it is what floods the screen. */}
-          <Box sx={{ position: 'relative', zIndex: 2, gridColumn: { xs: 1, md: 2 }, gridRow: { xs: 2, md: 1 }, display: 'grid', placeItems: 'center', minHeight: 0, containerType: { xs: 'size', md: 'normal' } }}>
-            <Box data-awrap sx={{ position: 'relative', width: ARCH_W, aspectRatio: `${HERO_PHOTO.width} / ${HERO_PHOTO.height}` }}>
+          <Box sx={{ position: 'relative', zIndex: 2, gridColumn: { xs: 1, md: 2 }, gridRow: { xs: 2, md: 1 }, display: 'grid', placeItems: 'center', minHeight: 0, containerType: { xs: 'size', md: 'normal' }, [SHORT]: { gridColumn: 2, gridRow: 1, containerType: 'size' } }}>
+            <Box data-awrap sx={{ position: 'relative', width: ARCH_W, [SHORT]: { width: ARCH_W.xs }, aspectRatio: `${HERO_PHOTO.width} / ${HERO_PHOTO.height}` }}>
               <Box data-flood aria-hidden="true" sx={{ position: 'absolute', left: '6%', width: '88%', top: '6%', aspectRatio: '1', borderRadius: '50%', backgroundColor: t.photoGround }} />
               <Box data-arch sx={{ position: 'absolute', inset: 0 }}>
                 <Box data-ashadow aria-hidden="true" sx={{ position: 'absolute', inset: 0, borderRadius: ARCH_RADIUS, boxShadow: t.shadowElevated }} />
@@ -171,9 +185,9 @@ export default function KineticHero() {
 
           {/* Text column: phones lay its two parts out in the grid rows around the arch (display: contents); desktop
               stacks them in one block centred in the row (never end-aligned: that is what pushed it under the bar). */}
-          <Box data-hcol sx={{ display: { xs: 'contents', md: 'flex' }, flexDirection: 'column', gap: { md: '3svh' }, gridColumn: 1, gridRow: 1, alignSelf: { md: 'center' }, minWidth: 0, position: { md: 'relative' }, zIndex: { md: 1 } }}>
+          <Box data-hcol sx={{ display: { xs: 'contents', md: 'flex' }, flexDirection: 'column', gap: { md: '3svh' }, gridColumn: 1, gridRow: 1, alignSelf: { md: 'center' }, minWidth: 0, position: { md: 'relative' }, zIndex: { md: 1 }, [SHORT]: { display: 'flex', gap: '16px', alignSelf: 'center', position: 'relative', zIndex: 1 } }}>
           {/* Headline block. aria-label on the h1; SplitText's letters are aria-hidden. */}
-          <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: '2.4svh' }, gridColumn: 1, gridRow: 1, minWidth: 0 }}>
+          <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: '2.4svh' }, [SHORT]: { gap: '6px' }, gridColumn: 1, gridRow: 1, minWidth: 0 }}>
             <Box data-heyebrow component="p" sx={{ ...EYEBROW, m: 0 }}>Goldstar · Made in Nepal</Box>
             <Box component="h1" id="landing-h1" aria-label={HERO_LABEL} sx={h1Sx}>
               <Box component="span" data-hline aria-hidden="true" sx={lineSx}>{HERO_LINES[0]}</Box>
@@ -182,10 +196,10 @@ export default function KineticHero() {
           </Box>
 
           <Box data-hcopy sx={{ position: 'relative', zIndex: 1, gridColumn: 1, gridRow: { xs: 3, md: 'auto' }, display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 3 }, maxWidth: { md: 440 } }}>
-            <Box component="p" sx={{ m: 0, fontSize: { xs: 15, md: 18 }, lineHeight: 1.55, color: t.ink2, [PHONE]: { display: 'none' } }}>
+            <Box component="p" sx={{ m: 0, fontSize: { xs: 15, md: 18 }, lineHeight: 1.55, color: t.ink2, [PHONE]: { display: 'none' }, [SHORT]: { display: 'none' } }}>
               Trek boots and everyday sneakers, made in Kathmandu and worn from the Terai to the Khumbu.
             </Box>
-            <Box sx={{ display: 'flex', gap: { xs: 1, md: 1.5 }, flexWrap: { xs: 'nowrap', md: 'wrap' }, '& > a': { [PHONE]: { px: 2, fontSize: 14, flex: '1 1 auto' } }, '@media (max-width:359.95px)': { flexWrap: 'wrap' } }}>
+            <Box sx={{ display: 'flex', gap: { xs: 1, md: 1.5 }, flexWrap: { xs: 'nowrap', md: 'wrap' }, '& > a': { [PHONE]: { px: 2, fontSize: 14, flex: '1 1 auto' }, [SHORT]: { px: 2.5, fontSize: 14, flex: '0 1 auto' }, [`${SHORT} and (max-width:699.95px)`]: { px: 2, '& svg': { display: 'none' } } }, '@media (max-width:359.95px)': { flexWrap: 'wrap' }, [SHORT]: { flexWrap: 'nowrap' } }}>
               <Cta to="/shop" variant="solid">Shop all footwear</Cta>
               <Cta to="/g10">G10 in 3D</Cta>
             </Box>
@@ -195,14 +209,14 @@ export default function KineticHero() {
 
         {/* Two sand stars (decorative): the brand's star, drifting at their own depth. */}
         <Box aria-hidden="true" sx={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none' }}>
-          <StarShape data-hstar="1" sx={{ position: 'absolute', width: { xs: 44, md: 'clamp(56px, 5.5vw, 92px)' }, right: { xs: '7%', md: '40%' }, top: { xs: '36%', md: '20%' }, transform: 'rotate(-12deg)', willChange: 'transform' }} />
-          <StarShape data-hstar="2" sx={{ position: 'absolute', width: { xs: 26, md: 'clamp(30px, 2.6vw, 44px)' }, left: { xs: '5%', md: 'auto' }, right: { md: '5%' }, top: { xs: '58%', md: '80%' }, transform: 'rotate(14deg)', willChange: 'transform' }} />
+          <StarShape data-hstar="1" sx={{ position: 'absolute', width: { xs: 44, md: 'clamp(56px, 5.5vw, 92px)' }, right: { xs: '7%', md: '40%' }, top: { xs: '36%', md: '20%' }, [SHORT]: { width: 36, right: '42%', top: '20%' }, transform: 'rotate(-12deg)', willChange: 'transform' }} />
+          <StarShape data-hstar="2" sx={{ position: 'absolute', width: { xs: 26, md: 'clamp(30px, 2.6vw, 44px)' }, left: { xs: '5%', md: 'auto' }, right: { md: '5%' }, top: { xs: '58%', md: '80%' }, [SHORT]: { width: 22, left: 'auto', right: '3%', top: '80%' }, transform: 'rotate(14deg)', willChange: 'transform' }} />
         </Box>
 
         {/* The brand line, revealed in navy on the flooded sky at the end of the scene. */}
-        <Box data-hend sx={{ position: 'absolute', zIndex: 4, left: 0, right: 0, bottom: { xs: '9svh', md: '6svh' }, textAlign: 'center', color: t.ink, px: 2, opacity: 0, visibility: 'hidden' }}>
+        <Box data-hend sx={{ position: 'absolute', zIndex: 4, left: 0, right: 0, bottom: { xs: '9svh', md: '6svh' }, [SHORT]: { bottom: '5svh' }, textAlign: 'center', color: t.ink, px: 2, opacity: 0, visibility: 'hidden' }}>
           <Box component="p" sx={{ ...EYEBROW, color: t.ink, m: 0 }}>Goldstar · Made in Nepal</Box>
-          <Box component="p" sx={{ ...KINETIC, fontWeight: 800, fontSize: { xs: 'clamp(17px, 5.2vw, 28px)', md: 'clamp(30px, 3vw, 50px)' }, mt: 1, mx: 'auto', maxWidth: '22ch', textWrap: 'balance' }}>Walking the world for over five decades</Box>
+          <Box component="p" sx={{ ...KINETIC, fontWeight: 800, fontSize: { xs: 'clamp(17px, 5.2vw, 28px)', md: 'clamp(30px, 3vw, 50px)' }, mt: 1, mx: 'auto', maxWidth: '22ch', textWrap: 'balance', [SHORT]: { fontSize: 'clamp(16px, 5.4svh, 24px)', maxWidth: '36ch', mt: 0.5 } }}>Walking the world for over five decades</Box>
         </Box>
       </Box>
     </Box>

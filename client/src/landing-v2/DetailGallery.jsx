@@ -63,7 +63,7 @@ export default function DetailGallery() {
                   <Box component="span" sx={{ ...EYEBROW, color: t.blue, fontVariantNumeric: 'tabular-nums' }}>{d.no}</Box>
                   <Box>
                     <Box component="h3" sx={{ ...KINETIC, fontSize: { xs: 24, md: 32 }, fontWeight: 760 }}>{d.title}</Box>
-                    <Box component="p" sx={{ m: 0, mt: 0.75, fontSize: { xs: 14, md: 16 }, lineHeight: 1.55, color: t.ink2, maxWidth: '44ch' }}>{d.line}</Box>
+                    <Box component="p" sx={{ m: 0, mt: 0.75, fontSize: { xs: 15, md: 16 }, lineHeight: 1.55, color: t.ink2, maxWidth: '44ch' }}>{d.line}</Box>
                   </Box>
                 </Box>
               </Box>

@@ -5,7 +5,7 @@ import { Eye, Plus, Check } from 'lucide-react';
 import { useProducts } from '../api/hooks.js';
 import { formatNPR } from '../lib/format.js';
 import { makeLine, addToCartAnimated, pickSourceRect } from '../lib/addToCart.js';
-import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_TILE, FOCUS_RING, EASE_CSS, FINE_POINTER, PHONE } from './tokensV2.js';
+import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_TILE, FOCUS_RING, EASE_CSS, FINE_POINTER, PHONE, SHORT } from './tokensV2.js';
 import { Cta, Eyebrow, Display, GUTTER } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
 import { shelfPhoto } from './shots.js';
@@ -202,7 +202,7 @@ export default function PopShelf({ onQuickView }) {
           <Box data-shead sx={{ ...GUTTER, maxWidth: 1440, mx: 'auto', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { md: 'flex-end' }, gap: 2.5, mb: { xs: 4, md: 'clamp(24px, 4svh, 48px)' } }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Eyebrow>Best sellers · {items.length || '—'} styles</Eyebrow>
-              <Display id="rail-heading" sx={{ fontSize: { xs: 'clamp(52px, 15vw, 76px)', md: 'clamp(72px, 7vw, 128px)' } }}>Pick a pair.</Display>
+              <Display id="rail-heading" sx={{ fontSize: { xs: 'clamp(52px, 15vw, 76px)', md: 'clamp(72px, 7vw, 128px)' }, [SHORT]: { fontSize: 'clamp(40px, 13svh, 60px)' } }}>Pick a pair.</Display>
             </Box>
             <Cta to="/shop">Shop all footwear</Cta>
           </Box>
@@ -214,6 +214,14 @@ export default function PopShelf({ onQuickView }) {
               gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: `repeat(${Math.min(Math.max(list.length, 3), 5)}, minmax(0, 1fr))` },
               // Keep the pinned row inside one screen: the plinths shrink with the viewport height.
               [`@media (min-width: 900px)`]: { '& [data-plinth]': { maxHeight: 'calc(100svh - var(--appbar-h, 64px) - 330px)', minHeight: 220, aspectRatio: 'auto', height: 'calc((min(100vw, 1440px) - 96px) / 5 * 1.2)' } },
+              // Landscape phones: four or five across (two would make each card taller than the screen), plinths at
+              // their own 4:5 ratio (not pinned, so no screen-height cap).
+              [SHORT]: {
+                gap: '24px 12px', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                '& [data-plinth]': { aspectRatio: '4 / 5', height: 'auto', maxHeight: 'none', minHeight: 0 },
+                '& h3': { fontSize: 22 },
+              },
+              [`${SHORT} and (min-width: 800px)`]: { gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' },
             }}
           >
             {list.map((p, i) => (

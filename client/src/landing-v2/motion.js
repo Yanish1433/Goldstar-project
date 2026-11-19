@@ -12,6 +12,9 @@ export function loadGsap() {
       const ScrollTrigger = st.ScrollTrigger || st.default;
       gsap.registerPlugin(ScrollTrigger);
       gsap.defaults({ ease: 'expo.out' });
+      // Phones: the address bar showing / hiding changes the viewport height on every scroll direction change. Those
+      // resizes must not re-measure (and re-pin) the scenes: only width changes (rotation) and real resizes do.
+      ScrollTrigger.config({ ignoreMobileResize: true });
       // Refresh in page order, every time. Each pin's spacer pushes everything below it down, so a pin must be measured
       // after every pin above it. Triggers are created in whatever order sections happen to build (the shelf waits for
       // its products; gsap.matchMedia rebuilds a section's triggers when the window crosses a breakpoint and appends
@@ -51,9 +54,12 @@ export const appbarH = () => {
 };
 
 // Screen tiers the scenes branch on (gsap.matchMedia keys).
+// Landscape phones (SHORT_QUERY in tokensV2: height <= 500px in landscape) take the phone branch at any width, so a
+// 932x430 phone never gets the desktop pins. The two keys stay mutually exclusive; `short` is a sub-case of `phone`.
 export const MQ = {
-  desk: '(min-width: 900px)',
-  phone: '(max-width: 899.95px)',
+  desk: '(min-width: 900px) and (min-height: 500.02px)',
+  phone: '(max-width: 899.95px), (max-height: 500px) and (orientation: landscape)',
+  short: '(max-height: 500px) and (orientation: landscape)',
 };
 
 export const prefersReducedMotion = () =>

@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { Link as RouterLink } from 'react-router';
 import Box from '@mui/material/Box';
-import { tokensV2 as t, alpha, KINETIC, FOCUS_RING, EASE_CSS, FINE_POINTER, PHONE, REDUCED } from './tokensV2.js';
+import { tokensV2 as t, alpha, KINETIC, FOCUS_RING, EASE_CSS, FINE_POINTER, PHONE, REDUCED, SHORT, SHORT_QUERY } from './tokensV2.js';
 import { Eyebrow, Display, WRAP } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
 
@@ -33,14 +33,16 @@ const VEIL = `linear-gradient(to top, ${alpha(t.navy, 0.92)} 0%, ${alpha(t.navy,
 
 function Card({ c }) {
   return (
-    <Box component="li" data-catcard sx={{ position: 'relative', minWidth: 0, [PHONE]: { flex: '0 0 auto', width: 'min(80vw, 360px)', scrollSnapAlign: 'center' } }}>
+    <Box component="li" data-catcard sx={{ position: 'relative', minWidth: 0, [PHONE]: { flex: '0 0 auto', width: 'min(80vw, 360px)', scrollSnapAlign: 'center' },
+      // Landscape phones: the whole card fits the screen height under the bar (3:4), and two or three show at once.
+      [`@media (max-width:899.95px) and ${SHORT_QUERY}`]: { width: 'min(34vw, calc((100svh - var(--appbar-h, 52px) - 48px) * 0.75))' } }}>
       <Box
         component={RouterLink}
         to={c.to}
         aria-label={`Shop ${c.title}: ${c.line}`}
         sx={{
           position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center',
-          aspectRatio: '3 / 4', maxHeight: { md: '82svh' }, width: '100%', overflow: 'hidden', isolation: 'isolate',
+          aspectRatio: '3 / 4', maxHeight: { md: '82svh' }, [SHORT]: { maxHeight: 'calc(100svh - var(--appbar-h, 52px) - 48px)' }, width: '100%', overflow: 'hidden', isolation: 'isolate',
           borderRadius: { xs: `${t.radiusLg}px`, md: `${t.radiusXl}px` }, textDecoration: 'none', color: t.white, backgroundColor: t.navy,
           boxShadow: t.shadowElevated, ...FOCUS_RING,
           '& img': { transition: `transform 900ms ${EASE_CSS}` },
@@ -70,7 +72,7 @@ function Card({ c }) {
         </Box>
         <Box aria-hidden="true" sx={{ position: 'absolute', inset: 0, zIndex: -1, backgroundImage: VEIL }} />
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: { xs: 1.25, md: 1.5 }, px: { xs: 2, md: 3 }, pb: { xs: 3, md: 'clamp(24px, 3.4vw, 48px)' } }}>
-          <Box component="h3" sx={{ ...KINETIC, fontWeight: 800, fontSize: { xs: 'clamp(24px, 7.4vw, 32px)', md: 'clamp(24px, 2.3vw, 42px)' }, lineHeight: 0.95, color: t.white }}>{c.title}</Box>
+          <Box component="h3" sx={{ ...KINETIC, fontWeight: 800, fontSize: { xs: 'clamp(24px, 7.4vw, 32px)', md: 'clamp(24px, 2.3vw, 42px)' }, [SHORT]: { fontSize: 'clamp(20px, 7svh, 28px)' }, lineHeight: 0.95, color: t.white }}>{c.title}</Box>
           <Box component="p" sx={{ m: 0, fontSize: { xs: 15, md: 17 }, lineHeight: 1.45, color: t.white, maxWidth: '30ch' }}>{c.line}</Box>
           <Box data-pill component="span" aria-hidden="true" sx={{ mt: { xs: 1.5, md: 2.5 }, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: 44, px: 3.5, borderRadius: t.radiusPill, border: `2px solid ${t.white}`, fontSize: 14, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: t.white }}>
             Shop now
