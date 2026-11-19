@@ -7,7 +7,8 @@ import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import CircularProgress from '@mui/material/CircularProgress';
-import { PageBox, useTitle } from '../components/Page.jsx';
+import { useTitle } from '../components/Page.jsx';
+import AuthShell, { authFormSx } from '../components/AuthShell.jsx';
 import PasswordField from '../components/PasswordField.jsx';
 import { useRegister } from '../api/hooks.js';
 import { detailsToErrors, focusFirstInvalid, PHONE_RE, cleanPhone } from '../lib/forms.js';
@@ -67,13 +68,12 @@ export default function Register() {
     });
   };
   const field = (k, label, extra = {}) => (
-    <TextField label={label} name={k} value={form[k]} onChange={set(k)} onBlur={blur(k)} error={!!errors[k]} helperText={errors[k] || extra.help} slotProps={{ htmlInput: { 'aria-invalid': !!errors[k] } }} {...extra.props} />
+    <TextField id={`reg-${k}`} label={label} name={k} value={form[k]} onChange={set(k)} onBlur={blur(k)} error={!!errors[k]} helperText={errors[k] || extra.help} slotProps={{ htmlInput: { 'aria-invalid': !!errors[k] } }} {...extra.props} />
   );
 
   return (
-    <PageBox sx={{ py: { xs: 6, md: 12 } }}>
-      <Box component="form" ref={ref} noValidate onSubmit={submit} sx={{ maxWidth: 440, display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Typography variant="h3" component="h1">Create an account</Typography>
+    <AuthShell eyebrow="Join Goldstar" headline="Join Goldstar" title="Create an account" intro="Create an account to save your details and follow your orders.">
+      <Box component="form" ref={ref} noValidate onSubmit={submit} sx={authFormSx}>
         {formError ? <Alert severity="error" role="alert">{formError}</Alert> : null}
         {field('name', 'Full name', { props: { autoComplete: 'name' } })}
         {field('email', 'Email', { props: { type: 'email', autoComplete: 'email' } })}
@@ -82,10 +82,10 @@ export default function Register() {
         <Button type="submit" variant="contained" size="large" aria-disabled={reg.isPending} startIcon={reg.isPending ? <CircularProgress size={18} color="inherit" /> : null}>
           {reg.isPending ? 'Creating account' : 'Create account'}
         </Button>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{ color: '#3A4466', fontSize: 15 }}>
           Already have an account? <Link component={RouterLink} to={next ? `/login?next=${encodeURIComponent(next)}` : '/login'}>Log in</Link>
         </Typography>
       </Box>
-    </PageBox>
+    </AuthShell>
   );
 }
