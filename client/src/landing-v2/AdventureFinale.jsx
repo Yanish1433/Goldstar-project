@@ -68,8 +68,8 @@ export default function AdventureFinale() {
       },
     });
     // Timeline units: 10 = the whole pin.
-    tl.fromTo('[data-fline]', { yPercent: 110, rotate: 2.5 }, { yPercent: 0, rotate: 0, duration: 2.8, stagger: 0.7 }, 0)
-      .fromTo('[data-fstar]', { scale: 0.25, rotate: -160, autoAlpha: 0 }, { scale: 1, rotate: 0, autoAlpha: 1, duration: 3, ease: 'power3.out' }, 1.2)
+    tl.fromTo('[data-fline]', { yPercent: 110, rotate: 2.5 }, { yPercent: 0, rotate: 0, duration: 3.4, stagger: 0.8, ease: 'power1.out' }, 0.2)
+      .fromTo('[data-fstar]', { scale: 0.25, rotate: -160, autoAlpha: 0 }, { scale: 1, rotate: 0, autoAlpha: 1, duration: 3.2, ease: 'power2.out' }, 1.4)
       .fromTo('[data-fletter]', { yPercent: 118, rotate: 6 }, { yPercent: 0, rotate: 0, duration: 2.2, stagger: 0.32, ease: 'expo.out' }, 2.6)
       .fromTo('[data-fsub]', { y: 36, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.6, stagger: 0.45 }, 6.4)
       // The window travels from just left of the word to just past it; its copy moves the opposite way, so the sand
