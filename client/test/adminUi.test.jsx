@@ -81,7 +81,7 @@ describe('admin console (signed in as admin)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'G10-401' }, T)).toBeInTheDocument();
     for (const h of ['Details', 'Pricing', 'Colours, sizes and stock', 'Images', 'Status', 'Preview']) expect(screen.getByRole('heading', { name: h })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save changes' })).toBeDisabled();
-  });
+  }, 60000); // heavy jsdom render (list + editor + live card preview): ~20-27 s on a loaded machine
 
   it('unknown admin pages show the admin not-found state', async () => {
     renderAt('/admin/nope');
