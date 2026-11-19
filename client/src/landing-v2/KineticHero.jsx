@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import Box from '@mui/material/Box';
-import { tokensV2 as t, KINETIC, EYEBROW, PHONE } from './tokensV2.js';
+import { tokensV2 as t, KINETIC, HERO_SCRIPT, EYEBROW, PHONE } from './tokensV2.js';
 import { Cta, StarShape } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
 
@@ -33,16 +33,17 @@ const ARCH_W = {
 // A true semicircle on top: horizontal radius half the width, vertical radius the same length (w/2 = RATIO/2 of h).
 const ARCH_RADIUS = `50% 50% 28px 28px / ${((RATIO / 2) * 100).toFixed(2)}% ${((RATIO / 2) * 100).toFixed(2)}% 28px 28px`;
 
-// Headline size from the longest line: "WALK THE" in the wide face is HL_EM ems wide (measured in Chromium at
-// weight 880, wdth 112, -0.02em), so the line never overflows its column (320 px phones included).
-const HL_EM = 6.1;
+// The headline is the one place that takes the brush face (HERO_SCRIPT: Caveat Brush caps). Size from the longest
+// line: "WALK THE" is ~3.63 em wide in it (+0.08 em tracking), so HL_EM = 3.75 keeps it inside its column (320 px
+// phones included). The brush's stroke ends overhang the advance width a little; nothing here masks overflow.
+// The -4deg tilt sits on the h1 wrapper, never on the letters (the scrub animates their transforms).
+const HL_EM = 3.75;
+const h1Sx = { ...KINETIC, ...HERO_SCRIPT, m: 0, transform: 'rotate(-4deg)', transformOrigin: '0% 100%', pl: '0.04em', pb: '0.08em' };
 const lineSx = {
-  ...KINETIC,
+  ...HERO_SCRIPT,
   display: 'block',
-  fontWeight: 880,
-  fontSize: { xs: `min(calc((100vw - 32px) / ${HL_EM}), 120px)`, md: `min(calc(46vw / ${HL_EM}), 19svh, 200px)` },
-  lineHeight: 0.86,
-  letterSpacing: '-0.02em',
+  fontSize: { xs: `min(calc((100vw - 32px) / ${HL_EM}), 104px)`, md: `min(calc(44vw / ${HL_EM}), 24svh, 230px)` },
+  lineHeight: 0.88,
   whiteSpace: 'nowrap',
   color: t.ink,
   willChange: 'transform',
@@ -83,8 +84,12 @@ export default function KineticHero() {
       });
       // The letters fly apart: line one out to the left (last letter leads), line two out to the right, under the
       // swelling disc.
-      tl.to(a.chars, { xPercent: -280, yPercent: (i) => (i % 2 ? -22 : 16), rotate: (i) => (i % 2 ? -10 : 7), stagger: { each: 0.03, from: 'end' }, duration: 0.55 }, 0)
-        .to(b.chars, { xPercent: 300, yPercent: (i) => (i % 2 ? 18 : -14), rotate: (i) => (i % 2 ? 8 : -6), stagger: { each: 0.03, from: 'start' }, duration: 0.55 }, 0)
+      // Brush caps differ a lot in width (W vs L), so the throw is a fixed distance in ems (not a % of each letter's own
+      // width, which piled the narrow letters onto the wide ones). The leader is the letter at the exit end (first letter
+      // flying left, last letter flying right), so the rest follow in a train instead of piling onto it.
+      const em = (el) => parseFloat(getComputedStyle(el).fontSize) || 80;
+      tl.to(a.chars, { x: (i, el) => -em(el) * 2.8, yPercent: (i) => (i % 2 ? -22 : 16), rotate: (i) => (i % 2 ? -10 : 7), stagger: { each: 0.03, from: 'start' }, duration: 0.55 }, 0)
+        .to(b.chars, { x: (i, el) => em(el) * 3.2, yPercent: (i) => (i % 2 ? 18 : -14), rotate: (i) => (i % 2 ? 8 : -6), stagger: { each: 0.03, from: 'end' }, duration: 0.55 }, 0)
         .to('[data-hcopy]', { y: 50, autoAlpha: 0, duration: 0.22 }, 0)
         .to('[data-heyebrow]', { y: -30, autoAlpha: 0, duration: 0.22 }, 0)
         // The photo's sky floods the screen from behind the arch (a flat circle, transform only; no will-change: a
@@ -132,7 +137,7 @@ export default function KineticHero() {
           {/* Headline block. aria-label on the h1; SplitText's letters are aria-hidden. */}
           <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: '2.4svh' }, gridColumn: 1, gridRow: 1, alignSelf: { md: 'end' }, minWidth: 0 }}>
             <Box data-heyebrow component="p" sx={{ ...EYEBROW, m: 0 }}>Goldstar · Made in Nepal</Box>
-            <Box component="h1" id="landing-h1" aria-label={HERO_LABEL} sx={{ ...KINETIC, m: 0 }}>
+            <Box component="h1" id="landing-h1" aria-label={HERO_LABEL} sx={h1Sx}>
               <Box component="span" data-hline aria-hidden="true" sx={lineSx}>{HERO_LINES[0]}</Box>
               <Box component="span" data-hline aria-hidden="true" sx={{ ...lineSx, color: t.blue }}>{HERO_LINES[1]}</Box>
             </Box>

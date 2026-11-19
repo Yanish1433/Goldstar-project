@@ -113,6 +113,24 @@ export const KINETIC = {
   m: 0,
 };
 
+// The hero headline only ("WALK THE / WORLD"): a heavy, clean marker-brush in caps (Caveat Brush, SIL OFL, latin
+// caps subset, public/fonts/). The font rule (+ a metric-matched Impact fallback, so the swap does not shift the
+// layout) lives in LandingV2.jsx. Everything else keeps KINETIC.
+export const HERO_SCRIPT_FAMILY = '"Caveat Brush Hero", "Caveat Brush Hero Fallback", Impact, sans-serif';
+export const HERO_SCRIPT = {
+  fontFamily: HERO_SCRIPT_FAMILY,
+  fontStretch: '100%',
+  fontVariationSettings: 'normal',
+  fontWeight: 400,
+  fontKerning: 'none',
+  fontVariantLigatures: 'none',
+  textTransform: 'uppercase',
+  letterSpacing: '0.01em',
+  // Caveat Brush is lighter than the reference's heavy marker: a same-colour stroke fattens it.
+  WebkitTextStroke: '0.032em currentColor',
+  paintOrder: 'stroke fill',
+};
+
 // Reviews3DV2 keeps its layout; its heading takes the landing's display face (a token change only).
 export const DISPLAY_HEADING = {
   ...KINETIC,

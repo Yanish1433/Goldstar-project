@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeAll, beforeEach } from 'vitest';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { render, screen, fireEvent, within } from '@testing-library/react';
@@ -7,9 +7,9 @@ import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@mui/material/styles';
 import { shopTheme } from '../src/theme/shopTheme.js';
-import { tokensV2, KINETIC } from '../src/landing-v2/tokensV2.js';
+import { tokensV2, KINETIC, HERO_SCRIPT } from '../src/landing-v2/tokensV2.js';
 import LandingV2 from '../src/landing-v2/LandingV2.jsx';
-import KineticHero, { HERO_LINES, HERO_PHOTO } from '../src/landing-v2/KineticHero.jsx';
+import KineticHero, { HERO_LINES, HERO_LABEL, HERO_PHOTO } from '../src/landing-v2/KineticHero.jsx';
 import Ticker, { RANGES } from '../src/landing-v2/Ticker.jsx';
 import CollectionStack, { COLLECTIONS } from '../src/landing-v2/CollectionStack.jsx';
 import CategoryCards, { CATEGORIES, CATEGORY_LINKS } from '../src/landing-v2/CategoryCards.jsx';
@@ -147,13 +147,18 @@ describe('Landing guards (round 2)', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('the display face is the /g10 finale face: the theme family (Archivo) on its wide axis, no landing-only font file', () => {
+  it('the display face is the /g10 finale face (Archivo, wide axis); the one exception is the hero headline brush face, the only font file', () => {
     expect(FONT_STACK).toMatch(/Archivo/);
     expect(KINETIC.fontFamily).toMatch(/^"Archivo Variable"/);
     expect(KINETIC.fontVariationSettings).toBe('"wdth" 112');
     expect(KINETIC.fontWeight).toBeGreaterThanOrEqual(800);
-    landingFiles().forEach((f) => expect([f, /@font-face|\/fonts\//.test(readFileSync(join(landingDir, f), 'utf8'))]).toEqual([f, false]));
-    expect(readFileSync(join(here, '../index.html'), 'utf8')).not.toMatch(/\.woff2/);
+    expect(HERO_SCRIPT.fontFamily).toMatch(/^"Caveat Brush Hero"/);
+    expect(HERO_SCRIPT.fontFamily).toMatch(/Caveat Brush Hero Fallback/);
+    // the @font-face lives only in LandingV2 (swap, woff2), and index.html preloads exactly that file on /
+    landingFiles().forEach((f) => expect([f, /@font-face/.test(readFileSync(join(landingDir, f), 'utf8'))]).toEqual([f, f === 'LandingV2.jsx']));
+    expect(readFileSync(join(landingDir, 'LandingV2.jsx'), 'utf8')).toMatch(/font-display: swap/);
+    expect(existsSync(join(here, '../public/fonts/caveat-brush-hero.woff2'))).toBe(true);
+    expect(readFileSync(join(here, '../index.html'), 'utf8').match(/\.woff2/g)).toHaveLength(1);
   });
 
   it('every photo is served locally: API image URLs map onto public/img/catalogue, nothing hotlinks goldstarshoes.com', () => {
@@ -205,6 +210,10 @@ describe('Landing sections', () => {
     const { container } = renderWithProviders(<KineticHero />);
     const h1 = screen.getByRole('heading', { level: 1, name: /Walk the world/i });
     HERO_LINES.forEach((l) => expect(h1).toHaveTextContent(new RegExp(l, 'i')));
+    expect(h1).toHaveAttribute('aria-label', HERO_LABEL);
+    expect(getComputedStyle(h1).fontFamily).toBe(HERO_SCRIPT.fontFamily); // the brush face is the headline only
+    expect(getComputedStyle(container.querySelector('[data-heyebrow]')).fontFamily).not.toMatch(/Caveat/);
+    container.querySelectorAll('[data-hline]').forEach((l) => expect(l).toHaveAttribute('aria-hidden', 'true'));
     expect(screen.getByRole('link', { name: /Shop all footwear/i })).toHaveAttribute('href', '/shop');
     expect(screen.getByRole('link', { name: /^G10 in 3D/i })).toHaveAttribute('href', '/g10');
     expect(container.querySelectorAll('img')).toHaveLength(1);

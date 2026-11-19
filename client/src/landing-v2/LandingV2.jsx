@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
+import GlobalStyles from '@mui/material/GlobalStyles';
 import { useTitle } from '../components/Page.jsx';
 import { tokensV2 as t } from './tokensV2.js';
 import KineticHero from './KineticHero.jsx';
@@ -26,8 +27,16 @@ import { useLandingLenis } from './smooth.js';
 //   7 Heritage         a blue arch rises, then a sand "50" counts with the scroll
 //   8 Reviews3DV2      the Goldstar reviews (kept)
 //   9 AdventureFinale  pinned, slow finale: "Your adventure begins now.", the star, GOLDSTAR letter by letter
-// Display type: the global Archivo Variable on its width axis (KINETIC in tokensV2), no landing-only font file.
+// Display type: the global Archivo Variable on its width axis (KINETIC in tokensV2); the one landing-only font is the
+// hero headline's brush face (HERO_SCRIPT, below).
 // Smooth scrolling: Lenis on the GSAP ticker (smooth.js), desktop only. No WebGL on this page; the G10 3D story is one link away (/g10). The Footer comes from Layout.
+// The hero headline's brush face: a ~11 KB latin-caps woff2 (preloaded on / in index.html), swap, with a local
+// Impact fallback scaled to the brush's width ("WALK THE": 3.63 em vs Impact's 3.84 em) so the swap shifts nothing.
+const HERO_FONT_FACES = `
+@font-face { font-family: "Caveat Brush Hero"; font-style: normal; font-weight: 400; font-display: swap; src: url(/fonts/caveat-brush-hero.woff2) format("woff2"); }
+@font-face { font-family: "Caveat Brush Hero Fallback"; src: local("Impact"); size-adjust: 94.5%; ascent-override: 101%; descent-override: 32%; line-gap-override: 0%; }
+`;
+
 export default function LandingV2() {
   useTitle('Goldstar · Walking the world for over five decades');
   const rootRef = useRef(null);
@@ -38,6 +47,8 @@ export default function LandingV2() {
   const close = useCallback(() => setModal((m) => ({ ...m, open: false })), []);
 
   return (
+    <>
+    <GlobalStyles styles={HERO_FONT_FACES} />
     <Box
       ref={rootRef}
       id="landing-v2"
@@ -64,5 +75,6 @@ export default function LandingV2() {
       <AdventureFinale />
       <QuickViewModal open={modal.open} onClose={close} product={modal.product} initialColour={modal.colour} />
     </Box>
+    </>
   );
 }
