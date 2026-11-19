@@ -172,16 +172,19 @@ describe('Landing guards (round 2)', () => {
     );
   };
 
-  it('the AppBar is fixed, with a bar background and an AA logo on the light store routes', () => {
+  it('the AppBar is fixed, and the store routes get the frosted white brand bar of the landing (navy logo, royal-blue accents)', () => {
     const { container } = renderBar('/shop');
     const header = container.querySelector('header');
     expect(header.className).toMatch(/MuiAppBar-positionFixed/);
-    expect(header).toHaveAttribute('data-bar', 'light');
-    // ink wordmark and the deep-gold Nepali mark on the light bar ground
-    expect(contrast('#16120E', '#F6F2EA')).toBeGreaterThanOrEqual(4.5);
-    expect(contrast('#75561A', '#F6F2EA')).toBeGreaterThanOrEqual(4.5);
-    // the landing's bar: navy wordmark and royal-blue accents / focus ring on the frosted white bar and on the white
-    // hero while the bar is clear at scroll 0
+    ['/shop', '/product/g10-401', '/login', '/register', '/account', '/checkout', '/no-such-page'].forEach((path) => {
+      const h = renderBar(path).container.querySelector('header');
+      expect(h).toHaveAttribute('data-bar', 'brand'); // never 'clear': only the landing is transparent at the top
+      expect(getComputedStyle(h.querySelector('.brand-text')).color).toBe('rgb(11, 26, 72)');
+    });
+    // admin keeps its light cream bar
+    expect(renderBar('/admin').container.querySelector('header')).toHaveAttribute('data-bar', 'light');
+    // navy wordmark and royal-blue accents / active underline / focus ring on the frosted white bar and on the white
+    // hero while the landing's bar is clear at scroll 0
     expect(contrast('#0B1A48', '#FFFFFF')).toBeGreaterThanOrEqual(7);
     expect(contrast('#2A27E9', '#FFFFFF')).toBeGreaterThanOrEqual(4.5);
     expect(contrast(tokensV2.ink, tokensV2.ground)).toBeGreaterThanOrEqual(7);

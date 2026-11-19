@@ -36,6 +36,7 @@ import { makeLine, addToCartAnimated, pickSourceRect } from '../lib/addToCart.js
 import { ApiError } from '../api/client.js';
 import { formatNPR } from '../lib/format.js';
 import { shop, WIDE } from '../theme/tokens.js';
+import { store } from '../theme/storeTokens.js';
 
 const ProductViewer = lazy(() => import('../three/ProductViewer.jsx'));
 
@@ -422,11 +423,11 @@ export default function Product() {
         <Reveal sx={{ mt: { xs: 8, md: 12 } }}>
           <Band ground="pine" innerSx={{ py: { xs: 5, md: 7 }, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { md: 'center' }, justifyContent: 'space-between', gap: 3 }}>
             <Box>
-              <Eyebrow sx={{ color: shop.saffron, mb: 1.5 }}>Technology · Eight layers</Eyebrow>
+              <Eyebrow sx={{ color: store.sand, mb: 1.5 }}>Technology · Eight layers</Eyebrow>
               <Typography component="h2" sx={{ fontWeight: 800, ...WIDE, textTransform: 'uppercase', fontSize: { xs: 34, md: 'clamp(44px, 4.4vw, 68px)' }, lineHeight: 0.94, letterSpacing: '-0.03em' }}>Designed to endure.</Typography>
-              <Typography sx={{ mt: 1.5, color: '#B9D8CF', maxWidth: '44ch' }}>Laces to outsole, every layer of the G10-401 pulled apart in 3D.</Typography>
+              <Typography sx={{ mt: 1.5, color: store.onBlue2, maxWidth: '44ch' }}>Laces to outsole, every layer of the G10-401 pulled apart in 3D.</Typography>
             </Box>
-            <Button component={RouterLink} to="/g10#story-anatomy" size="large" endIcon={<ArrowRight size={18} strokeWidth={2.25} aria-hidden="true" />} sx={{ alignSelf: { xs: 'flex-start', md: 'center' }, backgroundColor: shop.saffron, color: shop.ink, '&:hover': { backgroundColor: '#FFD34D' } }}>
+            <Button component={RouterLink} to="/g10#story-anatomy" size="large" endIcon={<ArrowRight size={18} strokeWidth={2.25} aria-hidden="true" />} sx={{ alignSelf: { xs: 'flex-start', md: 'center' }, backgroundColor: store.sand, color: store.navy, '&:hover': { backgroundColor: store.ground } }}>
               See it come apart
             </Button>
           </Band>

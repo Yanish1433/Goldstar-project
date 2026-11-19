@@ -278,11 +278,14 @@ export default function AppBar() {
   const story = isStoryPath(loc.pathname);
   const landing = isLandingPath(loc.pathname);
   const scrolled = useScrolled(landing);
-  // Bar states. Store pages: the light frosted bar with the ink logo. Landing: the frosted white bar with the navy
-  // logo and royal-blue accents, transparent only at scroll 0 over the white hero. /g10: a low-alpha frosted bar that takes the story's ink
+  const admin = loc.pathname === '/admin' || loc.pathname.startsWith('/admin/');
+  // Bar states. Landing and the store (shop, product, login, register, account, checkout, and any unknown path):
+  // the frosted white bar with the navy logo and royal-blue accents. Only the landing is transparent, at scroll 0
+  // over its white hero. Admin keeps the light cream bar. /g10: a low-alpha frosted bar that takes the story's ink
   // (its grounds change colour per chapter; an opaque bar would crop the boot and clash).
-  const tone = story ? 'inherit' : landing ? 'brand' : 'light'; // which bar: BAR.brand / BAR.light
-  const bar = landing ? BAR.brand : BAR.light;
+  const brand = !story && !admin;
+  const tone = story ? 'inherit' : brand ? 'brand' : 'light'; // which bar: BAR.brand / BAR.light
+  const bar = brand ? BAR.brand : BAR.light;
   const clear = landing && !scrolled;
 
   const links = (onClick, t = tone) => (
@@ -306,7 +309,7 @@ export default function AppBar() {
       component="header"
       position="fixed"
       elevation={0}
-      data-bar={story ? 'story' : clear ? 'clear' : landing ? 'brand' : 'light'}
+      data-bar={story ? 'story' : clear ? 'clear' : brand ? 'brand' : 'light'}
       sx={{
         zIndex: 1200,
         top: 0,
@@ -369,10 +372,10 @@ export default function AppBar() {
             anchor="right"
             open={menuOpen}
             onClose={closeMenu}
-            PaperProps={{ sx: { width: { xs: '100vw', sm: 360 }, height: '100%', backgroundColor: landing ? '#FFFFFF' : '#0D0C0A', color: landing ? BAR.brand.ink : BAR.dark.ink } }}
+            PaperProps={{ sx: { width: { xs: '100vw', sm: 360 }, height: '100%', backgroundColor: brand ? '#FFFFFF' : '#0D0C0A', color: brand ? BAR.brand.ink : BAR.dark.ink } }}
           >
             <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end' }}>
-              <IconButton aria-label="Close menu" onClick={closeMenu} sx={{ color: landing ? BAR.brand.ink : BAR.dark.ink }}>
+              <IconButton aria-label="Close menu" onClick={closeMenu} sx={{ color: brand ? BAR.brand.ink : BAR.dark.ink }}>
                 <X size={20} strokeWidth={1.75} aria-hidden="true" />
               </IconButton>
             </Box>
@@ -388,7 +391,7 @@ export default function AppBar() {
                 '& .MuiButton-root': { fontSize: 22, minHeight: 52 },
               }}
             >
-              {links(closeMenu, landing ? 'brand' : 'dark')}
+              {links(closeMenu, brand ? 'brand' : 'dark')}
             </Box>
           </Drawer>
         </Suspense>

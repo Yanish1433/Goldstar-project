@@ -18,12 +18,15 @@ export function Eyebrow({ children, sx, component = 'p', ...rest }) {
 }
 
 // --- Badges --------------------------------------------------------------------------------------------------------
+// The landing's palette only (navy, royal blue, sand, white): no green, no red. Each badge differs by more than hue
+// at 11px: New is a sand fill, Trek a navy fill, Sale a white pill with a royal-blue outline, Coming soon a cream pill
+// with a navy outline. AA: navy on sand 9.0:1, white on navy 16.9:1, royal blue on white 7.3:1, navy on cream 16:1.
 const BADGES = {
   new: { label: 'New', bg: store.sand, fg: store.navy },
-  trek: { label: 'Trek', bg: shop.pine, fg: '#FFFFFF' },
-  sale: { label: 'Sale', bg: shop.sale, fg: '#FFFFFF' },
-  soon: { label: 'Coming soon', bg: shop.saffron, fg: shop.ink },
-  out: { label: 'Sold out', bg: shop.ink, fg: '#FFFFFF' },
+  trek: { label: 'Trek', bg: store.navy, fg: store.onBlue },
+  sale: { label: 'Sale', bg: store.ground, fg: store.blue, border: store.blue },
+  soon: { label: 'Coming soon', bg: store.cream, fg: store.navy, border: store.navy },
+  out: { label: 'Sold out', bg: store.navy, fg: store.onBlue },
 };
 
 export function ShopBadge({ kind, sx }) {
@@ -33,7 +36,7 @@ export function ShopBadge({ kind, sx }) {
     <Box
       component="span"
       sx={{
-        display: 'inline-flex', alignItems: 'center', height: 24, px: 1.25, borderRadius: `${shop.radius.pill}px`, backgroundColor: b.bg, color: b.fg,
+        display: 'inline-flex', alignItems: 'center', height: 24, px: 1.25, borderRadius: `${shop.radius.pill}px`, backgroundColor: b.bg, color: b.fg, boxShadow: b.border ? `inset 0 0 0 1.5px ${b.border}` : 'none',
         fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', lineHeight: 1, whiteSpace: 'nowrap', ...WIDE, ...sx,
       }}
     >
@@ -65,14 +68,14 @@ export function descriptorFor(product) {
 }
 
 // --- Price ---------------------------------------------------------------------------------------------------------
-// One price, a range, or a sale price (raspberry) with the regular price struck through.
+// One price, a range, or a sale price (royal blue) with the regular price struck through.
 export function PriceTag({ price, regularPrice, from, to, size = 'md', sx, component = 'p' }) {
   const sale = price != null && regularPrice > price;
   const fs = { sm: 15, md: 17, lg: { xs: 28, md: 34 } }[size];
   const strong = { fontWeight: 800, ...(size === 'lg' ? WIDE : null), letterSpacing: size === 'lg' ? '-0.01em' : 0 };
   return (
     <Box component={component} sx={{ m: 0, display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', columnGap: 1, rowGap: 0.25, fontVariantNumeric: 'tabular-nums', lineHeight: 1.15, ...sx }}>
-      <Box component="span" sx={{ ...strong, fontSize: fs, color: sale ? shop.sale : store.navy }}>
+      <Box component="span" sx={{ ...strong, fontSize: fs, color: sale ? store.blue : store.navy }}>
         {sale ? <span style={srOnly}>Sale price </span> : null}
         {price != null ? formatNPR(price) : formatRange(from, to)}
       </Box>
@@ -83,7 +86,7 @@ export function PriceTag({ price, regularPrice, from, to, size = 'md', sx, compo
             {formatNPR(regularPrice)}
           </Box>
           {size !== 'sm' ? (
-            <Box component="span" sx={{ fontSize: 13, fontWeight: 800, color: shop.sale }}>
+            <Box component="span" sx={{ fontSize: 13, fontWeight: 800, color: store.blue }}>
               Save {Math.round((1 - price / regularPrice) * 100)}%
             </Box>
           ) : null}
@@ -194,7 +197,8 @@ export function TrustRow({ variant = 'row', sx }) {
 // A compact branded band in one of the story's grounds, rounded at the bottom, under the header.
 export const GROUNDS = {
   lilac: { bg: shop.lilac, ink: shop.lilacInk, soft: 'rgba(20,15,51,0.8)' },
-  pine: { bg: shop.pine, ink: '#F4F0E6', soft: '#B9D8CF', accent: shop.saffron },
+  // 'pine' keeps its name for the pages that ask for it, but is the landing's navy now (no green in the store).
+  pine: { bg: store.navy, ink: store.onBlue, soft: store.onBlue2, accent: store.sand },
   aubergine: { bg: shop.aubergine, ink: '#FFFFFF', soft: '#C9BEEA', accent: shop.saffron },
   blue: { bg: shop.blue, ink: '#FFFFFF', soft: '#D9D8FF', accent: shop.saffron },
   cream: { bg: store.cream, ink: store.navy, soft: store.ink2, accent: store.blue },
