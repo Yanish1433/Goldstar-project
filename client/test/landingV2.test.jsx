@@ -13,7 +13,7 @@ import KineticHero, { HERO_LINES, HERO_PHOTO } from '../src/landing-v2/KineticHe
 import Ticker, { RANGES } from '../src/landing-v2/Ticker.jsx';
 import CollectionStack, { COLLECTIONS } from '../src/landing-v2/CollectionStack.jsx';
 import CategoryCards, { CATEGORIES, CATEGORY_LINKS } from '../src/landing-v2/CategoryCards.jsx';
-import AdventureFinale, { FINALE_WORD } from '../src/landing-v2/AdventureFinale.jsx';
+import AdventureFinale, { FINALE_WORD, FINALE_LINES, FINALE_PIN } from '../src/landing-v2/AdventureFinale.jsx';
 import mockProducts from '../src/api/mock/products.json';
 import PopShelf from '../src/landing-v2/PopShelf.jsx';
 import DetailGallery, { DETAILS } from '../src/landing-v2/DetailGallery.jsx';
@@ -272,8 +272,21 @@ describe('Landing sections', () => {
   });
 
   it('AdventureFinale: the g10 finale before the footer, GOLDSTAR as an h2 (one h1 stays the hero), Shop all to /shop', () => {
-    renderWithProviders(<AdventureFinale />);
-    expect(screen.getByText('Your adventure begins now.')).toBeInTheDocument();
+    const { container } = renderWithProviders(<AdventureFinale />);
+    // the line is split into two masked lines for the reveal, but reads as one sentence
+    expect(container.querySelector('[data-flines]').textContent).toBe('Your adventure begins now.');
+    expect(container.querySelectorAll('[data-fline]')).toHaveLength(FINALE_LINES.length);
+    expect(container.querySelectorAll('[data-fletter]')).toHaveLength(FINALE_WORD.length);
+    // the shine copy sits outside the h2 and is hidden from assistive tech and at rest
+    const shine = container.querySelector('[data-fshine]');
+    expect(shine).toHaveAttribute('aria-hidden', 'true');
+    expect(getComputedStyle(shine).visibility).toBe('hidden');
+    // the pin is long and slow: 175% of the viewport on desktop, 100% on phones
+    expect(FINALE_PIN.desk).toBeGreaterThanOrEqual(1.5);
+    expect(FINALE_PIN.phone).toBeGreaterThanOrEqual(1);
+    const src = readFileSync(join(here, '../src/landing-v2/AdventureFinale.jsx'), 'utf8');
+    expect(src).not.toMatch(/back\.out/); // no overshoot pops on a scrub
+    expect(src).toMatch(/pinSpacing: true/);
     const h2 = screen.getByRole('heading', { level: 2, name: 'Goldstar' });
     expect(h2.textContent).toBe(FINALE_WORD);
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
