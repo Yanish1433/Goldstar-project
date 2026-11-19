@@ -38,11 +38,18 @@ const ARCH_RADIUS = `50% 50% 28px 28px / ${((RATIO / 2) * 100).toFixed(2)}% ${((
 // phones included). The brush's stroke ends overhang the advance width a little; nothing here masks overflow.
 // The -4deg tilt sits on the h1 wrapper, never on the letters (the scrub animates their transforms).
 const HL_EM = 3.75;
-const h1Sx = { ...KINETIC, ...HERO_SCRIPT, m: 0, transform: 'rotate(-4deg)', transformOrigin: '0% 100%', pl: '0.04em', pb: '0.08em' };
+// Desktop size is height-aware (svh cap, px floor): the stage grows (min-height) rather than letting the column rise under
+// the fixed AppBar. The -4deg tilt about the bottom-left lifts the right end by ~sin 4deg x line width (~3.7 em x 0.07 =
+// 0.26 em), so the h1 keeps that much padding on top.
+export const HL_SIZE = {
+  xs: `min(calc((100vw - 32px) / ${HL_EM}), 104px)`,
+  md: `clamp(72px, calc(36vw / ${HL_EM}), min(15svh, 170px))`,
+};
+const h1Sx = { ...KINETIC, ...HERO_SCRIPT, fontSize: HL_SIZE, m: 0, transform: 'rotate(-4deg)', transformOrigin: '0% 100%', pl: '0.04em', pt: { xs: '0.1em', md: '0.28em' }, pb: '0.08em' };
 const lineSx = {
   ...HERO_SCRIPT,
   display: 'block',
-  fontSize: { xs: `min(calc((100vw - 32px) / ${HL_EM}), 104px)`, md: `min(calc(44vw / ${HL_EM}), 24svh, 230px)` },
+  fontSize: '1em',
   lineHeight: 0.88,
   whiteSpace: 'nowrap',
   color: t.ink,
@@ -112,9 +119,13 @@ export default function KineticHero() {
         .fromTo('[data-hend]', { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: 0.22 }, 0.74);
       return tl;
     };
+    // The brush face swaps in after first paint and changes the headline's height: re-measure the pins below.
+    let dead = false;
+    document.fonts?.ready.then(() => { if (!dead) ScrollTrigger.refresh(); });
     mm.add(MQ.desk, () => { build(false); });
     mm.add(MQ.phone, () => { build(true); });
     return () => {
+      dead = true;
       mm.revert();
       splits.forEach((s) => s.revert());
     };
@@ -122,29 +133,20 @@ export default function KineticHero() {
 
   return (
     <Box component="section" ref={ref} id="hero" aria-labelledby="landing-h1" sx={{ position: 'relative', backgroundColor: t.ground }}>
-      <Box data-stage sx={{ position: 'relative', height: '100svh', minHeight: { xs: 600, md: 640 }, overflow: 'hidden', isolation: 'isolate', backgroundColor: t.ground }}>
+      <Box data-stage sx={{ position: 'relative', minHeight: { xs: 'max(100svh, 600px)', md: 'max(100svh, 640px)' }, overflow: 'hidden', isolation: 'isolate', backgroundColor: t.ground }}>
         <Box
           sx={{
-            position: 'absolute', inset: 0, display: 'grid', boxSizing: 'border-box',
-            pt: { xs: 'calc(var(--appbar-h, 56px) + 14px)', md: 'calc(var(--appbar-h, 64px) + 3svh)' },
+            position: 'relative', minHeight: 'inherit', display: 'grid', boxSizing: 'border-box',
+            pt: { xs: 'calc(var(--appbar-h, 56px) + 14px)', md: 'calc(var(--appbar-h, 64px) + max(3svh, 16px))' },
             pb: { xs: 'calc(88px + env(safe-area-inset-bottom))', md: '6svh' }, // phones: clear of the WhatsApp button
             px: { xs: 2, md: '4vw' },
             gap: { xs: 2, md: '3vw' },
             gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1.15fr) minmax(0, 1fr)' },
-            gridTemplateRows: { xs: 'auto minmax(0, 1fr) auto', md: 'minmax(0, 1fr) minmax(0, 1fr)' },
+            gridTemplateRows: { xs: 'auto minmax(0, 1fr) auto', md: 'minmax(0, 1fr)' },
           }}
         >
-          {/* Headline block. aria-label on the h1; SplitText's letters are aria-hidden. */}
-          <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: '2.4svh' }, gridColumn: 1, gridRow: 1, alignSelf: { md: 'end' }, minWidth: 0 }}>
-            <Box data-heyebrow component="p" sx={{ ...EYEBROW, m: 0 }}>Goldstar · Made in Nepal</Box>
-            <Box component="h1" id="landing-h1" aria-label={HERO_LABEL} sx={h1Sx}>
-              <Box component="span" data-hline aria-hidden="true" sx={lineSx}>{HERO_LINES[0]}</Box>
-              <Box component="span" data-hline aria-hidden="true" sx={{ ...lineSx, color: t.blue }}>{HERO_LINES[1]}</Box>
-            </Box>
-          </Box>
-
           {/* The arch with the group photo; the photo-sky circle behind it is what floods the screen. */}
-          <Box sx={{ position: 'relative', zIndex: 2, gridColumn: { xs: 1, md: 2 }, gridRow: { xs: 2, md: '1 / span 2' }, display: 'grid', placeItems: 'center', minHeight: 0, containerType: { xs: 'size', md: 'normal' } }}>
+          <Box sx={{ position: 'relative', zIndex: 2, gridColumn: { xs: 1, md: 2 }, gridRow: { xs: 2, md: 1 }, display: 'grid', placeItems: 'center', minHeight: 0, containerType: { xs: 'size', md: 'normal' } }}>
             <Box data-awrap sx={{ position: 'relative', width: ARCH_W, aspectRatio: `${HERO_PHOTO.width} / ${HERO_PHOTO.height}` }}>
               <Box data-flood aria-hidden="true" sx={{ position: 'absolute', left: '6%', width: '88%', top: '6%', aspectRatio: '1', borderRadius: '50%', backgroundColor: t.photoGround }} />
               <Box data-arch sx={{ position: 'absolute', inset: 0 }}>
@@ -167,7 +169,19 @@ export default function KineticHero() {
             </Box>
           </Box>
 
-          <Box data-hcopy sx={{ position: 'relative', zIndex: 1, gridColumn: 1, gridRow: { xs: 3, md: 2 }, alignSelf: { md: 'start' }, pt: { md: '2svh' }, display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 3 }, maxWidth: { md: 440 } }}>
+          {/* Text column: phones lay its two parts out in the grid rows around the arch (display: contents); desktop
+              stacks them in one block centred in the row (never end-aligned: that is what pushed it under the bar). */}
+          <Box data-hcol sx={{ display: { xs: 'contents', md: 'flex' }, flexDirection: 'column', gap: { md: '3svh' }, gridColumn: 1, gridRow: 1, alignSelf: { md: 'center' }, minWidth: 0, position: { md: 'relative' }, zIndex: { md: 1 } }}>
+          {/* Headline block. aria-label on the h1; SplitText's letters are aria-hidden. */}
+          <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: '2.4svh' }, gridColumn: 1, gridRow: 1, minWidth: 0 }}>
+            <Box data-heyebrow component="p" sx={{ ...EYEBROW, m: 0 }}>Goldstar · Made in Nepal</Box>
+            <Box component="h1" id="landing-h1" aria-label={HERO_LABEL} sx={h1Sx}>
+              <Box component="span" data-hline aria-hidden="true" sx={lineSx}>{HERO_LINES[0]}</Box>
+              <Box component="span" data-hline aria-hidden="true" sx={{ ...lineSx, color: t.blue }}>{HERO_LINES[1]}</Box>
+            </Box>
+          </Box>
+
+          <Box data-hcopy sx={{ position: 'relative', zIndex: 1, gridColumn: 1, gridRow: { xs: 3, md: 'auto' }, display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 3 }, maxWidth: { md: 440 } }}>
             <Box component="p" sx={{ m: 0, fontSize: { xs: 15, md: 18 }, lineHeight: 1.55, color: t.ink2, [PHONE]: { display: 'none' } }}>
               Trek boots and everyday sneakers, made in Kathmandu and worn from the Terai to the Khumbu.
             </Box>
@@ -175,6 +189,7 @@ export default function KineticHero() {
               <Cta to="/shop" variant="solid">Shop all footwear</Cta>
               <Cta to="/g10">G10 in 3D</Cta>
             </Box>
+          </Box>
           </Box>
         </Box>
 

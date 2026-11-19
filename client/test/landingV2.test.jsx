@@ -9,7 +9,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import { shopTheme } from '../src/theme/shopTheme.js';
 import { tokensV2, KINETIC, HERO_SCRIPT } from '../src/landing-v2/tokensV2.js';
 import LandingV2 from '../src/landing-v2/LandingV2.jsx';
-import KineticHero, { HERO_LINES, HERO_LABEL, HERO_PHOTO } from '../src/landing-v2/KineticHero.jsx';
+import KineticHero, { HERO_LINES, HERO_LABEL, HERO_PHOTO, HL_SIZE } from '../src/landing-v2/KineticHero.jsx';
 import Ticker, { RANGES } from '../src/landing-v2/Ticker.jsx';
 import CollectionStack, { COLLECTIONS } from '../src/landing-v2/CollectionStack.jsx';
 import CategoryCards, { CATEGORIES, CATEGORY_LINKS } from '../src/landing-v2/CategoryCards.jsx';
@@ -227,6 +227,13 @@ describe('Landing sections', () => {
     const pub = readdirSync(join(here, '../public/img/landing'));
     ['group-600.webp', 'group-904.webp'].forEach((f) => expect(pub).toContain(f));
     expect(container.querySelector('canvas')).toBeNull();
+  });
+
+  it('KineticHero: the desktop headline is height-aware and the text column is never end-aligned (it must not rise under the AppBar)', () => {
+    expect(Number(HL_SIZE.md.match(/(\d+)svh/)[1])).toBeLessThanOrEqual(16);
+    expect(HL_SIZE.md).toMatch(/clamp\(\d+px/); // px floor: the stage grows instead of the type shrinking to nothing
+    const { container } = renderWithProviders(<KineticHero />);
+    expect(getComputedStyle(container.querySelector('[data-hcol]')).alignSelf).not.toBe('end');
   });
 
   it('Ticker: lists every collection once for assistive tech (the scrolling rows are hidden)', () => {
