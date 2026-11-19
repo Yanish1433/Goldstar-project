@@ -7,7 +7,8 @@ import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import CircularProgress from '@mui/material/CircularProgress';
-import { PageBox, useTitle } from '../components/Page.jsx';
+import { useTitle } from '../components/Page.jsx';
+import AuthShell, { authFormSx } from '../components/AuthShell.jsx';
 import PasswordField from '../components/PasswordField.jsx';
 import { useLogin } from '../api/hooks.js';
 import { detailsToErrors, focusFirstInvalid } from '../lib/forms.js';
@@ -45,19 +46,18 @@ export default function Login() {
   };
 
   return (
-    <PageBox sx={{ py: { xs: 6, md: 12 } }}>
-      <Box component="form" ref={ref} noValidate onSubmit={submit} sx={{ maxWidth: 440, display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Typography variant="h3" component="h1">Log in</Typography>
+    <AuthShell eyebrow="Welcome back" headline="Walk the world" title="Log in" intro="Log in to track your orders and check out faster.">
+      <Box component="form" ref={ref} noValidate onSubmit={submit} sx={authFormSx}>
         {formError ? <Alert severity="error" role="alert">{formError}</Alert> : null}
-        <TextField label="Email" type="email" name="email" autoComplete="email" value={form.email} onChange={(e) => { const v = e.target.value; setForm((f) => ({ ...f, email: v })); }} error={!!errors.email} helperText={errors.email} slotProps={{ htmlInput: { 'aria-invalid': !!errors.email } }} />
+        <TextField id="login-email" label="Email" type="email" name="email" autoComplete="email" value={form.email} onChange={(e) => { const v = e.target.value; setForm((f) => ({ ...f, email: v })); }} error={!!errors.email} helperText={errors.email} slotProps={{ htmlInput: { 'aria-invalid': !!errors.email } }} />
         <PasswordField label="Password" name="password" autoComplete="current-password" value={form.password} onChange={(e) => { const v = e.target.value; setForm((f) => ({ ...f, password: v })); }} error={errors.password} />
         <Button type="submit" variant="contained" size="large" aria-disabled={login.isPending} startIcon={login.isPending ? <CircularProgress size={18} color="inherit" /> : null}>
           {login.isPending ? 'Logging in' : 'Log in'}
         </Button>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{ color: '#3A4466', fontSize: 15 }}>
           New here? <Link component={RouterLink} to={next ? `/register?next=${encodeURIComponent(next)}` : '/register'}>Create an account</Link>
         </Typography>
       </Box>
-    </PageBox>
+    </AuthShell>
   );
 }

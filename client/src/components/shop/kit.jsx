@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { Banknote, Check, RotateCcw, Truck } from 'lucide-react';
 import { shop, WIDE } from '../../theme/tokens.js';
+import { store } from '../../theme/storeTokens.js';
 import { formatNPR, formatRange } from '../../lib/format.js';
 import { PageBox } from '../Page.jsx';
 
@@ -18,7 +19,7 @@ export function Eyebrow({ children, sx, component = 'p', ...rest }) {
 
 // --- Badges --------------------------------------------------------------------------------------------------------
 const BADGES = {
-  new: { label: 'New', bg: shop.lilac, fg: shop.lilacInk },
+  new: { label: 'New', bg: store.sand, fg: store.navy },
   trek: { label: 'Trek', bg: shop.pine, fg: '#FFFFFF' },
   sale: { label: 'Sale', bg: shop.sale, fg: '#FFFFFF' },
   soon: { label: 'Coming soon', bg: shop.saffron, fg: shop.ink },
@@ -71,7 +72,7 @@ export function PriceTag({ price, regularPrice, from, to, size = 'md', sx, compo
   const strong = { fontWeight: 800, ...(size === 'lg' ? WIDE : null), letterSpacing: size === 'lg' ? '-0.01em' : 0 };
   return (
     <Box component={component} sx={{ m: 0, display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', columnGap: 1, rowGap: 0.25, fontVariantNumeric: 'tabular-nums', lineHeight: 1.15, ...sx }}>
-      <Box component="span" sx={{ ...strong, fontSize: fs, color: sale ? shop.sale : shop.ink }}>
+      <Box component="span" sx={{ ...strong, fontSize: fs, color: sale ? shop.sale : store.navy }}>
         {sale ? <span style={srOnly}>Sale price </span> : null}
         {price != null ? formatNPR(price) : formatRange(from, to)}
       </Box>
@@ -192,15 +193,15 @@ export function TrustRow({ variant = 'row', sx }) {
 // --- Header band ---------------------------------------------------------------------------------------------------
 // A compact branded band in one of the story's grounds, rounded at the bottom, under the header.
 export const GROUNDS = {
-  tangerine: { bg: shop.tangerine, ink: shop.tangerineInk, soft: 'rgba(26,11,5,0.78)' },
   lilac: { bg: shop.lilac, ink: shop.lilacInk, soft: 'rgba(20,15,51,0.8)' },
   pine: { bg: shop.pine, ink: '#F4F0E6', soft: '#B9D8CF', accent: shop.saffron },
   aubergine: { bg: shop.aubergine, ink: '#FFFFFF', soft: '#C9BEEA', accent: shop.saffron },
   blue: { bg: shop.blue, ink: '#FFFFFF', soft: '#D9D8FF', accent: shop.saffron },
+  cream: { bg: store.cream, ink: store.navy, soft: store.ink2, accent: store.blue },
   saffron: { bg: shop.saffron, ink: '#1A1405', soft: 'rgba(26,20,5,0.8)' },
 };
 
-export function Band({ ground = 'tangerine', children, sx, innerSx }) {
+export function Band({ ground = 'blue', children, sx, innerSx }) {
   const g = GROUNDS[ground];
   return (
     <Box component="section" sx={{ px: { xs: 1, sm: 1.5 }, pt: { xs: 1, sm: 1.5 }, ...sx }}>
