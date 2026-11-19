@@ -6,6 +6,7 @@ import { shop, WIDE } from '../../theme/tokens.js';
 import { store } from '../../theme/storeTokens.js';
 import { formatNPR, formatRange } from '../../lib/format.js';
 import { PageBox } from '../Page.jsx';
+import { PHONE_OR_SHORT } from '../../landing-v2/tokensV2.js';
 
 const srOnly = { position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' };
 
@@ -124,7 +125,7 @@ export function CardSwatches({ product, value, onChange }) {
     return <Typography variant="caption" sx={{ color: shop.ink2, fontWeight: 600 }}>{product.colourways[0]?.name}</Typography>;
   }
   return (
-    <Box role="radiogroup" aria-label={`${product.name} colour`} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: -0.75 }}>
+    <Box role="radiogroup" aria-label={`${product.name} colour`} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: -0.75, [PHONE_OR_SHORT]: { gap: 0, flexWrap: 'wrap', ml: -1.25 } }}>
       {product.colourways.map((c) => {
         const on = c.key === value;
         return (
@@ -137,7 +138,7 @@ export function CardSwatches({ product, value, onChange }) {
             aria-label={c.name}
             title={c.name}
             onClick={() => onChange(c.key)}
-            sx={{ width: 36, height: 36, p: 0, border: 0, background: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center', borderRadius: '50%', '&:hover > span': { transform: 'scale(1.12)' } }}
+            sx={{ width: 36, height: 36, p: 0, border: 0, background: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center', borderRadius: '50%', '&:hover > span': { transform: 'scale(1.12)' }, [PHONE_OR_SHORT]: { width: 44, height: 44 } }}
           >
             <Dot hex={c.hex} selected={on} size={18} />
           </Box>

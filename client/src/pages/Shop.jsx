@@ -15,6 +15,7 @@ import ProductCard, { ProductCardSkeleton } from '../components/shop/ProductCard
 import { Eyebrow, Panel, TrustRow } from '../components/shop/kit.jsx';
 import { useCategories, useProducts } from '../api/hooks.js';
 import { store, DISPLAY, ring } from '../theme/storeTokens.js';
+import { SHORT } from '../landing-v2/tokensV2.js';
 
 const SORTS = [
   { value: 'featured', label: 'Featured' },
@@ -28,6 +29,9 @@ const grid = {
   listStyle: 'none', p: 0, m: 0, display: 'grid',
   gridTemplateColumns: { xs: 'repeat(2, minmax(0,1fr))', md: 'repeat(3, minmax(0,1fr))', xl: 'repeat(4, minmax(0,1fr))' },
   columnGap: { xs: 1.5, sm: 2.5, md: 3 }, rowGap: { xs: 4, md: 6 },
+  // Landscape phones: three or four across (two would make one card taller than the screen).
+  [SHORT]: { gridTemplateColumns: 'repeat(3, minmax(0,1fr))', columnGap: 2, rowGap: 3 },
+  [`${SHORT} and (min-width:800px)`]: { gridTemplateColumns: 'repeat(4, minmax(0,1fr))' },
 };
 
 const LINES = {
@@ -75,6 +79,7 @@ function CategoryPills({ cats, value, onChange }) {
       sx={{
         display: 'flex', gap: 1, overflowX: 'auto', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' },
         py: 0.5, maskImage: mask, WebkitMaskImage: mask, scrollPaddingInline: 16,
+        scrollSnapType: 'x proximity', overscrollBehaviorX: 'contain', '& > button': { scrollSnapAlign: 'start' },
       }}
     >
       {all.map((c) => {
@@ -213,7 +218,7 @@ export default function Shop() {
             '&::after': { content: '""', position: 'absolute', right: { xs: -70, md: -40 }, top: { xs: -80, md: -90 }, width: { xs: 220, md: 340 }, height: { xs: 220, md: 340 }, borderRadius: '50%', backgroundColor: store.blueDeep, opacity: 0.55, pointerEvents: 'none' },
           }}
         >
-          <PageBox sx={{ position: 'relative', zIndex: 1, py: { xs: 2.5, md: 4.5 }, minHeight: { md: 170 }, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { md: 'flex-end' }, justifyContent: 'space-between', gap: { xs: 1, md: 4 } }}>
+          <PageBox sx={{ position: 'relative', zIndex: 1, py: { xs: 2.5, md: 4.5 }, minHeight: { md: 170 }, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { md: 'flex-end' }, justifyContent: 'space-between', gap: { xs: 1, md: 4 }, [SHORT]: { py: 1.5, minHeight: 0, flexDirection: 'row', alignItems: 'flex-end', gap: 3 } }}>
             <Box sx={{ minWidth: 0 }}>
               <Eyebrow sx={{ mb: { xs: 0.5, md: 1.25 }, color: store.sand, display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
                 <Sparkle size={14} fill="currentColor" strokeWidth={0} aria-hidden="true" /> Goldstar Shoes · Made in Nepal
@@ -224,13 +229,13 @@ export default function Shop() {
                 initial={reduced ? false : { opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                sx={{ m: 0, ...DISPLAY, fontSize: { xs: 'clamp(30px, 10vw, 40px)', md: 'clamp(52px, 6vw, 84px)' }, color: '#FFFFFF' }}
+                sx={{ m: 0, ...DISPLAY, fontSize: { xs: 'clamp(30px, 10vw, 40px)', md: 'clamp(52px, 6vw, 84px)' }, [SHORT]: { fontSize: 'clamp(28px, 9svh, 40px)' }, color: '#FFFFFF' }}
               >
                 {title}
               </Box>
             </Box>
             <Box sx={{ maxWidth: 360, pb: { md: 0.5 } }}>
-              <Typography sx={{ fontSize: { xs: 14, md: 17 }, fontWeight: 600, lineHeight: 1.4, color: store.onBlue }}>{LINES[category] || LINES['']}</Typography>
+              <Typography sx={{ fontSize: { xs: 15, md: 17 }, fontWeight: 600, lineHeight: 1.4, color: store.onBlue }}>{LINES[category] || LINES['']}</Typography>
               <Typography aria-live="polite" sx={{ fontSize: 13, fontWeight: 800, color: store.sand, fontVariantNumeric: 'tabular-nums', minHeight: 18, display: { xs: 'none', sm: 'block' }, mt: 0.25 }}>
                 {total == null ? ' ' : `${total} ${total === 1 ? 'style' : 'styles'}`}
               </Typography>

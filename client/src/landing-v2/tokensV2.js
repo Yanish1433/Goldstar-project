@@ -167,6 +167,9 @@ export const PHONE = '@media (max-width:899.95px)';
 // choice. In sx put SHORT after any responsive (xs/md) value it overrides: later rules win.
 export const SHORT_QUERY = '(max-height:500px) and (orientation:landscape)';
 export const SHORT = `@media ${SHORT_QUERY}`;
+// Every phone, portrait or landscape (touch-sized controls, 16px inputs). Never a desktop window.
+export const PHONE_QUERY = `(max-width:899.95px), ${SHORT_QUERY}`;
+export const PHONE_OR_SHORT = `@media ${PHONE_QUERY}`;
 // Side gutters that clear a landscape notch (index.html sets viewport-fit=cover; the insets are 0 everywhere else).
 // Spread into an sx after the element's own px: on short landscape screens the gutter is max(its usual size, inset).
 export const safeX = (minPx = 16) => ({

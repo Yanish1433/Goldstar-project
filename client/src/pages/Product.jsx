@@ -37,6 +37,7 @@ import { ApiError } from '../api/client.js';
 import { formatNPR } from '../lib/format.js';
 import { shop, WIDE } from '../theme/tokens.js';
 import { store } from '../theme/storeTokens.js';
+import { PHONE_OR_SHORT, SHORT } from '../landing-v2/tokensV2.js';
 
 const ProductViewer = lazy(() => import('../three/ProductViewer.jsx'));
 
@@ -95,7 +96,7 @@ function ViewToggle({ value, onChange }) {
             aria-checked={on}
             onClick={() => onChange(v)}
             sx={{
-              display: 'inline-flex', alignItems: 'center', gap: 0.75, minHeight: 36, px: 1.75, border: 0, borderRadius: `${shop.radius.pill}px`, cursor: 'pointer', font: 'inherit', fontSize: 14, fontWeight: 700,
+              display: 'inline-flex', alignItems: 'center', gap: 0.75, minHeight: 36, [PHONE_OR_SHORT]: { minHeight: 44 }, px: 1.75, border: 0, borderRadius: `${shop.radius.pill}px`, cursor: 'pointer', font: 'inherit', fontSize: 14, fontWeight: 700,
               backgroundColor: on ? shop.ink : 'transparent', color: on ? '#FFFFFF' : shop.ink, transition: 'background-color 200ms ease, color 200ms ease',
               '&:focus-visible': { outline: `3px solid ${shop.blue}`, outlineOffset: 1 },
             }}
@@ -270,10 +271,20 @@ export default function Product() {
   useEffect(() => {
     const el = addRef.current;
     if (!el || typeof IntersectionObserver === 'undefined') return undefined;
-    const io = new IntersectionObserver(([e]) => setBarOn(!e.isIntersecting), { rootMargin: '0px 0px -40px 0px' });
+    // Off as soon as any of the real button is on screen: the bar never sits on top of it.
+    const io = new IntersectionObserver(([e]) => setBarOn(!e.isIntersecting), { rootMargin: '0px' });
     io.observe(el);
     return () => io.disconnect();
   }, [product, colour?.key]);
+
+  // While the sticky bar shows (phones only: it is hidden from md up), lift the WhatsApp button and the snackbar above
+  // it (--gs-bottom-ui), so the button never sits on the bar's Add to cart.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (barOn && window.matchMedia?.('(max-width:899.95px)').matches) root.style.setProperty('--gs-bottom-ui', (window.matchMedia('(max-height:500px) and (orientation:landscape)').matches ? 'calc(64px + env(safe-area-inset-bottom))' : 'calc(76px + env(safe-area-inset-bottom))'));
+    else root.style.removeProperty('--gs-bottom-ui');
+    return () => root.style.removeProperty('--gs-bottom-ui');
+  }, [barOn]);
 
   if (isLoading) return <Loading />;
   if (error instanceof ApiError && error.status === 404) return <NotFound />;
@@ -310,8 +321,9 @@ export default function Product() {
           </Box>
         </Box>
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', md: 'minmax(0,7fr) minmax(0,5fr)' }, columnGap: { md: 6, lg: 10 }, rowGap: 3, alignItems: 'start' }}>
-          <Box ref={galleryRef} sx={{ minWidth: 0, position: { md: 'sticky' }, top: { md: 'calc(var(--appbar-h, 64px) + 24px)' } }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', md: 'minmax(0,7fr) minmax(0,5fr)' }, columnGap: { md: 6, lg: 10 }, rowGap: 3, alignItems: 'start', [SHORT]: { gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', columnGap: 3 } }}>
+          {/* Landscape phones: photo beside the details, sticky, and never taller than the screen. */}
+          <Box ref={galleryRef} sx={{ minWidth: 0, position: { md: 'sticky' }, top: { md: 'calc(var(--appbar-h, 64px) + 24px)' }, [SHORT]: { position: 'sticky', top: 'calc(var(--appbar-h, 52px) + 12px)', width: '100%', maxWidth: 'calc(100svh - var(--appbar-h, 52px) - 32px)', justifySelf: 'center' } }}>
             {can3d && view === '3d' ? (
               <Box sx={{ position: 'relative', borderRadius: { xs: `${shop.radius.lg}px`, md: `${shop.radius.xl}px` }, overflow: 'hidden', backgroundColor: '#E9E3D8' }}>
                 <Quiet3D fallback={<ProductPhoto image={main} alt={main?.alt || `${product.name} in ${colour.name}`} sizes="(min-width:900px) 55vw, 100vw" />}>
@@ -444,9 +456,11 @@ export default function Product() {
           display: { xs: 'flex', md: 'none' }, position: 'fixed', left: 8, right: 8, bottom: 'calc(8px + env(safe-area-inset-bottom, 0px))', zIndex: 1100,
           alignItems: 'center', gap: 1.5, p: 1, pl: 2, borderRadius: `${shop.radius.pill}px`, backgroundColor: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(12px)', boxShadow: shop.shadowFloat,
           transform: barOn ? 'translateY(0)' : 'translateY(140%)', transition: 'transform 320ms cubic-bezier(0.22,1,0.36,1)',
+          // Landscape phones: just the button, bottom right (the short screen keeps its height for the page).
+          [SHORT]: { left: 'auto', right: 'max(8px, env(safe-area-inset-right))', p: 0.5, pl: 0.5, '& [data-barinfo]': { display: 'none' } },
         }}
       >
-        <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Box data-barinfo sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontSize: 14, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}{size ? ` · UK ${size}` : ''}</Typography>
           <PriceTag price={colour.price} regularPrice={colour.regularPrice} size="sm" />
         </Box>
