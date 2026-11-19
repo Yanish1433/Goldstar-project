@@ -7,11 +7,13 @@ import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@mui/material/styles';
 import { shopTheme } from '../src/theme/shopTheme.js';
-import { tokensV2 } from '../src/landing-v2/tokensV2.js';
+import { tokensV2, KINETIC } from '../src/landing-v2/tokensV2.js';
 import LandingV2 from '../src/landing-v2/LandingV2.jsx';
-import KineticHero, { HERO_LINES } from '../src/landing-v2/KineticHero.jsx';
+import KineticHero, { HERO_LINES, HERO_PHOTO } from '../src/landing-v2/KineticHero.jsx';
 import Ticker, { RANGES } from '../src/landing-v2/Ticker.jsx';
-import CollectionStack, { COLLECTIONS } from '../src/landing-v2/CollectionStack.jsx';
+import CategoryCards, { CATEGORIES, CATEGORY_LINKS } from '../src/landing-v2/CategoryCards.jsx';
+import AdventureFinale, { FINALE_WORD } from '../src/landing-v2/AdventureFinale.jsx';
+import mockProducts from '../src/api/mock/products.json';
 import PopShelf from '../src/landing-v2/PopShelf.jsx';
 import DetailGallery, { DETAILS } from '../src/landing-v2/DetailGallery.jsx';
 import Heritage, { HERITAGE_LINES } from '../src/landing-v2/Heritage.jsx';
@@ -98,7 +100,7 @@ describe('Landing (daylight) palette', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('two hue families only: every chromatic token is brand blue (blue, navy) or sand', () => {
+  it('two hue families only: every chromatic token is brand blue (blue, navy) or sand, plus the hero photo ground', () => {
     const hue = (hex) => {
       const n = parseInt(hex.slice(1), 16);
       const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => v / 255);
@@ -116,8 +118,14 @@ describe('Landing (daylight) palette', () => {
         if (!c || c.s < 0.2) return; // neutral
         const blue = c.h >= 220 && c.h <= 250;
         const sand = c.h >= 25 && c.h <= 50;
+        if (k === 'photoGround') return; // the one sanctioned extra hue: the hero photo's own sky (checked below)
         expect([k, blue || sand]).toEqual([k, true]);
       });
+  });
+
+  it('photoGround (the hero photo sky) is the only extra hue, and navy ink reads on it', () => {
+    expect(tokensV2.photoGround).toBe('#57C8E1');
+    expect(contrast(tokensV2.ink, tokensV2.photoGround)).toBeGreaterThanOrEqual(7);
   });
 
   it('the brand colours are the ones goldstarshoes.com uses', () => {
@@ -138,11 +146,13 @@ describe('Landing guards (round 2)', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('the display font is scoped to the landing: the theme FONT_STACK is unchanged', () => {
-    expect(FONT_STACK).not.toMatch(/Sofia/);
+  it('the display face is the /g10 finale face: the theme family (Archivo) on its wide axis, no landing-only font file', () => {
     expect(FONT_STACK).toMatch(/Archivo/);
-    const themeDir = join(here, '../src/theme');
-    readdirSync(themeDir).forEach((f) => expect([f, /Sofia/.test(readFileSync(join(themeDir, f), 'utf8'))]).toEqual([f, false]));
+    expect(KINETIC.fontFamily).toMatch(/^"Archivo Variable"/);
+    expect(KINETIC.fontVariationSettings).toBe('"wdth" 112');
+    expect(KINETIC.fontWeight).toBeGreaterThanOrEqual(800);
+    landingFiles().forEach((f) => expect([f, /@font-face|\/fonts\//.test(readFileSync(join(landingDir, f), 'utf8'))]).toEqual([f, false]));
+    expect(readFileSync(join(here, '../index.html'), 'utf8')).not.toMatch(/\.woff2/);
   });
 
   it('every photo is served locally: API image URLs map onto public/img/catalogue, nothing hotlinks goldstarshoes.com', () => {
@@ -187,18 +197,22 @@ describe('Landing guards (round 2)', () => {
 describe('Landing sections', () => {
   beforeEach(() => useCart.setState({ lines: [] }));
 
-  it('KineticHero: whole headline at first paint (aria-label on the h1), real LCP <img>, both CTAs, no canvas, no backdrop photo', () => {
+  it('KineticHero: whole headline at first paint (aria-label on the h1), the group photo as the LCP <img>, both CTAs, no canvas', () => {
     const { container } = renderWithProviders(<KineticHero />);
     const h1 = screen.getByRole('heading', { level: 1, name: /Walk the world/i });
     HERO_LINES.forEach((l) => expect(h1).toHaveTextContent(new RegExp(l, 'i')));
     expect(screen.getByRole('link', { name: /Shop all footwear/i })).toHaveAttribute('href', '/shop');
     expect(screen.getByRole('link', { name: /^G10 in 3D/i })).toHaveAttribute('href', '/g10');
     expect(container.querySelectorAll('img')).toHaveLength(1);
-    const img = container.querySelector('[data-hcard] img');
+    const img = container.querySelector('[data-arch] img');
     expect(img).toHaveAttribute('fetchpriority', 'high');
-    expect(img).toHaveAttribute('width', '1600');
-    expect(img.getAttribute('srcset')).toMatch(/800w.*1600w/);
-    expect(img.getAttribute('src')).toMatch(/^\/img\/catalogue\//);
+    expect(img).not.toHaveAttribute('loading', 'lazy');
+    expect(img).toHaveAttribute('width', String(HERO_PHOTO.width));
+    expect(img).toHaveAttribute('height', String(HERO_PHOTO.height));
+    expect(img.getAttribute('srcset')).toMatch(/group-600\.webp 600w.*group-904\.webp 904w/);
+    expect(img.getAttribute('src')).toMatch(/^\/img\/landing\/group-/);
+    const pub = readdirSync(join(here, '../public/img/landing'));
+    ['group-600.webp', 'group-904.webp'].forEach((f) => expect(pub).toContain(f));
     expect(container.querySelector('canvas')).toBeNull();
   });
 
@@ -208,11 +222,35 @@ describe('Landing sections', () => {
     expect(within(region).getAllByRole('listitem').map((li) => li.textContent)).toEqual(RANGES);
   });
 
-  it('CollectionStack: Trek Everyday, Sneak into Comfort, Women and Kids cards link into the shop', () => {
-    renderWithProviders(<CollectionStack />);
-    expect(screen.getByRole('heading', { level: 2, name: /Four ways to walk/i })).toBeInTheDocument();
-    expect(COLLECTIONS.map((c) => c.title)).toEqual(['Trek Everyday', 'Sneak into Comfort', 'Women', 'Kids']);
-    COLLECTIONS.forEach((c) => expect(screen.getByRole('link', { name: new RegExp(`^Shop ${c.title}`) })).toHaveAttribute('href', c.to));
+  it('CategoryCards: Trek Everyday, Sneakers and Casual Shoes, each one link into a real shop category', () => {
+    const { container } = renderWithProviders(<CategoryCards />);
+    expect(screen.getByRole('heading', { level: 2, name: /Made for every road/i })).toBeInTheDocument();
+    expect(CATEGORIES.map((c) => c.title)).toEqual(['Trek Everyday', 'Sneakers', 'Casual Shoes']);
+    const slugs = new Set(mockProducts.flatMap((p) => p.categories));
+    Object.values(CATEGORY_LINKS).forEach((to) => expect(slugs.has(new URL(to, 'http://x').searchParams.get('category'))).toBe(true));
+    const files = readdirSync(join(here, '../public/img/categories'));
+    CATEGORIES.forEach((c) => {
+      const link = screen.getByRole('link', { name: new RegExp(`^Shop ${c.title}`) });
+      expect(link).toHaveAttribute('href', c.to);
+      expect(link.querySelectorAll('a')).toHaveLength(0); // no nested links
+      expect(within(link).getByRole('heading', { level: 3, hidden: true })).toHaveTextContent(c.title);
+      const img = link.querySelector('img');
+      expect(img).toHaveAttribute('loading', 'lazy');
+      expect(img).toHaveAttribute('width', '675');
+      expect(img).toHaveAttribute('height', '900');
+      img.getAttribute('srcset').split(', ').forEach((s) => expect(files).toContain(s.split(' ')[0].split('/').pop()));
+    });
+    expect(container.querySelectorAll('[data-catcard]')).toHaveLength(3);
+  });
+
+  it('AdventureFinale: the g10 finale before the footer, GOLDSTAR as an h2 (one h1 stays the hero), Shop all to /shop', () => {
+    renderWithProviders(<AdventureFinale />);
+    expect(screen.getByText('Your adventure begins now.')).toBeInTheDocument();
+    const h2 = screen.getByRole('heading', { level: 2, name: 'Goldstar' });
+    expect(h2.textContent).toBe(FINALE_WORD);
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
+    expect(screen.getByText('गोल्डस्टार')).toHaveAttribute('lang', 'ne');
+    expect(screen.getByRole('link', { name: /Shop all/ })).toHaveAttribute('href', '/shop');
   });
 
   it('PopShelf (the shoes pop-up centrepiece): cards link to products, quick view opens, add to cart adds a proper cart line', async () => {
@@ -270,11 +308,12 @@ describe('Landing sections', () => {
     expect(screen.getByText(/Suman Gurung/i)).toBeInTheDocument();
   });
 
-  it('LandingV2: every section in order, hero first and reviews last, no canvas', () => {
+  it('LandingV2: every section in order, hero first and the adventure finale last, one h1, no canvas', () => {
     const { container } = renderWithProviders(<LandingV2 />);
     expect(screen.getByRole('heading', { level: 1, name: /Walk the world/i })).toBeInTheDocument();
     const ids = [...container.querySelectorAll('#landing-v2 > section')].map((el) => el.id || el.getAttribute('aria-label'));
-    expect(ids).toEqual(['hero', 'Goldstar collections', 'collections', 'all-shoes', 'details', 'heritage', 'reviews-section']);
+    expect(ids).toEqual(['hero', 'Goldstar collections', 'categories', 'all-shoes', 'details', 'heritage', 'reviews-section', 'adventure']);
+    expect(container.querySelectorAll('h1')).toHaveLength(1);
     expect(container.querySelector('canvas')).toBeNull();
   });
 });

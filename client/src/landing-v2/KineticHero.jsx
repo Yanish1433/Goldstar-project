@@ -1,32 +1,48 @@
 import { useRef } from 'react';
 import Box from '@mui/material/Box';
-import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_TILE, PHONE } from './tokensV2.js';
+import { tokensV2 as t, KINETIC, EYEBROW, PHONE } from './tokensV2.js';
 import { Cta, StarShape } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
-import { HERO_SHOT } from './shots.js';
 
-// 1. Hero. First paint is a complete, still composition on a white ground: the headline whole in big navy type
-// ("Walk the / world"), the G10-401 pair on a white card tilted over a royal-blue disc, the copy and both CTAs, two
-// sand Goldstar stars. The pair is a real <img fetchpriority=high> with its size set (the LCP). Nothing starts hidden.
-// Signature move (pinned, scrubbed, reverses on the way up): the letters split and fly apart, the blue disc swells
-// until it floods the whole screen (a colour wipe that carries straight into the blue ticker below), the card
-// straightens and glides to the centre, the stars spin up, and the brand line lands in white on blue.
+// 1. Hero. First paint is a complete, still composition on a white ground: the headline whole in big, wide navy
+// type ("Walk the / world"), the Goldstar group photo (four friends in Goldstar sneakers on the photo's own sky blue,
+// with its orange ribbons) in a tall arch, the copy and both CTAs, two sand Goldstar stars. The photo is a real
+// <img fetchpriority=high> with its size set (the LCP). Nothing starts hidden.
+// Signature move (pinned, scrubbed, reverses on the way up): the letters split and fly apart, the photo's own sky
+// floods the screen from behind the arch (a flat photoGround circle that swells: the arch's edges melt into it), the
+// arch glides to the centre, the stars spin up, and the brand line lands in navy on the sky.
 // Only transform / opacity are animated (no filters, no clip-paths on scroll).
 export const HERO_LINES = ['Walk the', 'world'];
 export const HERO_LABEL = 'Walk the world. Goldstar shoes, made in Nepal for over five decades.';
 
-// The disc and the card (CSS lengths, so the still composition needs no JS).
-// Phones / tablets: as big as its grid cell allows (the cell is a size container), so short and tall screens both fill.
-const DISC = { xs: 'min(88cqw, 94cqh, 460px)', md: 'min(38vw, 62svh, 620px)' };
-const CARD = 0.6; // card side, as a share of the disc
+// The photo: 904 x 1044 (the cleaned goldstarshoes.com original is 1024 x 1264; it is never upscaled: the arch is
+// at most 600 CSS px wide). Phones / tablets: as big as its grid cell allows (the cell is a size container).
+export const HERO_PHOTO = {
+  src: '/img/landing/group-904.webp',
+  srcSet: '/img/landing/group-600.webp 600w, /img/landing/group-904.webp 904w',
+  sizes: '(max-width: 899.95px) 78vw, 38vw',
+  width: 904,
+  height: 1044,
+  alt: 'Four friends in Goldstar sneakers laughing together on a sky-blue backdrop with orange ribbons',
+};
+const RATIO = HERO_PHOTO.width / HERO_PHOTO.height;
+const ARCH_W = {
+  xs: `min(84cqw, calc(96cqh * ${RATIO.toFixed(4)}), 440px)`,
+  md: `min(38vw, calc((100svh - var(--appbar-h, 64px) - 12svh) * ${RATIO.toFixed(4)}), 600px)`,
+};
+// A true semicircle on top: horizontal radius half the width, vertical radius the same length (w/2 = RATIO/2 of h).
+const ARCH_RADIUS = `50% 50% 28px 28px / ${((RATIO / 2) * 100).toFixed(2)}% ${((RATIO / 2) * 100).toFixed(2)}% 28px 28px`;
 
+// Headline size from the longest line: "WALK THE" in the wide face is HL_EM ems wide (measured in Chromium at
+// weight 880, wdth 112, -0.02em), so the line never overflows its column (320 px phones included).
+const HL_EM = 6.1;
 const lineSx = {
   ...KINETIC,
   display: 'block',
   fontWeight: 880,
-  fontSize: { xs: 'clamp(72px, 24vw, 140px)', md: 'clamp(104px, min(12.6vw, 24svh), 270px)' },
-  lineHeight: 0.82,
-  letterSpacing: '-0.012em',
+  fontSize: { xs: `min(calc((100vw - 32px) / ${HL_EM}), 120px)`, md: `min(calc(46vw / ${HL_EM}), 19svh, 200px)` },
+  lineHeight: 0.86,
+  letterSpacing: '-0.02em',
   whiteSpace: 'nowrap',
   color: t.ink,
   willChange: 'transform',
@@ -40,7 +56,7 @@ export default function KineticHero() {
     const lines = root.querySelectorAll('[data-hline]');
     const splits = [...lines].map((l) => new SplitText(l, { type: 'chars', charsClass: 'hc', aria: 'none' }));
     const stage = root.querySelector('[data-stage]');
-    const wrap = root.querySelector('[data-dwrap]');
+    const wrap = root.querySelector('[data-awrap]');
     // Geometry from untransformed boxes, relative to the stage (the stage is the screen while pinned).
     const geo = () => {
       const s = stage.getBoundingClientRect();
@@ -48,7 +64,7 @@ export default function KineticHero() {
       const cx = w.left - s.left + w.width / 2;
       const cy = w.top - s.top + w.height / 2;
       const far = Math.max(Math.hypot(cx, cy), Math.hypot(s.width - cx, cy), Math.hypot(cx, s.height - cy), Math.hypot(s.width - cx, s.height - cy));
-      return { cx, cy, W: s.width, H: s.height, cover: (far * 2) / Math.max(1, w.width) + 0.08 };
+      return { cx, cy, W: s.width, H: s.height, aw: w.width, ah: w.height, cover: (far * 2) / Math.max(1, w.width * 0.88) + 0.08 };
     };
     const [a, b] = splits;
 
@@ -71,20 +87,19 @@ export default function KineticHero() {
         .to(b.chars, { xPercent: 300, yPercent: (i) => (i % 2 ? 18 : -14), rotate: (i) => (i % 2 ? 8 : -6), stagger: { each: 0.03, from: 'start' }, duration: 0.55 }, 0)
         .to('[data-hcopy]', { y: 50, autoAlpha: 0, duration: 0.22 }, 0)
         .to('[data-heyebrow]', { y: -30, autoAlpha: 0, duration: 0.22 }, 0)
-        // The disc floods the screen (a transform). No will-change / 3D layer on the disc and the card: a layer
-        // rasterised at rest size and scaled up 5x goes soft; repainting a flat circle per frame is cheap.
-        .fromTo('[data-disc]', { scale: 1 }, { scale: () => geo().cover, duration: 0.7, ease: 'power2.in', force3D: false }, 0.08)
-        // The card straightens and glides to the centre of the screen, a little above the brand line.
-        .fromTo('[data-hcard]', { x: 0, y: 0, rotate: -6, scale: 1 }, {
+        // The photo's sky floods the screen from behind the arch (a flat circle, transform only; no will-change: a
+        // layer rasterised at rest size and scaled up goes soft, repainting a flat circle per frame is cheap).
+        .fromTo('[data-flood]', { scale: 1 }, { scale: () => geo().cover, duration: 0.7, ease: 'power2.in', force3D: false }, 0.08)
+        // The arch glides to the centre of the screen, sized to leave room for the brand line below it.
+        .fromTo('[data-arch]', { x: 0, y: 0, scale: 1 }, {
           x: () => { const g = geo(); return g.W / 2 - g.cx; },
-          y: () => { const g = geo(); return g.H * (phone ? 0.42 : 0.44) - g.cy; },
-          rotate: 0,
-          scale: phone ? 1.15 : 1.12,
+          y: () => { const g = geo(); return g.H * (phone ? 0.42 : 0.43) - g.cy; },
+          scale: () => { const g = geo(); return Math.min((g.H * (phone ? 0.56 : 0.62)) / g.ah, (g.W * 0.86) / g.aw); },
           duration: 0.75,
           ease: 'power2.inOut',
           force3D: false,
         }, 0.08)
-        .fromTo('[data-hcard] img', { scale: 1 }, { scale: 1.08, duration: 0.75, force3D: false }, 0.08)
+        .fromTo('[data-arch] img', { scale: 1 }, { scale: 1.06, duration: 0.75, force3D: false }, 0.08)
         // The stars spin up and drift (depth: the near one travels further).
         .to('[data-hstar="1"]', { rotate: 220, yPercent: -160, xPercent: -40, scale: 1.4, duration: 1 }, 0)
         .to('[data-hstar="2"]', { rotate: -160, yPercent: -90, xPercent: 60, duration: 1 }, 0)
@@ -122,22 +137,22 @@ export default function KineticHero() {
             </Box>
           </Box>
 
-          {/* The disc and the card with the pair. */}
+          {/* The arch with the group photo; the photo-sky circle behind it is what floods the screen. */}
           <Box sx={{ position: 'relative', zIndex: 2, gridColumn: { xs: 1, md: 2 }, gridRow: { xs: 2, md: '1 / span 2' }, display: 'grid', placeItems: 'center', minHeight: 0, containerType: { xs: 'size', md: 'normal' } }}>
-            <Box data-dwrap sx={{ position: 'relative', width: DISC, aspectRatio: '1', display: 'grid', placeItems: 'center' }}>
-              <Box data-disc aria-hidden="true" sx={{ position: 'absolute', inset: 0, borderRadius: '50%', backgroundColor: t.blue }} />
-              <Box data-hcard sx={{ position: 'relative', width: `${CARD * 100}%`, aspectRatio: '1', borderRadius: { xs: `${t.radiusMd}px`, md: `${t.radiusLg}px` }, backgroundColor: t.white, boxShadow: t.shadowOnBlue, overflow: 'hidden', transform: 'rotate(-6deg)', display: 'grid', placeItems: 'center' }}>
+            <Box data-awrap sx={{ position: 'relative', width: ARCH_W, aspectRatio: `${HERO_PHOTO.width} / ${HERO_PHOTO.height}` }}>
+              <Box data-flood aria-hidden="true" sx={{ position: 'absolute', left: '6%', width: '88%', top: '6%', aspectRatio: '1', borderRadius: '50%', backgroundColor: t.photoGround }} />
+              <Box data-arch sx={{ position: 'absolute', inset: 0, borderRadius: ARCH_RADIUS, overflow: 'hidden', backgroundColor: t.photoGround, boxShadow: t.shadowElevated }}>
                 <Box
                   component="img"
-                  src={HERO_SHOT.src}
-                  srcSet={HERO_SHOT.srcSet}
-                  sizes="(max-width: 899.95px) 46vw, 23vw"
-                  alt={HERO_SHOT.alt}
-                  width={1600}
-                  height={1600}
+                  src={HERO_PHOTO.src}
+                  srcSet={HERO_PHOTO.srcSet}
+                  sizes={HERO_PHOTO.sizes}
+                  alt={HERO_PHOTO.alt}
+                  width={HERO_PHOTO.width}
+                  height={HERO_PHOTO.height}
                   fetchPriority="high"
                   decoding="async"
-                  sx={{ width: '108%', maxWidth: 'none', height: 'auto', aspectRatio: '1', mixBlendMode: 'multiply', filter: PHOTO_TILE }}
+                  sx={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', transformOrigin: '50% 60%' }}
                 />
               </Box>
             </Box>
@@ -160,10 +175,10 @@ export default function KineticHero() {
           <StarShape data-hstar="2" sx={{ position: 'absolute', width: { xs: 26, md: 'clamp(30px, 2.6vw, 44px)' }, left: { xs: '5%', md: 'auto' }, right: { md: '5%' }, top: { xs: '58%', md: '80%' }, transform: 'rotate(14deg)', willChange: 'transform' }} />
         </Box>
 
-        {/* The brand line, revealed in white on the flooded blue at the end of the scene. */}
-        <Box data-hend sx={{ position: 'absolute', zIndex: 4, left: 0, right: 0, bottom: { xs: '10svh', md: '8svh' }, textAlign: 'center', color: t.onBlue, px: 2, opacity: 0, visibility: 'hidden' }}>
-          <Box component="p" sx={{ ...EYEBROW, color: t.sand, m: 0 }}>G10-401 · Trek Everyday</Box>
-          <Box component="p" sx={{ ...KINETIC, fontWeight: 760, fontSize: { xs: 34, md: 60 }, mt: 1 }}>Walking the world for over five decades</Box>
+        {/* The brand line, revealed in navy on the flooded sky at the end of the scene. */}
+        <Box data-hend sx={{ position: 'absolute', zIndex: 4, left: 0, right: 0, bottom: { xs: '9svh', md: '6svh' }, textAlign: 'center', color: t.ink, px: 2, opacity: 0, visibility: 'hidden' }}>
+          <Box component="p" sx={{ ...EYEBROW, color: t.ink, m: 0 }}>Goldstar · Made in Nepal</Box>
+          <Box component="p" sx={{ ...KINETIC, fontWeight: 800, fontSize: { xs: 'clamp(22px, 6.4vw, 30px)', md: 'clamp(30px, 3vw, 50px)' }, mt: 1, mx: 'auto', maxWidth: '22ch', textWrap: 'balance' }}>Walking the world for over five decades</Box>
         </Box>
       </Box>
     </Box>

@@ -35,5 +35,3 @@ export function shelfPhoto(product, colour) {
   const thumb = localise(colour?.image?.thumb || colour?.image?.src);
   return { src: thumb, thumb, srcSet: undefined };
 }
-
-export const HERO_SHOT = { ...shot('C_M09888-2-scaled-2'), alt: 'A pair of black Goldstar G10-401 trek boots' };

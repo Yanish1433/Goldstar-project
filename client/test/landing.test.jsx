@@ -123,7 +123,7 @@ describe('footer', () => {
 });
 
 describe('landing page (production landing)', () => {
-  it('renders the scroll-story landing: hero, collections, shoe pop-up shelf, details, heritage, reviews and footer', async () => {
+  it('renders the scroll-story landing: hero, categories, shoe pop-up shelf, details, heritage, reviews, finale and footer', async () => {
     const router = createMemoryRouter(routes, { initialEntries: ['/'] });
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(
@@ -132,12 +132,13 @@ describe('landing page (production landing)', () => {
     expect(await screen.findByRole('heading', { level: 1, name: /Walk the world/i }, { timeout: 15000 })).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: /Shop all footwear/i })[0]).toHaveAttribute('href', '/shop');
     expect(screen.getAllByRole('link', { name: /^G10 in 3D/i })[0]).toHaveAttribute('href', '/g10');
-    expect(screen.getByRole('heading', { level: 2, name: /Four ways to walk/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: /Made for every road/i })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { level: 2, name: /G10-401/i })).toBeNull(); // no G10 section on the landing
     expect(screen.getByRole('heading', { level: 2, name: /Pick a pair/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: /Built in the details/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: /Walking the world\s*for over five decades/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: /Tested on the Trails/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Goldstar' })).toBeInTheDocument();
     expect(await screen.findByRole('article', { name: 'AX-3' }, { timeout: 15000 })).toBeInTheDocument();
     expect(screen.getByText('GOLDSTAR STRIDE LTD')).toBeInTheDocument();
   }, 30000);

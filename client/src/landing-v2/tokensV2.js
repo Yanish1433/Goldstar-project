@@ -29,6 +29,10 @@ const C = {
   sandSoft: '#F7E9CB', // sand wash (pills, glows)
   sandDeep: '#7A5915', // sand as text on light grounds (sale, ratings)
   white: '#FFFFFF',
+  // The one sanctioned extra hue (round 4): the sky-blue ground of the hero's group photo (the mean of the photo's
+  // edge pixels). Used only as the hero's photo ground, so the "flood" carries the photo's own sky to the screen
+  // edges. Never a text colour, never on royal blue.
+  photoGround: '#57C8E1',
 };
 
 export const tokensV2 = {
@@ -93,16 +97,19 @@ export const FOCUS_RING = {
 };
 export const FOCUS_RING_LIGHT = FOCUS_RING;
 
-// The landing's display face: Sofia Sans Extra Condensed, a variable condensed grotesk (wght 1-1000), self-hosted
-// from /fonts and scoped to the landing root (LandingV2 declares the @font-face; the global theme font is
-// untouched). The metric-matched fallback keeps the swap from shifting the layout.
-export const KINETIC_FAMILY = '"Sofia Sans XC", "Sofia Sans XC Fallback", "Arial Narrow", sans-serif';
+// The landing's display face (round 4, the captain: "use this kind of writing font", the /g10 finale): the global
+// theme family, Archivo Variable, on its width axis: heavy and extended (the WIDE recipe of src/landing/ui.jsx and
+// the story finale: weight 800, wdth 112, -0.035em). @fontsource-variable/archivo/wdth.css is already loaded by
+// main.jsx, so the landing ships no font file of its own.
+export const KINETIC_FAMILY = '"Archivo Variable", "Mukta", system-ui, sans-serif';
+export const WIDE = { fontStretch: '112%', fontVariationSettings: '"wdth" 112' };
 export const KINETIC = {
   fontFamily: KINETIC_FAMILY,
+  ...WIDE,
   fontWeight: 800,
   textTransform: 'uppercase',
-  letterSpacing: '-0.01em',
-  lineHeight: 0.86,
+  letterSpacing: '-0.035em',
+  lineHeight: 0.9,
   m: 0,
 };
 
