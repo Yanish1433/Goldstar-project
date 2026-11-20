@@ -13,6 +13,7 @@ import { ShoppingBag, Menu, X } from 'lucide-react';
 import { tokens } from '../theme/tokens.js';
 import { PAGE_PX } from './Page.jsx';
 import { SHORT } from '../landing-v2/tokensV2.js';
+import { useBackToClose } from '../lib/useBackToClose.js';
 import { useMe } from '../api/hooks.js';
 import { useCart, cartCount, cartVisibleCount } from '../store/cart.js';
 import { useUi } from '../store/ui.js';
@@ -271,6 +272,7 @@ export default function AppBar() {
   const isAdmin = me.data?.role === 'admin';
   const menuSeen = useRef(false);
   if (menuOpen) menuSeen.current = true;
+  useBackToClose(menuOpen, closeMenu); // phones: Back closes the menu
 
   useEffect(() => {
     closeMenu();

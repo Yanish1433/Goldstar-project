@@ -14,6 +14,8 @@ import { useQuote } from '../api/hooks.js';
 import { formatNPR } from '../lib/format.js';
 import { shop } from '../theme/tokens.js';
 import QtyStepper from './QtyStepper.jsx';
+import { useBackToClose } from '../lib/useBackToClose.js';
+import { SHORT, PHONE_OR_SHORT } from '../landing-v2/tokensV2.js';
 import { Thumb, TrustRow } from './shop/kit.jsx';
 
 export default function CartDrawer() {
@@ -28,6 +30,7 @@ export default function CartDrawer() {
   const navigate = useNavigate();
   const [priceChanged, setPriceChanged] = useState(false);
   const reduced = useReducedMotion();
+  useBackToClose(open, close); // phones: Back closes the cart
 
   const items = useMemo(() => lines.map((l) => ({ productId: l.productId, colourwayKey: l.colourwayKey, size: l.size, qty: l.qty })), [lines]);
   // Re-price from the server whenever the drawer opens (queryKey changes with the lines; staleTime 0).
@@ -50,7 +53,12 @@ export default function CartDrawer() {
       anchor="right"
       open={open}
       onClose={close}
-      slotProps={{ paper: { sx: { width: { xs: '100vw', sm: 440 }, display: 'flex', flexDirection: 'column', borderRadius: { sm: `${shop.radius.xl}px 0 0 ${shop.radius.xl}px` } }, 'aria-labelledby': 'cart-title' } }}
+      slotProps={{ paper: { sx: {
+        width: { xs: '100vw', sm: 440 }, display: 'flex', flexDirection: 'column', borderRadius: { sm: `${shop.radius.xl}px 0 0 ${shop.radius.xl}px` },
+        // Landscape phones (~320-430px tall): the whole sheet scrolls (a fixed header + summary would leave the item
+        // list a sliver), and its edge clears the notch / home indicator.
+        [SHORT]: { overflowY: 'auto', pr: 'env(safe-area-inset-right)', pb: 'env(safe-area-inset-bottom)', '& [data-cartlist]': { flex: 'none', overflowY: 'visible' } },
+      }, 'aria-labelledby': 'cart-title' } }}
       transitionDuration={{ enter: 380, exit: 240 }}
     >
       <Box sx={{ px: 3, pt: 2.5, pb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${shop.line}` }}>
@@ -78,7 +86,7 @@ export default function CartDrawer() {
         </Box>
       ) : (
         <>
-          <Box component="ul" aria-label="Items in your cart" sx={{ listStyle: 'none', m: 0, flex: 1, overflowY: 'auto', px: 3, py: 1 }}>
+          <Box component="ul" data-cartlist aria-label="Items in your cart" sx={{ listStyle: 'none', m: 0, flex: 1, overflowY: 'auto', px: 3, py: 1 }}>
             <AnimatePresence initial={false}>
             {lines.map((l, i) => {
               const id = lineId(l);
@@ -106,7 +114,7 @@ export default function CartDrawer() {
                     {prob ? <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 700 }}>{prob.message}</Typography> : null}
                     <Box sx={{ mt: 'auto', pt: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                       <QtyStepper size="sm" value={l.qty} onChange={(q) => setQty(id, q)} label={`Quantity for ${l.name} ${l.colourwayName} UK ${l.size}`} />
-                      <Button variant="text" size="small" aria-label={`Remove ${l.name} ${l.colourwayName} UK ${l.size}`} onClick={() => remove(id)} sx={{ color: shop.ink2, minHeight: 40, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 4 }}>
+                      <Button variant="text" size="small" aria-label={`Remove ${l.name} ${l.colourwayName} UK ${l.size}`} onClick={() => remove(id)} sx={{ color: shop.ink2, minHeight: 40, [PHONE_OR_SHORT]: { minHeight: 44 }, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 4 }}>
                         Remove
                       </Button>
                     </Box>
