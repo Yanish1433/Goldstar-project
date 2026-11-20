@@ -72,6 +72,13 @@ export const shopTheme = createTheme({
     MuiTextField: { defaultProps: { variant: 'outlined' } },
     MuiInputLabel: { styleOverrides: { root: { color: s.ink2, '&.Mui-focused': { color: s.blue }, '&.Mui-error': { color: s.error } } } },
     MuiFormHelperText: { styleOverrides: { root: { fontSize: 14, marginLeft: 4, marginTop: 6 } } },
+    // Phones: every text field is at least 16px (smaller makes iOS zoom the page on focus). Scoped to phones, so
+    // desktop input sizes stay as they are.
+    MuiInputBase: {
+      styleOverrides: {
+        input: { '@media (max-width:899.95px), (max-height:500px) and (orientation:landscape)': { fontSize: 'max(16px, 1em)' } },
+      },
+    },
     MuiOutlinedInput: {
       styleOverrides: {
         root: {

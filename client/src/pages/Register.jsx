@@ -68,17 +68,17 @@ export default function Register() {
     });
   };
   const field = (k, label, extra = {}) => (
-    <TextField id={`reg-${k}`} label={label} name={k} value={form[k]} onChange={set(k)} onBlur={blur(k)} error={!!errors[k]} helperText={errors[k] || extra.help} slotProps={{ htmlInput: { 'aria-invalid': !!errors[k] } }} {...extra.props} />
+    <TextField id={`reg-${k}`} label={label} name={k} value={form[k]} onChange={set(k)} onBlur={blur(k)} error={!!errors[k]} helperText={errors[k] || extra.help} slotProps={{ htmlInput: { 'aria-invalid': !!errors[k], enterKeyHint: 'next', ...extra.input } }} {...extra.props} />
   );
 
   return (
     <AuthShell eyebrow="Join Goldstar" headline="Join Goldstar" title="Create an account" intro="Create an account to save your details and follow your orders.">
       <Box component="form" ref={ref} noValidate onSubmit={submit} sx={authFormSx}>
         {formError ? <Alert severity="error" role="alert">{formError}</Alert> : null}
-        {field('name', 'Full name', { props: { autoComplete: 'name' } })}
-        {field('email', 'Email', { props: { type: 'email', autoComplete: 'email' } })}
-        {field('phone', 'Mobile number (optional)', { props: { type: 'tel', autoComplete: 'tel' }, help: 'For delivery calls, e.g. 98XXXXXXXX.' })}
-        <PasswordField label="Password" name="password" autoComplete="new-password" value={form.password} onChange={set('password')} error={errors.password} rule={RULE} />
+        {field('name', 'Full name', { props: { autoComplete: 'name' }, input: { autoCapitalize: 'words' } })}
+        {field('email', 'Email', { props: { type: 'email', autoComplete: 'email' }, input: { inputMode: 'email', autoCapitalize: 'none', autoCorrect: 'off', spellCheck: false } })}
+        {field('phone', 'Mobile number (optional)', { props: { type: 'tel', autoComplete: 'tel' }, input: { inputMode: 'tel' }, help: 'For delivery calls, e.g. 98XXXXXXXX.' })}
+        <PasswordField label="Password" name="password" autoComplete="new-password" enterKeyHint="go" value={form.password} onChange={set('password')} error={errors.password} rule={RULE} />
         <Button type="submit" variant="contained" size="large" aria-disabled={reg.isPending} startIcon={reg.isPending ? <CircularProgress size={18} color="inherit" /> : null}>
           {reg.isPending ? 'Creating account' : 'Create account'}
         </Button>

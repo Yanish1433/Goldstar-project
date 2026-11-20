@@ -5,7 +5,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import { Eye, EyeOff } from 'lucide-react';
 
 // `rule` is the always-visible rule text tied to the field with aria-describedby.
-export default function PasswordField({ error, rule, label = 'Password', ...rest }) {
+export default function PasswordField({ error, rule, label = 'Password', enterKeyHint, ...rest }) {
   const [show, setShow] = useState(false);
   const id = useId();
   const helperId = `${id}-help`;
@@ -18,7 +18,7 @@ export default function PasswordField({ error, rule, label = 'Password', ...rest
       error={!!error}
       helperText={error || rule}
       slotProps={{
-        htmlInput: { 'aria-invalid': !!error, 'aria-describedby': error || rule ? helperId : undefined },
+        htmlInput: { 'aria-invalid': !!error, 'aria-describedby': error || rule ? helperId : undefined, autoCapitalize: 'none', autoCorrect: 'off', spellCheck: false, enterKeyHint },
         formHelperText: { id: helperId },
         input: {
           endAdornment: (

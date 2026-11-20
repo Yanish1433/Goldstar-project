@@ -49,8 +49,8 @@ export default function Login() {
     <AuthShell eyebrow="Welcome back" headline="Walk the world" title="Log in" intro="Log in to track your orders and check out faster.">
       <Box component="form" ref={ref} noValidate onSubmit={submit} sx={authFormSx}>
         {formError ? <Alert severity="error" role="alert">{formError}</Alert> : null}
-        <TextField id="login-email" label="Email" type="email" name="email" autoComplete="email" value={form.email} onChange={(e) => { const v = e.target.value; setForm((f) => ({ ...f, email: v })); }} error={!!errors.email} helperText={errors.email} slotProps={{ htmlInput: { 'aria-invalid': !!errors.email } }} />
-        <PasswordField label="Password" name="password" autoComplete="current-password" value={form.password} onChange={(e) => { const v = e.target.value; setForm((f) => ({ ...f, password: v })); }} error={errors.password} />
+        <TextField id="login-email" label="Email" type="email" name="email" autoComplete="email" value={form.email} onChange={(e) => { const v = e.target.value; setForm((f) => ({ ...f, email: v })); }} error={!!errors.email} helperText={errors.email} slotProps={{ htmlInput: { 'aria-invalid': !!errors.email, inputMode: 'email', autoCapitalize: 'none', autoCorrect: 'off', spellCheck: false, enterKeyHint: 'next' } }} />
+        <PasswordField label="Password" name="password" autoComplete="current-password" enterKeyHint="go" value={form.password} onChange={(e) => { const v = e.target.value; setForm((f) => ({ ...f, password: v })); }} error={errors.password} />
         <Button type="submit" variant="contained" size="large" aria-disabled={login.isPending} startIcon={login.isPending ? <CircularProgress size={18} color="inherit" /> : null}>
           {login.isPending ? 'Logging in' : 'Log in'}
         </Button>
