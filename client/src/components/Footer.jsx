@@ -134,7 +134,8 @@ export function WhatsAppIcon({ size }) {
 // what lies under it (elementsFromPoint, once per frame) and steps aside (fades out, not clickable) whenever a link,
 // button, input or price is beneath it; it comes back as soon as the spot is clear. Desktop keeps the plain button.
 export const WA_AVOID_QUERY = '(max-width:899.95px), (max-height:500px) and (orientation:landscape)';
-const CONTROL = 'a[href], button, input, select, textarea, label, [role="button"], [data-price]';
+// (a whole form field counts: its label, input and helper text)
+const CONTROL = 'a[href], button, input, select, textarea, label, [role="button"], [data-price], .MuiFormControl-root';
 export function useStepAside(ref) {
   useEffect(() => {
     const el = ref.current;
