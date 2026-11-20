@@ -15,6 +15,19 @@ export function loadGsap() {
       // Phones: the address bar showing / hiding changes the viewport height on every scroll direction change. Those
       // resizes must not re-measure (and re-pin) the scenes: only width changes (rotation) and real resizes do.
       ScrollTrigger.config({ ignoreMobileResize: true });
+      // ignoreMobileResize only ignores height changes under 25% of the screen: on a landscape phone (~320-430px
+      // tall) the bar is more than that, so the scenes would re-pin mid-scroll. Touch-only devices therefore drop
+      // ScrollTrigger's own resize refresh and refresh only when the width changes (rotation). Content height changes
+      // are still caught by useRefreshOnResize below. Desktop (mouse) keeps the default.
+      if (ScrollTrigger.isTouch === 1 && typeof window !== 'undefined') {
+        ScrollTrigger.config({ ignoreMobileResize: true, autoRefreshEvents: 'visibilitychange,DOMContentLoaded,load' });
+        let w = window.innerWidth;
+        window.addEventListener('resize', () => {
+          if (window.innerWidth === w) return;
+          w = window.innerWidth;
+          ScrollTrigger.refresh();
+        });
+      }
       // Refresh in page order, every time. Each pin's spacer pushes everything below it down, so a pin must be measured
       // after every pin above it. Triggers are created in whatever order sections happen to build (the shelf waits for
       // its products; gsap.matchMedia rebuilds a section's triggers when the window crosses a breakpoint and appends
