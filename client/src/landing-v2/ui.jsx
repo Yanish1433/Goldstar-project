@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useRef } from 'react';
 import { Link as RouterLink } from 'react-router';
 import Box from '@mui/material/Box';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Check } from 'lucide-react';
 import { tokensV2 as t, FOCUS_RING, EASE_CSS, DISPLAY_LIGHT, EYEBROW, FINE_POINTER } from './tokensV2.js';
 import { magnetic } from './motion.js';
 
@@ -83,6 +83,23 @@ export function Cta({ to, href, variant = 'line', onBlue = false, children, icon
     >
       {children}
       {icon ? <ArrowUpRight size={18} strokeWidth={2} aria-hidden="true" /> : null}
+    </Box>
+  );
+}
+
+// A short list of facts, each with a sand disc + navy check (a fill on light grounds: sand is never the text here).
+// Reserved height: it renders with the page, never inserted later.
+export function CheckList({ items, sx, ...p }) {
+  return (
+    <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexDirection: 'column', gap: 1.25, ...sx }} {...p}>
+      {items.map((it) => (
+        <Box component="li" key={it} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, fontSize: 15, fontWeight: 600, lineHeight: 1.3, color: t.ink }}>
+          <Box component="span" aria-hidden="true" sx={{ width: 22, height: 22, borderRadius: '50%', backgroundColor: t.sand, color: t.ink, display: 'grid', placeItems: 'center', flex: '0 0 auto' }}>
+            <Check size={13} strokeWidth={3} />
+          </Box>
+          {it}
+        </Box>
+      ))}
     </Box>
   );
 }

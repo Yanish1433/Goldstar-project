@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import Box from '@mui/material/Box';
 import { tokensV2 as t, KINETIC, HERO_SCRIPT, EYEBROW, PHONE, SHORT } from './tokensV2.js';
-import { Cta, StarShape } from './ui.jsx';
+import { Cta, StarShape, CheckList } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
 
 // 1. Hero. First paint is a complete, still composition on a white ground: the headline whole in big, wide navy
@@ -12,6 +12,7 @@ import { useSectionMotion, MQ } from './motion.js';
 // floods the screen from behind the arch (a flat photoGround circle that swells: the arch's edges melt into it), the
 // arch glides to the centre, the stars spin up, and the brand line lands in navy on the sky.
 // Only transform / opacity are animated (no filters, no clip-paths on scroll).
+export const HERO_FACTS = ['Made in Kathmandu, Nepal', 'Deep-lugged rubber outsoles', 'Over five decades of Goldstar'];
 export const HERO_LINES = ['Walk the', 'world'];
 export const HERO_LABEL = 'Walk the world. Goldstar shoes, made in Nepal for over five decades.';
 
@@ -148,8 +149,9 @@ export default function KineticHero() {
             pt: { xs: 'calc(var(--appbar-h, 56px) + 14px)', md: 'calc(var(--appbar-h, 64px) + max(3svh, 16px))' },
             pb: { xs: 'calc(88px + env(safe-area-inset-bottom))', md: '6svh' }, // phones: clear of the WhatsApp button
             px: { xs: 2, md: '4vw' },
-            gap: { xs: 2, md: '3vw' },
-            gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1.15fr) minmax(0, 1fr)' },
+            gap: { xs: 2, md: 'clamp(40px, 5vw, 96px)' },
+            justifyContent: { md: 'center' },
+            gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, max-content) minmax(0, max-content)' },
             gridTemplateRows: { xs: 'auto minmax(0, 1fr) auto', md: 'minmax(0, 1fr)' },
             // Landscape phones: text column left, arch right, one row; the gutters clear a notch.
             [SHORT]: {
@@ -199,6 +201,7 @@ export default function KineticHero() {
             <Box component="p" sx={{ m: 0, fontSize: { xs: 15, md: 18 }, lineHeight: 1.55, color: t.ink2, [PHONE]: { display: 'none' }, [SHORT]: { display: 'none' } }}>
               Trek boots and everyday sneakers, made in Kathmandu and worn from the Terai to the Khumbu.
             </Box>
+            <CheckList items={HERO_FACTS} sx={{ display: 'none', '@media (min-width:900px) and (min-height:700px)': { display: 'flex' }, [SHORT]: { display: 'none' } }} />
             <Box sx={{ display: 'flex', gap: { xs: 1, md: 1.5 }, flexWrap: { xs: 'nowrap', md: 'wrap' }, '& > a': { [PHONE]: { px: 2, fontSize: 14, flex: '1 1 auto' }, [SHORT]: { px: 2.5, fontSize: 14, flex: '0 1 auto' }, [`${SHORT} and (max-width:699.95px)`]: { px: 2, '& svg': { display: 'none' } } }, '@media (max-width:359.95px)': { flexWrap: 'wrap' }, [SHORT]: { flexWrap: 'nowrap' } }}>
               <Cta to="/shop" variant="solid">Shop all footwear</Cta>
               <Cta to="/g10">G10 in 3D</Cta>

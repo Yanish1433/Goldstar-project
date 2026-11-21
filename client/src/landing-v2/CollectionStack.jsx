@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import { ArrowUpRight } from 'lucide-react';
 import { useCategories } from '../api/hooks.js';
 import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_TILE, FOCUS_RING, EASE_CSS, FINE_POINTER, PHONE, SHORT } from './tokensV2.js';
-import { Eyebrow, Display, WRAP } from './ui.jsx';
+import { Eyebrow, Display, WRAP, CheckList } from './ui.jsx';
 import { useSectionMotion } from './motion.js';
 import { shot } from './shots.js';
 
@@ -19,16 +19,19 @@ export const COLLECTIONS = [
     key: 'women', no: '01', title: 'Women', cat: 'women', to: '/shop?category=women',
     line: 'The G10 L2102 in pink and grey: a trek boot cut for women, light enough for every day.',
     photo: { ...shot('C_M09743-2-1-scaled-2'), alt: 'Goldstar G10 L2102 boots in pink and grey' }, tile: true,
+    facts: ['Made in Kathmandu, Nepal', 'Deep-lugged rubber outsole', 'Pink-and-grey G10 L2102'],
   },
   {
     key: 'men', no: '02', title: 'Men', cat: 'men', to: '/shop?category=men',
     line: 'The AX range: clean low-tops on a soft cupsole, in black, coffee and grey, from the office to the ghat.',
     photo: { ...shot('C_M09597-1-scaled-2'), alt: 'A pair of black Goldstar AX sneakers' }, tile: true,
+    facts: ['Made in Kathmandu, Nepal', 'Soft white cupsole', 'Clean low-top, office to ghat'],
   },
   {
     key: 'kids', no: '03', title: 'Kids', cat: null, to: '/shop', note: 'In Goldstar stores',
     line: 'School shoes and play pairs, built to last a full year of running. Find them in our stores across Nepal.',
     photo: { ...shot('C_M09563-3-scaled-2'), alt: 'A pair of grey Goldstar sneakers' }, tile: true,
+    facts: ['Made in Kathmandu, Nepal', 'Built to last a full year', 'Find them in our stores'],
   },
 ];
 
@@ -57,7 +60,7 @@ function Card({ c, i, count }) {
         to={c.to}
         aria-label={`Shop ${c.title}${count ? `, ${count} styles` : ''}`}
         sx={{
-          position: 'relative', height: '100%', display: 'grid', gridTemplateColumns: { xs: '1fr', md: '5fr 6fr' }, gridTemplateRows: { xs: 'auto 1fr', md: '1fr' },
+          position: 'relative', height: '100%', display: 'grid', gridTemplateColumns: { xs: '1fr', md: '4.5fr 6.5fr' }, gridTemplateRows: { xs: 'auto 1fr', md: '1fr' },
           // Landscape phones: text beside the photo (stacked, the photo would be a sliver).
           [SHORT]: { gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gridTemplateRows: '1fr' },
           borderRadius: { xs: `${t.radiusLg}px`, md: `${t.radiusXl}px` }, overflow: 'hidden', textDecoration: 'none', color: t.ink,
@@ -66,16 +69,17 @@ function Card({ c, i, count }) {
           [FINE_POINTER]: { '&:hover [data-arrow]': { transform: 'rotate(45deg)', backgroundColor: t.blue, borderColor: t.blue, color: t.onBlue } },
         }}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 2, p: { xs: 2.5, md: 5 }, [SHORT]: { p: 2.5, gap: 1 }, minWidth: 0 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 2, p: { xs: 2.5, md: 4 }, [SHORT]: { p: 2.5, gap: 1 }, minWidth: 0 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box component="span" sx={{ ...EYEBROW, color: t.ink3, fontVariantNumeric: 'tabular-nums' }}>{c.no} / {String(COLLECTIONS.length).padStart(2, '0')}</Box>
             <Box data-arrow component="span" aria-hidden="true" sx={{ width: 48, height: 48, borderRadius: '50%', display: 'grid', placeItems: 'center', border: `1px solid ${t.lineStrong}` }}>
               <ArrowUpRight size={22} strokeWidth={1.5} />
             </Box>
           </Box>
+          <CheckList items={c.facts} sx={{ display: 'none', '@media (min-width:900px) and (min-height:560px)': { display: 'flex' }, [SHORT]: { display: 'none' } }} />
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: 2.5 } }}>
-            <Box component="h3" sx={{ ...KINETIC, fontSize: { xs: 'clamp(40px, 13vw, 64px)', md: 'clamp(64px, 6.4vw, 120px)' }, [SHORT]: { fontSize: 'clamp(32px, 12svh, 52px)' }, fontWeight: 800, lineHeight: 0.86 }}>{c.title}</Box>
-            <Box component="p" sx={{ m: 0, maxWidth: '40ch', fontSize: { xs: 15, md: 17 }, lineHeight: 1.55, color: t.ink2, [PHONE]: { fontSize: 15 }, [SHORT]: { fontSize: 15, lineHeight: 1.45 } }}>{c.line}</Box>
+            <Box component="h3" sx={{ ...KINETIC, fontSize: { xs: 'clamp(40px, 13vw, 64px)', md: 'clamp(64px, 6vw, 100px)' }, [SHORT]: { fontSize: 'clamp(32px, 12svh, 52px)' }, fontWeight: 800, lineHeight: 0.86 }}>{c.title}</Box>
+            <Box component="p" sx={{ m: 0, maxWidth: { xs: '40ch', md: '46ch' }, fontSize: { xs: 15, md: 18 }, lineHeight: 1.55, color: t.ink2, [PHONE]: { fontSize: 15 }, [SHORT]: { fontSize: 15, lineHeight: 1.45 } }}>{c.line}</Box>
             <Box component="span" sx={{ ...EYEBROW, color: t.blue }}>{c.note || (count ? `${count} styles online` : 'Shop online')}</Box>
           </Box>
         </Box>
