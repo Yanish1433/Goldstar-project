@@ -189,7 +189,7 @@ describe('Landing guards (round 2)', () => {
     ['/shop', '/product/g10-401', '/login', '/register', '/account', '/checkout', '/no-such-page'].forEach((path) => {
       const h = renderBar(path).container.querySelector('header');
       expect(h).toHaveAttribute('data-bar', 'brand'); // never 'clear': only the landing is transparent at the top
-      expect(getComputedStyle(h.querySelector('.brand-text')).color).toBe('rgb(11, 26, 72)');
+      expect(h.querySelector('a[aria-label="Goldstar home"] img').getAttribute('src')).toBe('/brand/goldstar-mark.webp'); // navy logo
     });
     // admin keeps its light cream bar
     expect(renderBar('/admin').container.querySelector('header')).toHaveAttribute('data-bar', 'light');
@@ -203,7 +203,7 @@ describe('Landing guards (round 2)', () => {
   it('the AppBar is clear only at the top of the landing (navy wordmark over the white hero), and frosted on /g10', () => {
     const home = renderBar('/').container.querySelector('header');
     expect(home).toHaveAttribute('data-bar', 'clear');
-    expect(getComputedStyle(home.querySelector('.brand-text')).color).toBe('rgb(11, 26, 72)');
+    expect(home.querySelector('a[aria-label="Goldstar home"] img').getAttribute('src')).toBe('/brand/goldstar-mark.webp'); // navy logo
     expect(renderBar('/g10').container.querySelector('header')).toHaveAttribute('data-bar', 'story');
   });
 });

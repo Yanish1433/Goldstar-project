@@ -103,7 +103,8 @@ export const shopTheme = createTheme({
     MuiDialogActions: { styleOverrides: { root: { padding: '16px 28px 28px', gap: 8 } } },
     MuiTableCell: {
       styleOverrides: {
-        root: { borderBottom: `1px solid ${s.line}`, padding: '14px 16px', fontSize: 15, color: s.ink },
+        // Touch: a link in a cell (the account's "View" order link) gets a 44 px hit band without changing the row height.
+        root: { borderBottom: `1px solid ${s.line}`, padding: '14px 16px', fontSize: 15, color: s.ink, '@media (pointer: coarse)': { '& a:not(.MuiButtonBase-root)': { display: 'inline-block', paddingBlock: 14, marginBlock: -14, minWidth: 44 } } },
         head: { fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: s.ink2, backgroundColor: 'transparent' },
         alignRight: { fontVariantNumeric: 'tabular-nums' },
       },

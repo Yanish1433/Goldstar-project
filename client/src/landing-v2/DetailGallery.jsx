@@ -30,7 +30,7 @@ export default function DetailGallery() {
       });
       tl.to(track, { x: () => -dist(), duration: 1 }, 0)
         .fromTo('[data-gimg]', { xPercent: 6 }, { xPercent: -6, duration: 1 }, 0)
-        .fromTo('[data-gno]', { xPercent: 60 }, { xPercent: -60, duration: 1 }, 0);
+        .fromTo('[data-gno]', { xPercent: 10 }, { xPercent: -50, duration: 1 }, 0);
     });
     return () => mm.revert();
   });

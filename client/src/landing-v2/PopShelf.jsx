@@ -100,7 +100,7 @@ export function PopCard({ product, onQuickView }) {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.5, [PHONE]: { flexDirection: 'column', gap: 0.25 } }}>
           <Box sx={{ minWidth: 0 }}>
             <Box component="h3" sx={{ ...KINETIC, fontSize: { xs: 26, md: 34 }, fontWeight: 760, lineHeight: 0.95, color: t.ink }}>
-              <Box component={RouterLink} to={href} tabIndex={-1} sx={{ color: 'inherit', textDecoration: 'none' }}>{product.name}</Box>
+              <Box component={RouterLink} to={href} tabIndex={-1} sx={{ color: 'inherit', textDecoration: 'none', display: 'inline-block', py: '10px', my: '-10px' }}>{product.name}</Box>
             </Box>
             <Box component="p" sx={{ m: 0, mt: 0.5, fontSize: 13, color: t.ink2 }}>{c.name}{product.colourways.length > 1 ? ` · ${product.colourways.length} colours` : ''}</Box>
           </Box>

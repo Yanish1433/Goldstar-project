@@ -7,37 +7,17 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Badge from '@mui/material/Badge';
 const Drawer = lazy(() => import('@mui/material/Drawer'));
-import Typography from '@mui/material/Typography';
 import { useReducedMotion } from 'motion/react';
 import { ShoppingBag, Menu, X } from 'lucide-react';
 import { tokens } from '../theme/tokens.js';
 import { PAGE_PX } from './Page.jsx';
 import { SHORT } from '../landing-v2/tokensV2.js';
+import Logo from '../landing/Logo.jsx';
 import { useBackToClose } from '../lib/useBackToClose.js';
 import { useMe } from '../api/hooks.js';
 import { useCart, cartCount, cartVisibleCount } from '../store/cart.js';
 import { useUi } from '../store/ui.js';
 import { isLandingPath, isStoryPath } from '../lib/paths.js';
-
-export function Star({ size = 22 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <defs>
-        <linearGradient id="gsStarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FFE066" />
-          <stop offset="50%" stopColor="#FFB800" />
-          <stop offset="100%" stopColor="#E69500" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"
-        fill="url(#gsStarGrad)"
-        stroke="#E69500"
-        strokeWidth="0.5"
-      />
-    </svg>
-  );
-}
 
 // Bar palettes. Every text colour here is AA (>= 4.5:1) on its bar: ivory on the dark bars, ink and deep gold on the
 // light store bar (the white wordmark with a glow used to vanish on the white bar on /shop), navy and Goldstar royal
@@ -61,8 +41,9 @@ function useScrolled(active) {
   return scrolled;
 }
 
-// The Goldstar logo. tone names the bar it sits on: 'dark' (ivory wordmark), 'light' (ink wordmark on the light
-// store bar), 'brand' (navy wordmark, blue Nepali mark: the landing), 'inherit' (the /g10 story's current ink).
+// The Goldstar logo (the "GoldStar®" crop of the real wordmark). tone names the bar it sits on: 'dark' (white
+// wordmark), 'light' and 'brand' (navy wordmark), 'inherit' (the /g10 story's current ink, via a CSS mask).
+// The link carries the accessible name, so the image is decorative (alt="").
 function AnimatedGoldstarLogo({ tone = 'dark' }) {
   const reduced = useReducedMotion();
   const navigate = useNavigate();
@@ -87,84 +68,27 @@ function AnimatedGoldstarLogo({ tone = 'dark' }) {
       component="a"
       href="/"
       onClick={handleLogoClick}
-      aria-label="Goldstar Shoes Homepage - Go to top of first page"
+      aria-label="Goldstar home"
       sx={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 1.25,
         textDecoration: 'none',
         minHeight: 44,
         py: 0.5,
         cursor: 'pointer',
-        backgroundColor: 'transparent',
-        border: 'none',
-        boxShadow: 'none',
-        transition: 'transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-        '&:hover': {
-          '& .star-box': { transform: 'rotate(24deg) scale(1.15)' },
-        },
+        flex: '0 0 auto',
+        '& .gs-logo': { transition: reduced ? 'none' : 'opacity 200ms ease, transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1)' },
+        '&:hover .gs-logo': { opacity: 0.82, transform: reduced ? 'none' : 'translateY(-1px)' },
         '&:focus-visible': { outline: `2px solid ${tone === 'inherit' ? 'currentColor' : BAR[tone].hover}`, outlineOffset: 4, borderRadius: '6px' },
       }}
     >
-      {/* Animated Glowing Star (Highlighted with Radiant Glow) */}
-      <Box
-        className="star-box"
-        sx={{
-          display: 'grid',
-          placeItems: 'center',
-          transition: reduced ? 'none' : 'transform 350ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-        }}
-      >
-        <Star size={26} />
-      </Box>
-
-      {/* Brand Wordmark & Nepali Tag (Highlighted with Contrast Shadows, No Background) */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-        <Typography
-          className="brand-text"
-          component="span"
-          sx={{
-            fontWeight: 900,
-            fontSize: { xs: 20, sm: 23 },
-            letterSpacing: '0.07em',
-            color: tone === 'inherit' ? 'inherit' : BAR[tone].ink,
-            transition: 'color 260ms ease',
-          }}
-        >
-          GOLDSTAR
-        </Typography>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.25 }}>
-          <Typography
-            component="span"
-            lang="ne"
-            sx={{
-              fontFamily: '"Mukta", system-ui, sans-serif',
-              fontWeight: 800,
-              fontSize: 12,
-              color: tone === 'inherit' ? 'inherit' : BAR[tone].sub,
-              letterSpacing: '0.02em',
-            }}
-          >
-            गोल्डस्टार
-          </Typography>
-          <Box
-            component="span"
-            sx={{
-              fontSize: 8.5,
-              fontWeight: 900,
-              px: 0.6,
-              py: 0.1,
-              borderRadius: '4px',
-              color: tone === 'inherit' ? 'inherit' : BAR[tone].sub,
-              border: '1px solid currentColor',
-              letterSpacing: '0.06em',
-            }}
-          >
-            NEPAL
-          </Box>
-        </Box>
-      </Box>
+      <Logo
+        variant="mark"
+        tone={tone === 'inherit' ? 'current' : tone === 'dark' ? 'white' : 'navy'}
+        alt=""
+        className="gs-logo"
+        sx={{ height: { xs: 26, sm: 30, md: 34 } }}
+      />
     </Box>
   );
 }

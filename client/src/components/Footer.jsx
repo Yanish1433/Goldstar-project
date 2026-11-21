@@ -269,10 +269,10 @@ export default function Footer() {
           // Phones: the page ends with room for the floating WhatsApp button, so at the very bottom it sits over empty
           // ground, never over the credits or the last links.
           [`@media ${WA_AVOID_QUERY}`]: { pb: 'calc(88px + env(safe-area-inset-bottom) + var(--gs-bottom-ui, 0px))', pl: 'max(20px, env(safe-area-inset-left))', pr: 'max(20px, env(safe-area-inset-right))' } }}>
-          <Box component="p" sx={{ m: 0, fontSize: { xs: 12, md: 13 }, fontWeight: 600, letterSpacing: '0.12em' }}>
+          <Box component="p" sx={{ m: 0, fontSize: { xs: 14, md: 13 }, fontWeight: 600, letterSpacing: '0.12em' }}>
             © 2025 GOLDSTAR SHOES | All Rights Reserved
           </Box>
-          <Box component="p" id="credits" sx={{ m: 0, mt: 1, fontSize: 12, lineHeight: 1.6, color: brand.onNight2, opacity: 0.85, maxWidth: '90ch', mx: 'auto', scrollMarginTop: 160 }}>
+          <Box component="p" id="credits" sx={{ m: 0, mt: 1, fontSize: { xs: 14, md: 13 }, lineHeight: 1.6, color: brand.onNight2, opacity: 0.85, maxWidth: '90ch', mx: 'auto', scrollMarginTop: 160 }}>
             Concept store. The 3D G10-401 is modelled part by part from Goldstar product photography; product names, photos and prices from goldstarshoes.com. Fonts: Archivo and Mukta, SIL Open Font License. Brand icons: Simple Icons (CC0).
           </Box>
         </Box>

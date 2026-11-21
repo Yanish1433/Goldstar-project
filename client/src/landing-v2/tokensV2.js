@@ -171,6 +171,11 @@ export const SHORT = `@media ${SHORT_QUERY}`;
 // Every phone, portrait or landscape (touch-sized controls, 16px inputs). Never a desktop window.
 export const PHONE_QUERY = `(max-width:899.95px), ${SHORT_QUERY}`;
 export const PHONE_OR_SHORT = `@media ${PHONE_QUERY}`;
+// Touch-sized controls (44px): every phone, plus any device whose main pointer is a finger. Tablets at 1024px wide
+// take the desktop layout (md+) but are still touched, so tap sizes follow the pointer, not the width. A mouse
+// desktop never matches, so desktop sizes are unchanged.
+export const TOUCH_QUERY = `${PHONE_QUERY}, (pointer: coarse)`;
+export const TOUCH = `@media ${TOUCH_QUERY}`;
 // Side gutters that clear a landscape notch (index.html sets viewport-fit=cover; the insets are 0 everywhere else).
 // Spread into an sx after the element's own px: on short landscape screens the gutter is max(its usual size, inset).
 export const safeX = (minPx = 16) => ({

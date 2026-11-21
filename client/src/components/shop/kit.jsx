@@ -6,7 +6,7 @@ import { shop, WIDE } from '../../theme/tokens.js';
 import { store } from '../../theme/storeTokens.js';
 import { formatNPR, formatRange } from '../../lib/format.js';
 import { PageBox } from '../Page.jsx';
-import { PHONE_OR_SHORT } from '../../landing-v2/tokensV2.js';
+import { TOUCH } from '../../landing-v2/tokensV2.js';
 
 const srOnly = { position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' };
 
@@ -125,7 +125,7 @@ export function CardSwatches({ product, value, onChange }) {
     return <Typography variant="caption" sx={{ color: shop.ink2, fontWeight: 600 }}>{product.colourways[0]?.name}</Typography>;
   }
   return (
-    <Box role="radiogroup" aria-label={`${product.name} colour`} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: -0.75, [PHONE_OR_SHORT]: { gap: 0, flexWrap: 'wrap', ml: -1.25 } }}>
+    <Box role="radiogroup" aria-label={`${product.name} colour`} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: -0.75, [TOUCH]: { gap: 0, flexWrap: 'wrap', ml: -1.25 } }}>
       {product.colourways.map((c) => {
         const on = c.key === value;
         return (
@@ -138,7 +138,7 @@ export function CardSwatches({ product, value, onChange }) {
             aria-label={c.name}
             title={c.name}
             onClick={() => onChange(c.key)}
-            sx={{ width: 36, height: 36, p: 0, border: 0, background: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center', borderRadius: '50%', '&:hover > span': { transform: 'scale(1.12)' }, [PHONE_OR_SHORT]: { width: 44, height: 44 } }}
+            sx={{ width: 36, height: 36, p: 0, border: 0, background: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center', borderRadius: '50%', '&:hover > span': { transform: 'scale(1.12)' }, [TOUCH]: { width: 44, height: 44 } }}
           >
             <Dot hex={c.hex} selected={on} size={18} />
           </Box>
@@ -186,7 +186,7 @@ export function TrustRow({ variant = 'row', sx }) {
           </Box>
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={{ fontSize: 14, fontWeight: 800, lineHeight: 1.25 }}>{title}</Typography>
-            <Typography sx={{ fontSize: 13, color: shop.ink2, lineHeight: 1.35 }}>{body}</Typography>
+            <Typography sx={{ fontSize: { xs: 14, md: 13 }, color: shop.ink2, lineHeight: 1.35 }}>{body}</Typography>
           </Box>
         </Box>
       ))}
@@ -219,6 +219,10 @@ export function Band({ ground = 'blue', children, sx, innerSx }) {
 
 // --- Checkout steps ------------------------------------------------------------------------------------------------
 const STEPS = ['Cart', 'Delivery', 'Confirmed'];
+// Under 380px the three labels (about 345px with circles and rules) are wider than the column: only the current
+// step keeps its visible label there; the others stay readable to screen readers. Without this, at 320px the row
+// widened the page and pushed the AppBar's menu button off the screen.
+export const STEPS_NARROW = '@media (max-width: 379.95px)';
 
 export function Steps({ current = 1, sx }) {
   return (
@@ -238,7 +242,7 @@ export function Steps({ current = 1, sx }) {
               >
                 {done ? <Check size={15} strokeWidth={3} aria-hidden="true" /> : i + 1}
               </Box>
-              <Typography sx={{ fontSize: 14, fontWeight: now ? 800 : 600, color: now || done ? shop.ink : shop.ink2 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: now ? 800 : 600, color: now || done ? shop.ink : shop.ink2, [STEPS_NARROW]: now ? {} : srOnly }}>
                 {label}
                 {done ? <span style={srOnly}> (done)</span> : null}
               </Typography>

@@ -15,7 +15,7 @@ import { formatNPR } from '../lib/format.js';
 import { shop } from '../theme/tokens.js';
 import QtyStepper from './QtyStepper.jsx';
 import { useBackToClose } from '../lib/useBackToClose.js';
-import { SHORT, PHONE_OR_SHORT } from '../landing-v2/tokensV2.js';
+import { SHORT, TOUCH } from '../landing-v2/tokensV2.js';
 import { Thumb, TrustRow } from './shop/kit.jsx';
 
 export default function CartDrawer() {
@@ -107,14 +107,14 @@ export default function CartDrawer() {
                   </Box>
                   <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, alignItems: 'baseline' }}>
-                      <Typography component={RouterLink} to={`/product/${l.slug}?colour=${l.colourwayKey}`} onClick={close} sx={{ fontWeight: 800, fontSize: 16, color: 'inherit', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>{l.name}</Typography>
+                      <Typography component={RouterLink} to={`/product/${l.slug}?colour=${l.colourwayKey}`} onClick={close} sx={{ fontWeight: 800, fontSize: 16, color: 'inherit', textDecoration: 'none', display: 'inline-block', lineHeight: '26px', py: '9px', my: '-9px', minWidth: 44, '&:hover': { textDecoration: 'underline' } }}>{l.name}</Typography>
                       <Typography sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 800, fontSize: 15, whiteSpace: 'nowrap' }}>{formatNPR(l.qty * l.unitPrice)}</Typography>
                     </Box>
                     <Typography variant="body2" sx={{ color: shop.ink2 }}>{l.colourwayName} · UK {l.size}{l.qty > 1 ? ` · ${formatNPR(l.unitPrice)} each` : ''}</Typography>
                     {prob ? <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 700 }}>{prob.message}</Typography> : null}
                     <Box sx={{ mt: 'auto', pt: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                       <QtyStepper size="sm" value={l.qty} onChange={(q) => setQty(id, q)} label={`Quantity for ${l.name} ${l.colourwayName} UK ${l.size}`} />
-                      <Button variant="text" size="small" aria-label={`Remove ${l.name} ${l.colourwayName} UK ${l.size}`} onClick={() => remove(id)} sx={{ color: shop.ink2, minHeight: 40, [PHONE_OR_SHORT]: { minHeight: 44 }, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 4 }}>
+                      <Button variant="text" size="small" aria-label={`Remove ${l.name} ${l.colourwayName} UK ${l.size}`} onClick={() => remove(id)} sx={{ color: shop.ink2, minHeight: 40, [TOUCH]: { minHeight: 44 }, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 4 }}>
                         Remove
                       </Button>
                     </Box>
@@ -138,7 +138,7 @@ export default function CartDrawer() {
               <Typography sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 800, fontSize: 24, fontStretch: '108%', fontVariationSettings: '"wdth" 108' }}>{formatNPR(subtotal)}</Typography>
             </Box>
             <Button variant="contained" size="large" onClick={() => { close(); navigate('/checkout'); }} startIcon={<Lock size={18} strokeWidth={2.25} aria-hidden="true" />} sx={{ mt: 1 }}>Checkout</Button>
-            <Button variant="text" onClick={close} sx={{ alignSelf: 'center', minHeight: 40 }}>Keep shopping</Button>
+            <Button variant="text" onClick={close} sx={{ alignSelf: 'center', minHeight: 44 }}>Keep shopping</Button>
             <TrustRow variant="mini" />
           </Box>
         </>
