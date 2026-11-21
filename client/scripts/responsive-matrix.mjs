@@ -3,9 +3,9 @@
 //   node scripts/responsive-matrix.mjs [--base http://localhost:5182] [--out dir] [--sizes 320x568,844x390]
 //                                      [--routes g10,landing] [--walk] [--only-t0] [--shots]
 //
-// /g10, at every size: the intro steps (T 0..160) and each section's hold pose. Per step:
+// /g10, at every size: the hero (T 0 .. the end of its pin) and each section's hold pose. Per step:
 //  - no horizontal overflow (document wider than the viewport);
-//  - intro: the boot (canvas pixels with alpha > 150, i.e. the boot itself, not its soft contact shadow) lies inside
+//  - hero: the boot (canvas pixels with alpha > 150, i.e. the boot itself, not its soft contact shadow) lies inside
 //    the viewport and below the AppBar;
 //  - no visible text sits on the boot (text box covering boot pixels), under the AppBar, or outside the viewport (cut
 //    off), and no two visible text boxes from different elements overlap (headings included);
@@ -57,9 +57,9 @@ const onlyT0 = flag('only-t0');
 const allShots = flag('shots'); // a screenshot of every step
 fs.mkdirSync(out, { recursive: true });
 
-// beat holds, the caption crossfades (34, 72) and the glide; text overlap is only judged for text at >= 0.6 opacity,
-// so two captions mid-crossfade (0.5 each) are not counted
-const INTRO_T = [0, 16, 34, 56, 72, 92, 104, 126, 160];
+// the hero: the first frame (the page opens on it), halfway through its pin, and the end of its pin
+const HERO_END = endOf('hero');
+const HERO_T = [0, HERO_END / 2, HERO_END];
 const holds = SECTIONS.filter((s) => s.id !== 'hero' && s.id !== 'finale').map((s) => [s.id, HOLD[s.id]]);
 const mids = SECTIONS.slice(0, -1).map((s) => [`${s.id}>`, endOf(s.id) + 50]);
 
@@ -207,10 +207,10 @@ async function g10(ctx, s, report) {
   await page.waitForSelector('[data-stage-ready="true"]', { timeout: 120000 });
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(900);
-  const steps = onlyT0 ? [['T0', 0]] : [...INTRO_T.map((t) => [`T${t}`, t]), ...holds, ...(walk ? mids : [])];
+  const steps = onlyT0 ? [['T0', 0]] : [...HERO_T.map((t) => [`T${t}`, t]), ...holds, ...(walk ? mids : [])];
   for (const [label, T] of steps) {
     await scrollT(page, T);
-    const intro = T <= 104;
+    const onHero = T <= HERO_END; // the hero is pinned and the boot is on the stage
     const probe = await page.evaluate(TEXT_PROBE, { scope: '#story', appbarSel: 'header' });
     const T_live = await page.evaluate(() => window.__story?.T);
     if (label === 'T0') await page.screenshot({ path: path.join(out, `g10-${s.name}-T0.png`), scale: 'device' });
@@ -223,7 +223,7 @@ async function g10(ctx, s, report) {
       return page.evaluate(MASK, { b64: buf.toString('base64'), rects: probe.rects });
     };
     let m = await grab();
-    if (!m.bbox && intro) {
+    if (!m.bbox && onHero) {
       // a frame caught mid-swap (SwiftShader): ask for a new frame and look again
       await page.evaluate(() => window.__story?.invalidate?.());
       await settle(page);
@@ -233,12 +233,12 @@ async function g10(ctx, s, report) {
     // the boot is expected there; only overflow, text-on-text and touch targets are judged
     const mid = label.endsWith('>');
     const problems = mid ? probe.problems.filter((p) => /overflow|text overlap|touch/.test(p)) : [...probe.problems];
-    if (intro && m.bbox) {
+    if (onHero && m.bbox) {
       const b = m.bbox;
       if (b.x0 < 0.5 || b.x1 > s.w - 0.5 || b.y1 > s.h - 0.5) problems.push(`boot outside the viewport (${b.x0.toFixed(0)},${b.y0.toFixed(0)})-(${b.x1.toFixed(0)},${b.y1.toFixed(0)})`);
       if (b.y0 < probe.appbar) problems.push(`boot under the AppBar (top ${b.y0.toFixed(0)} < ${probe.appbar.toFixed(0)})`);
     }
-    if (intro && !m.bbox) problems.push('no boot on screen');
+    if (onHero && !m.bbox) problems.push('no boot on screen');
     probe.rects.forEach((r, i) => {
       if (r.sec === 'labels' || mid) return; // the label cards point at the boot by design (their dots sit on it)
       if (m.hits[i] > Math.max(24, 0.02 * (r.x1 - r.x0) * (r.y1 - r.y0))) problems.push(`text on the boot: "${r.t}" (${Math.round(m.hits[i])} px)`);

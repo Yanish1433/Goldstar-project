@@ -1,5 +1,5 @@
 // Live resize / orientation flip on /g10 (same page, no reload): after each resize the layout, the pins and the 3D boxes
-// must recompute (no stale box): at the intro the boot sits where that layout puts it, and at the performance hold the
+// must recompute (no stale box): at the hero (the first frame) the boot sits where that layout puts it, and at the performance hold the
 // pinned panel covers the screen and its copy and boot do not overlap.
 //   node scripts/responsive-flip.mjs [--base http://localhost:5182]
 import { createRequire } from 'module';
@@ -60,9 +60,9 @@ for (const run of runs) {
     await goT(page, 0);
     const l = storyLayout(W, H);
     const b = await boot(page);
-    const box = LAYOUTS[l].intro;
+    const box = LAYOUTS[l].hero;
     const cx = b ? (b.x0 + b.x1) / 2 / W : NaN;
-    const okIntro = b && Math.abs(cx - box.cx) < 0.08 && b.y0 >= 50 && b.y1 <= H;
+    const okHero = b && Math.abs(cx - box.cx) < 0.08 && b.y0 >= 50 && b.y1 <= H;
     await goT(page, HOLD.performance);
     const st = await page.evaluate(() => {
       const sec = document.querySelector('#story-performance').getBoundingClientRect();
@@ -73,9 +73,9 @@ for (const run of runs) {
     const pb = await boot(page);
     const okPin = Math.abs(st.top) <= 2 && Math.abs(st.h - H) <= 2 && Math.abs(st.vh * 100 - H) < 1 && st.sw <= W;
     const okSide = pb && (l === 'phone' ? pb.y1 <= st.copy[2] + 40 : pb.x1 <= st.copy[0] + 4); // boot clear of the copy (phone: above it)
-    const ok = okIntro && okPin && okSide;
+    const ok = okHero && okPin && okSide;
     if (!ok) fails += 1;
-    console.log(`${run.name}: ${W}x${H} (${l}) intro boot cx ${(cx * 100).toFixed(1)}% (box ${box.cx * 100}%) y ${b?.y0}-${b?.y1} | performance pin top ${st.top} h ${st.h} vh ${st.vh.toFixed(2)} boot x ${pb?.x0}-${pb?.x1} y ${pb?.y0}-${pb?.y1} copy x ${st.copy[0]}-${st.copy[1]} y ${st.copy[2]}-${st.copy[3]} -> ${ok ? 'PASS' : 'FAIL'}`);
+    console.log(`${run.name}: ${W}x${H} (${l}) hero boot cx ${(cx * 100).toFixed(1)}% (box ${box.cx * 100}%) y ${b?.y0}-${b?.y1} | performance pin top ${st.top} h ${st.h} vh ${st.vh.toFixed(2)} boot x ${pb?.x0}-${pb?.x1} y ${pb?.y0}-${pb?.y1} copy x ${st.copy[0]}-${st.copy[1]} y ${st.copy[2]}-${st.copy[3]} -> ${ok ? 'PASS' : 'FAIL'}`);
   }
   await ctx.close();
 }
