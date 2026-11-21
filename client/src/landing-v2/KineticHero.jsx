@@ -63,9 +63,10 @@ const lineSx = {
   willChange: 'transform',
 };
 
-// The brush "signature" after WORLD: two quick tapered slashes (filled shapes, rough edges from a static turbulence
-// displacement). Absolute and sized in em, so it scales with the headline and never changes its box (no layout shift).
-// Drawn on by a stroked centre-line mask (see the effect); with no JS or reduced motion it is simply fully drawn.
+// The brush "signature" after WORLD: two hand-painted exclamation marks "!!" (tapered bars over a dot, filled shapes,
+// rough edges from a static turbulence displacement). Absolute and sized in em, so it scales with the headline and
+// never changes its box (no layout shift). Drawn on top-to-bottom by a stroked centre-line mask (see the effect);
+// with no JS or reduced motion it is simply fully drawn.
 function Flourish() {
   const uid = useId().replace(/:/g, '');
   const f = `hf-${uid}`;
@@ -85,14 +86,17 @@ function Flourish() {
           <feDisplacementMap in="SourceGraphic" in2="n" scale="5" />
         </filter>
         <mask id={m} maskUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120">
-          <path data-hdraw pathLength="1" d="M16 96 C28 66 40 36 52 4" stroke="white" strokeWidth="30" fill="none" strokeLinecap="butt" />
-          <path data-hdraw pathLength="1" d="M52 98 C64 70 76 42 90 8" stroke="white" strokeWidth="30" fill="none" strokeLinecap="butt" />
+          <path data-hdraw pathLength="1" d="M32 -2 L27 76 M26 79 L26 99" stroke="white" strokeWidth="34" fill="none" strokeLinecap="butt" />
+          <path data-hdraw pathLength="1" d="M74 -2 L69 76 M68 79 L68 99" stroke="white" strokeWidth="34" fill="none" strokeLinecap="butt" />
         </mask>
       </defs>
       <g mask={`url(#${m})`}>
         <g filter={`url(#${f})`} fill={t.blue}>
-          <path d="M12 97 C25 66 38 35 52 3 C53 34 44 68 25 99 C20 100 15 99 12 97 Z" />
-          <path d="M50 99 C63 70 77 43 91 9 C91 38 82 70 65 100 C59 101 53 101 50 99 Z" />
+          {/* Each "!": a brush bar, fat at the top and tapering to a point, leaning forward with the headline, then a dot. */}
+          <path d="M18 7 C24 0 40 0 45 6 C43 28 37 50 31 71 C29 74 25 74 24 71 C21 50 18 28 18 7 Z" />
+          <ellipse cx="26" cy="88" rx="10" ry="8.5" transform="rotate(-14 26 88)" />
+          <path d="M60 7 C66 0 82 0 87 6 C85 28 79 50 73 71 C71 74 67 74 66 71 C63 50 60 28 60 7 Z" />
+          <ellipse cx="68" cy="88" rx="10" ry="8.5" transform="rotate(-14 68 88)" />
         </g>
       </g>
     </Box>
