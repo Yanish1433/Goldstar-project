@@ -37,7 +37,7 @@ import { ApiError } from '../api/client.js';
 import { formatNPR } from '../lib/format.js';
 import { shop, WIDE } from '../theme/tokens.js';
 import { store } from '../theme/storeTokens.js';
-import { PHONE_OR_SHORT, SHORT } from '../landing-v2/tokensV2.js';
+import { TOUCH, SHORT } from '../landing-v2/tokensV2.js';
 
 const ProductViewer = lazy(() => import('../three/ProductViewer.jsx'));
 
@@ -96,7 +96,7 @@ function ViewToggle({ value, onChange }) {
             aria-checked={on}
             onClick={() => onChange(v)}
             sx={{
-              display: 'inline-flex', alignItems: 'center', gap: 0.75, minHeight: 36, [PHONE_OR_SHORT]: { minHeight: 44 }, px: 1.75, border: 0, borderRadius: `${shop.radius.pill}px`, cursor: 'pointer', font: 'inherit', fontSize: 14, fontWeight: 700,
+              display: 'inline-flex', alignItems: 'center', gap: 0.75, minHeight: 36, [TOUCH]: { minHeight: 44 }, px: 1.75, border: 0, borderRadius: `${shop.radius.pill}px`, cursor: 'pointer', font: 'inherit', fontSize: 14, fontWeight: 700,
               backgroundColor: on ? shop.ink : 'transparent', color: on ? '#FFFFFF' : shop.ink, transition: 'background-color 200ms ease, color 200ms ease',
               '&:focus-visible': { outline: `3px solid ${shop.blue}`, outlineOffset: 1 },
             }}

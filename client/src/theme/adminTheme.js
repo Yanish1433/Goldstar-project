@@ -9,6 +9,11 @@ const type = (size, weight, w, lh, ls, extra = {}) => ({
 });
 
 export const ADMIN_RADIUS = 10;
+// The console is dense (40 px controls) for a mouse. On a touch tablet (iPad portrait or landscape) every control
+// grows to 44 px and table links get a 44 px hit band (padding offset by a negative margin, so rows keep their height).
+export const ADMIN_COARSE = '@media (pointer: coarse)';
+const TAP = 44;
+const tapBand = { display: 'inline-block', paddingBlock: 14, marginBlock: -14 };
 
 export function makeAdminTheme(mode = 'light') {
   const t = adminTones[mode] || adminTones.light;
@@ -71,8 +76,9 @@ export function makeAdminTheme(mode = 'light') {
             borderRadius: ADMIN_RADIUS, minHeight: 40, padding: '0 16px', textTransform: 'none', whiteSpace: 'nowrap',
             transition: `background-color ${m.hover}ms ease, color ${m.hover}ms ease, border-color ${m.hover}ms ease, transform ${m.press}ms ${m.css.easeOut}`,
             '&:active': { transform: 'scale(0.98)' },
+            [ADMIN_COARSE]: { minHeight: TAP },
           },
-          sizeSmall: { minHeight: 34, padding: '0 12px', fontSize: 13 },
+          sizeSmall: { minHeight: 34, padding: '0 12px', fontSize: 13, [ADMIN_COARSE]: { minHeight: TAP } },
           sizeLarge: { minHeight: 44, padding: '0 20px', fontSize: 15 },
           containedPrimary: { backgroundColor: t.accent, color: '#FFFFFF', '&:hover': { backgroundColor: dark ? '#5653F5' : '#1F1CC9' } },
           outlined: { border: `1px solid ${t.lineStrong}`, color: t.ink, backgroundColor: t.surface, '&:hover': { borderColor: t.ink2, backgroundColor: t.sunk } },
@@ -81,7 +87,7 @@ export function makeAdminTheme(mode = 'light') {
         },
       },
       MuiIconButton: {
-        styleOverrides: { root: { borderRadius: ADMIN_RADIUS, width: 40, height: 40, color: t.ink2, '&:hover': { backgroundColor: t.sunk, color: t.ink } } },
+        styleOverrides: { root: { borderRadius: ADMIN_RADIUS, width: 40, height: 40, color: t.ink2, '&:hover': { backgroundColor: t.sunk, color: t.ink }, [ADMIN_COARSE]: { width: TAP, height: TAP } } },
       },
       MuiTextField: { defaultProps: { variant: 'outlined' } },
       MuiInputLabel: { styleOverrides: { root: { color: t.ink2, '&.Mui-focused': { color: t.accentText }, '&.Mui-error': { color: t.bad } } } },
@@ -108,7 +114,7 @@ export function makeAdminTheme(mode = 'light') {
       MuiDialogActions: { styleOverrides: { root: { padding: '16px 24px 20px', gap: 8 } } },
       MuiTableCell: {
         styleOverrides: {
-          root: { borderBottom: `1px solid ${t.line}`, padding: '12px 16px', fontSize: 14, color: t.ink, fontVariantNumeric: 'tabular-nums' },
+          root: { borderBottom: `1px solid ${t.line}`, padding: '12px 16px', fontSize: 14, color: t.ink, fontVariantNumeric: 'tabular-nums', [ADMIN_COARSE]: { '& a:not(.MuiButtonBase-root)': tapBand } },
           head: { fontSize: 11.5, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: t.ink2, backgroundColor: t.surface, whiteSpace: 'nowrap' },
           sizeSmall: { padding: '8px 16px' },
         },
@@ -116,11 +122,11 @@ export function makeAdminTheme(mode = 'light') {
       MuiTableRow: { styleOverrides: { root: { '&.MuiTableRow-hover:hover': { backgroundColor: t.sunk }, '&:last-of-type td': { borderBottom: 0 } } } },
       MuiTableSortLabel: { styleOverrides: { root: { '&.Mui-active': { color: t.ink }, '&:hover': { color: t.ink } }, icon: { fontSize: 16 } } },
       MuiChip: { styleOverrides: { root: { height: 24, borderRadius: 999, fontSize: 12.5, fontWeight: 700 }, label: { padding: '0 10px' } } },
-      MuiTabs: { styleOverrides: { root: { minHeight: 40 }, indicator: { height: 2, backgroundColor: t.accentText } } },
-      MuiTab: { styleOverrides: { root: { textTransform: 'none', fontSize: 14, fontWeight: 700, minHeight: 40, minWidth: 0, padding: '0 12px', color: t.ink2, '&.Mui-selected': { color: t.ink } } } },
+      MuiTabs: { styleOverrides: { root: { minHeight: 40, [ADMIN_COARSE]: { minHeight: TAP } }, indicator: { height: 2, backgroundColor: t.accentText } } },
+      MuiTab: { styleOverrides: { root: { textTransform: 'none', fontSize: 14, fontWeight: 700, minHeight: 40, minWidth: 0, padding: '0 12px', color: t.ink2, '&.Mui-selected': { color: t.ink }, [ADMIN_COARSE]: { minHeight: TAP } } } },
       MuiMenu: { styleOverrides: { paper: { backgroundColor: t.raised, borderRadius: 12, boxShadow: t.shadowFloat, border: `1px solid ${t.line}`, marginTop: 6 } } },
       MuiPopover: { styleOverrides: { paper: { backgroundColor: t.raised, borderRadius: 12, boxShadow: t.shadowFloat, border: `1px solid ${t.line}` } } },
-      MuiMenuItem: { styleOverrides: { root: { minHeight: 40, fontSize: 14, fontWeight: 600, borderRadius: 8, margin: '0 6px', gap: 10, '&.Mui-selected': { backgroundColor: t.accentWash, color: t.accentText } } } },
+      MuiMenuItem: { styleOverrides: { root: { minHeight: 40, [ADMIN_COARSE]: { minHeight: TAP }, fontSize: 14, fontWeight: 600, borderRadius: 8, margin: '0 6px', gap: 10, '&.Mui-selected': { backgroundColor: t.accentWash, color: t.accentText } } } },
       MuiListItemIcon: { styleOverrides: { root: { minWidth: 0, color: 'inherit' } } },
       MuiAlert: {
         styleOverrides: {
@@ -135,8 +141,9 @@ export function makeAdminTheme(mode = 'light') {
       MuiSkeleton: { defaultProps: { animation: 'wave' }, styleOverrides: { root: { backgroundColor: t.sunk, borderRadius: 6 } } },
       MuiLink: { defaultProps: { underline: 'hover' }, styleOverrides: { root: { color: t.accentText, fontWeight: 600, textUnderlineOffset: 3 } } },
       MuiTooltip: { styleOverrides: { tooltip: { backgroundColor: dark ? '#F2EDE3' : '#16120E', color: dark ? '#16120E' : '#FFFFFF', fontSize: 12.5, borderRadius: 6 } } },
-      MuiPaginationItem: { styleOverrides: { root: { borderRadius: 8, minWidth: 36, height: 36, fontSize: 14, fontWeight: 700, '&.Mui-selected': { backgroundColor: t.ink, color: t.surface, '&:hover': { backgroundColor: t.ink } } } } },
+      MuiPaginationItem: { styleOverrides: { root: { borderRadius: 8, minWidth: 36, height: 36, fontSize: 14, fontWeight: 700, [ADMIN_COARSE]: { minWidth: TAP, height: TAP }, '&.Mui-selected': { backgroundColor: t.ink, color: t.surface, '&:hover': { backgroundColor: t.ink } } } } },
       MuiSwitch: { styleOverrides: { switchBase: { '&.Mui-checked': { color: t.accentText }, '&.Mui-checked + .MuiSwitch-track': { backgroundColor: t.accentText, opacity: 0.5 } } } },
+      MuiToggleButton: { styleOverrides: { root: { [ADMIN_COARSE]: { minHeight: TAP, minWidth: TAP } } } },
       MuiCheckbox: { styleOverrides: { root: { color: t.ink2, '&.Mui-checked': { color: t.accentText } } } },
       MuiDivider: { styleOverrides: { root: { borderColor: t.line } } },
       MuiToggleButton: {

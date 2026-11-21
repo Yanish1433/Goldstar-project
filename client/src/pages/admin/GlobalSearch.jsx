@@ -1,3 +1,4 @@
+import { ADMIN_COARSE } from '../../theme/adminTheme.js';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import Box from '@mui/material/Box';
@@ -84,7 +85,7 @@ export default function GlobalSearch({ autoFocus, onDone }) {
         <Box
           ref={anchor}
           sx={(th) => ({
-            display: 'flex', alignItems: 'center', gap: 1, height: 40, px: 1.5, borderRadius: '10px', backgroundColor: th.admin.surface, border: `1px solid ${th.admin.lineStrong}`,
+            display: 'flex', alignItems: 'center', gap: 1, height: 40, [ADMIN_COARSE]: { height: 44 }, px: 1.5, borderRadius: '10px', backgroundColor: th.admin.surface, border: `1px solid ${th.admin.lineStrong}`,
             '&:focus-within': { borderColor: th.admin.accentText, boxShadow: `0 0 0 1px ${th.admin.accentText}` },
           })}
         >
@@ -104,7 +105,7 @@ export default function GlobalSearch({ autoFocus, onDone }) {
             onChange={(e) => { setValue(e.target.value); setOpen(true); }}
             onFocus={() => setOpen(true)}
             onKeyDown={onKeyDown}
-            sx={(th) => ({ flex: 1, minWidth: 0, border: 0, outline: 'none', background: 'transparent', color: th.admin.ink, font: 'inherit', fontSize: 14.5, '&::placeholder': { color: th.admin.ink3, opacity: 1 }, '&::-webkit-search-cancel-button': { cursor: 'pointer' } })}
+            sx={(th) => ({ flex: 1, minWidth: 0, alignSelf: 'stretch', border: 0, outline: 'none', background: 'transparent', color: th.admin.ink, font: 'inherit', fontSize: 14.5, '&::placeholder': { color: th.admin.ink3, opacity: 1 }, '&::-webkit-search-cancel-button': { cursor: 'pointer' } })}
           />
           {loading ? <CircularProgress size={14} aria-label="Searching" /> : (
             <Box component="kbd" aria-hidden="true" sx={(th) => ({ display: { xs: 'none', lg: 'block' }, fontFamily: 'inherit', fontSize: 11.5, fontWeight: 700, color: th.admin.ink3, border: `1px solid ${th.admin.line}`, borderRadius: '5px', px: 0.75, lineHeight: '18px' })}>Enter</Box>

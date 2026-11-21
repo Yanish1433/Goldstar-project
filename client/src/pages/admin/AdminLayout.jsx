@@ -17,7 +17,7 @@ import {
   LayoutDashboard, ShoppingCart, Package, Users, Settings, PanelLeftClose, PanelLeftOpen, Menu as MenuIcon,
   Moon, Sun, LogOut, ChevronRight, X, Search,
 } from 'lucide-react';
-import { makeAdminTheme } from '../../theme/adminTheme.js';
+import { makeAdminTheme, ADMIN_COARSE } from '../../theme/adminTheme.js';
 import { useAdmin } from '../../store/admin.js';
 import { useUi } from '../../store/ui.js';
 import { useAdminOrders, useLogout, useMe } from '../../api/hooks.js';
@@ -39,7 +39,7 @@ const W_SHUT = 72;
 
 function Brand({ compact }) {
   return (
-    <Box component={RouterLink} to="/admin" aria-label="Goldstar Admin, dashboard" sx={{ display: 'flex', alignItems: 'center', gap: 1.25, color: 'inherit', textDecoration: 'none', minHeight: 40, borderRadius: '8px' }}>
+    <Box component={RouterLink} to="/admin" aria-label="Goldstar Admin, dashboard" sx={{ display: 'flex', alignItems: 'center', gap: 1.25, color: 'inherit', textDecoration: 'none', minHeight: 40, [ADMIN_COARSE]: { minHeight: 44 }, borderRadius: '8px' }}>
       {/* The real wordmark, in the admin ink (CSS mask). Compact rail: the same mark, clipped to the "G". */}
       {compact ? (
         <Box sx={{ width: 32, height: 28, overflow: 'hidden', flex: 'none' }}>
@@ -61,7 +61,7 @@ function NavList({ compact, onNavigate }) {
   const placed = useAdminOrders({ status: 'placed', page: 1, limit: 1 });
   const placedCount = placed.data?.total || 0;
   const linkSx = (th) => ({
-    display: 'flex', alignItems: 'center', gap: 1.5, minHeight: 40, px: compact ? 0 : 1.5, justifyContent: compact ? 'center' : 'flex-start',
+    display: 'flex', alignItems: 'center', gap: 1.5, minHeight: 40, [ADMIN_COARSE]: { minHeight: 44 }, px: compact ? 0 : 1.5, justifyContent: compact ? 'center' : 'flex-start',
     borderRadius: '8px', color: th.admin.ink2, textDecoration: 'none', fontWeight: 600, fontSize: 14.5, position: 'relative',
     transition: 'background-color 160ms ease, color 160ms ease',
     '&:hover': { backgroundColor: th.admin.sunk, color: th.admin.ink },

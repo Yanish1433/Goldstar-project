@@ -212,7 +212,7 @@ export default function Checkout() {
         <Panel sx={{ position: { md: 'sticky' }, top: { md: 'calc(var(--appbar-h, 64px) + 24px)' }, display: 'flex', flexDirection: 'column', gap: 2, boxShadow: `inset 0 0 0 1px ${shop.line}, ${shop.shadowCard}` }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
             <Typography variant="h4" component="h2">Order summary</Typography>
-            <Button variant="text" size="small" onClick={openCart} sx={{ minHeight: 40, textDecoration: 'underline', textUnderlineOffset: 4 }}>Edit cart</Button>
+            <Button variant="text" size="small" onClick={openCart} sx={{ minHeight: 44, textDecoration: 'underline', textUnderlineOffset: 4 }}>Edit cart</Button>
           </Box>
           {problems.length ? (
             <Alert severity="error" role="alert">

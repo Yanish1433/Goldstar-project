@@ -2,7 +2,7 @@ import Box from '@mui/material/Box';
 import { Minus, Plus } from 'lucide-react';
 import { MAX_QTY } from '../store/cart.js';
 import { shop } from '../theme/tokens.js';
-import { PHONE_OR_SHORT } from '../landing-v2/tokensV2.js';
+import { TOUCH } from '../landing-v2/tokensV2.js';
 
 const btn = {
   width: 40, height: 40, border: 0, borderRadius: '50%', background: 'transparent', color: shop.ink, display: 'grid', placeItems: 'center', cursor: 'pointer',
@@ -12,7 +12,7 @@ const btn = {
   '&:focus-visible': { outline: `3px solid ${shop.blue}`, outlineOffset: 1 },
 };
 // Phones: 44px touch targets (cart lines too).
-const touch = { [PHONE_OR_SHORT]: { width: 44, height: 44 } };
+const touch = { [TOUCH]: { width: 44, height: 44 } };
 
 // Pill stepper: − n +. `size="sm"` for cart lines.
 export default function QtyStepper({ value, onChange, label = 'Quantity', size = 'md' }) {

@@ -17,6 +17,8 @@ const FILES = {
 
 export default function Logo({ tone = 'navy', variant = 'full', alt = 'Goldstar Shoes', className, sx, eager = true }) {
   const [w, h] = LOGO_SIZES[variant] || LOGO_SIZES.full;
+  // maxWidth can squeeze the box narrower than height x ratio (a narrow footer column at 932px): the artwork is then
+  // contained, left-aligned, never stretched.
   const base = { display: 'block', width: 'auto', height: 24, maxWidth: '100%', aspectRatio: `${w / h}` };
   if (tone === 'current') {
     return (
@@ -32,8 +34,10 @@ export default function Logo({ tone = 'navy', variant = 'full', alt = 'Goldstar 
           maskImage: `url(${FILES[variant].navy})`,
           WebkitMaskRepeat: 'no-repeat',
           maskRepeat: 'no-repeat',
-          WebkitMaskSize: '100% 100%',
-          maskSize: '100% 100%',
+          WebkitMaskSize: 'contain',
+          maskSize: 'contain',
+          WebkitMaskPosition: 'left center',
+          maskPosition: 'left center',
           ...sx,
         }}
       />
@@ -49,7 +53,7 @@ export default function Logo({ tone = 'navy', variant = 'full', alt = 'Goldstar 
       height={h}
       loading={eager ? 'eager' : 'lazy'}
       decoding="async"
-      sx={{ ...base, ...sx }}
+      sx={{ ...base, objectFit: 'contain', objectPosition: 'left center', ...sx }}
     />
   );
 }

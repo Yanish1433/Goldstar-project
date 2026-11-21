@@ -1,3 +1,4 @@
+import { ADMIN_COARSE } from '../../theme/adminTheme.js';
 import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router';
 import Box from '@mui/material/Box';
@@ -58,7 +59,7 @@ export default function AdminDashboard() {
           loading={loading}
           value={k ? fmtInt(k.products.active) : ''}
           foot={k ? (
-            <Box component={RouterLink} to="/admin/products?stock=low" sx={(th) => ({ fontSize: 13, fontWeight: 700, color: k.products.lowStock ? th.admin.warn : th.admin.good, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } })}>
+            <Box component={RouterLink} to="/admin/products?stock=low" sx={(th) => ({ fontSize: 13, fontWeight: 700, color: k.products.lowStock ? th.admin.warn : th.admin.good, textDecoration: 'none', [ADMIN_COARSE]: { display: 'inline-block', paddingBlock: '14px', marginBlock: '-14px' }, '&:hover': { textDecoration: 'underline' } })}>
               {k.products.lowStock ? `${k.products.lowStock} sizes low on stock` : 'Stock looks healthy'}
             </Box>
           ) : null}
@@ -151,10 +152,10 @@ export default function AdminDashboard() {
             {loading ? <Skeleton variant="rectangular" height={120} /> : s.lowStock.length === 0 ? (
               <Typography variant="body2" sx={(th) => ({ color: th.admin.ink2 })}>Every tracked size has more than 3 pairs.</Typography>
             ) : (
-              <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexDirection: 'column', gap: 1, [ADMIN_COARSE]: { gap: 0 } }}>
                 {s.lowStock.map((r) => (
                   <Box component="li" key={`${r.productId}-${r.colourwayKey}-${r.size}`} sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: 14 }}>
-                    <Box component={RouterLink} to={`/admin/products/${r.productId}`} sx={{ flex: 1, minWidth: 0, color: 'inherit', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
+                    <Box component={RouterLink} to={`/admin/products/${r.productId}`} sx={{ flex: 1, minWidth: 0, color: 'inherit', textDecoration: 'none', '&:hover': { textDecoration: 'underline' }, [ADMIN_COARSE]: { minHeight: 44, display: 'flex', alignItems: 'center', gap: 0.5 } }}>
                       {r.name} <Box component="span" sx={(th) => ({ color: th.admin.ink2 })}>· {r.colourwayName} · UK {r.size}</Box>
                     </Box>
                     <Box component="span" sx={(th) => ({ fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: r.qty === 0 ? th.admin.bad : th.admin.warn, whiteSpace: 'nowrap' })}>{r.qty === 0 ? 'Sold out' : `${r.qty} left`}</Box>
