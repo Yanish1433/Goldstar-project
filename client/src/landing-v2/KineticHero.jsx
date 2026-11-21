@@ -1,7 +1,7 @@
-import { useRef } from 'react';
+import { useRef, useId } from 'react';
 import Box from '@mui/material/Box';
 import { tokensV2 as t, KINETIC, HERO_SCRIPT, EYEBROW, PHONE, SHORT } from './tokensV2.js';
-import { Cta, StarShape, CheckList } from './ui.jsx';
+import { Cta, StarShape } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
 
 // 1. Hero. First paint is a complete, still composition on a white ground: the headline whole in big, wide navy
@@ -12,7 +12,6 @@ import { useSectionMotion, MQ } from './motion.js';
 // floods the screen from behind the arch (a flat photoGround circle that swells: the arch's edges melt into it), the
 // arch glides to the centre, the stars spin up, and the brand line lands in navy on the sky.
 // Only transform / opacity are animated (no filters, no clip-paths on scroll).
-export const HERO_FACTS = ['Made in Kathmandu, Nepal', 'Deep-lugged rubber outsoles', 'Over five decades of Goldstar'];
 export const HERO_LINES = ['Walk the', 'world'];
 export const HERO_LABEL = 'Walk the world. Goldstar shoes, made in Nepal for over five decades.';
 
@@ -63,6 +62,42 @@ const lineSx = {
   color: t.ink,
   willChange: 'transform',
 };
+
+// The brush "signature" after WORLD: two quick tapered slashes (filled shapes, rough edges from a static turbulence
+// displacement). Absolute and sized in em, so it scales with the headline and never changes its box (no layout shift).
+// Drawn on by a stroked centre-line mask (see the effect); with no JS or reduced motion it is simply fully drawn.
+function Flourish() {
+  const uid = useId().replace(/:/g, '');
+  const f = `hf-${uid}`;
+  const m = `hm-${uid}`;
+  return (
+    <Box
+      component="svg"
+      data-hflour
+      aria-hidden="true"
+      focusable="false"
+      viewBox="0 0 100 100"
+      sx={{ position: 'absolute', left: 'calc(100% + 0.06em)', bottom: '0.02em', width: '0.78em', height: '0.86em', overflow: 'visible', pointerEvents: 'none', display: { xs: 'block', md: 'block' }, [SHORT]: { display: 'block' } }}
+    >
+      <defs>
+        <filter id={f} x="-20%" y="-20%" width="140%" height="140%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="7" result="n" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="5" />
+        </filter>
+        <mask id={m} maskUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120">
+          <path data-hdraw pathLength="1" d="M16 96 C28 66 40 36 52 4" stroke="white" strokeWidth="30" fill="none" strokeLinecap="butt" />
+          <path data-hdraw pathLength="1" d="M52 98 C64 70 76 42 90 8" stroke="white" strokeWidth="30" fill="none" strokeLinecap="butt" />
+        </mask>
+      </defs>
+      <g mask={`url(#${m})`}>
+        <g filter={`url(#${f})`} fill={t.blue}>
+          <path d="M12 97 C25 66 38 35 52 3 C53 34 44 68 25 99 C20 100 15 99 12 97 Z" />
+          <path d="M50 99 C63 70 77 43 91 9 C91 38 82 70 65 100 C59 101 53 101 50 99 Z" />
+        </g>
+      </g>
+    </Box>
+  );
+}
 
 export default function KineticHero() {
   const ref = useRef(null);
@@ -125,6 +160,8 @@ export default function KineticHero() {
         // The stars spin up and drift (depth: the near one travels further).
         .to('[data-hstar="1"]', { rotate: 220, yPercent: -160, xPercent: -40, scale: 1.4, duration: 1 }, 0)
         .to('[data-hstar="2"]', { rotate: -160, yPercent: -90, xPercent: 60, duration: 1 }, 0)
+        // The signature leaves with WORLD.
+        .to('[data-hflour]', { x: () => em(b.chars[0] || wrap) * 3.2, autoAlpha: 0, duration: 0.3 }, 0)
         .fromTo('[data-hend]', { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: 0.22 }, 0.74);
       return tl;
     };
@@ -133,6 +170,16 @@ export default function KineticHero() {
     document.fonts?.ready.then(() => { if (!dead) ScrollTrigger.refresh(); });
     mm.add(MQ.desk, () => { build(false); });
     mm.add(MQ.phone, () => { build(true); });
+    // The stroke draws itself on once the brush face is in (the default render is fully drawn: the hidden state is
+    // set here only, and only when motion is welcome).
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const strokes = root.querySelectorAll('[data-hdraw]');
+      if (!strokes.length) return undefined;
+      gsap.set(strokes, { strokeDasharray: 1, strokeDashoffset: 1 });
+      const draw = () => { if (!dead) gsap.to(strokes, { strokeDashoffset: 0, duration: 0.3, ease: 'power1.out', stagger: 0.22, delay: 0.1 }); };
+      if (document.fonts?.ready) document.fonts.ready.then(draw); else draw();
+      return () => gsap.set(strokes, { clearProps: 'strokeDasharray,strokeDashoffset' });
+    });
     return () => {
       dead = true;
       mm.revert();
@@ -193,7 +240,10 @@ export default function KineticHero() {
             <Box data-heyebrow component="p" sx={{ ...EYEBROW, m: 0 }}>Goldstar · Made in Nepal</Box>
             <Box component="h1" id="landing-h1" aria-label={HERO_LABEL} sx={h1Sx}>
               <Box component="span" data-hline aria-hidden="true" sx={lineSx}>{HERO_LINES[0]}</Box>
-              <Box component="span" data-hline aria-hidden="true" sx={{ ...lineSx, color: t.blue }}>{HERO_LINES[1]}</Box>
+              <Box component="span" sx={{ display: 'block', position: 'relative', width: 'fit-content' }}>
+                <Box component="span" data-hline aria-hidden="true" sx={{ ...lineSx, color: t.blue }}>{HERO_LINES[1]}</Box>
+                <Flourish />
+              </Box>
             </Box>
           </Box>
 
@@ -201,7 +251,6 @@ export default function KineticHero() {
             <Box component="p" sx={{ m: 0, fontSize: { xs: 15, md: 18 }, lineHeight: 1.55, color: t.ink2, [PHONE]: { display: 'none' }, [SHORT]: { display: 'none' } }}>
               Trek boots and everyday sneakers, made in Kathmandu and worn from the Terai to the Khumbu.
             </Box>
-            <CheckList items={HERO_FACTS} sx={{ display: 'none', '@media (min-width:900px) and (min-height:700px)': { display: 'flex' }, [SHORT]: { display: 'none' } }} />
             <Box sx={{ display: 'flex', gap: { xs: 1, md: 1.5 }, flexWrap: { xs: 'nowrap', md: 'wrap' }, '& > a': { [PHONE]: { px: 2, fontSize: 14, flex: '1 1 auto' }, [SHORT]: { px: 2.5, fontSize: 14, flex: '0 1 auto' }, [`${SHORT} and (max-width:699.95px)`]: { px: 2, '& svg': { display: 'none' } } }, '@media (max-width:359.95px)': { flexWrap: 'wrap' }, [SHORT]: { flexWrap: 'nowrap' } }}>
               <Cta to="/shop" variant="solid">Shop all footwear</Cta>
               <Cta to="/g10">G10 in 3D</Cta>

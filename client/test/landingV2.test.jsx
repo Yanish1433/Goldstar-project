@@ -83,11 +83,10 @@ describe('Landing (daylight) palette', () => {
       expect(contrast(tokensV2.sandDeep, tokensV2.cream)).toBeGreaterThanOrEqual(4.5);
       expect(contrast(tokensV2.ink, tokensV2.sandSoft)).toBeGreaterThanOrEqual(7);
     });
-    it('the navy Details band: white ink >= 7, secondary ink >= 4.5, sand >= 4.5; blue is never ink on navy (< 3)', () => {
-      expect(contrast(tokensV2.onNavy, tokensV2.navy)).toBeGreaterThanOrEqual(7);
-      expect(contrast(tokensV2.onNavy2, tokensV2.navy)).toBeGreaterThanOrEqual(4.5);
-      expect(contrast(tokensV2.sand, tokensV2.navy)).toBeGreaterThanOrEqual(4.5);
-      expect(contrast(tokensV2.blue, tokensV2.navy)).toBeLessThan(3);
+    it('the sky-blue Details band: navy ink (headline, titles, body, labels) >= 7; blueDeep passes; royal blue is never text there (< 4.5)', () => {
+      expect(contrast(tokensV2.ink, tokensV2.photoGround)).toBeGreaterThanOrEqual(7);
+      expect(contrast(tokensV2.blueDeep, tokensV2.photoGround)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(tokensV2.blue, tokensV2.photoGround)).toBeLessThan(4.5);
     });
     it('the focus ring (blue line, white halo) reads on white, cream and blue grounds (>= 3:1 non-text)', () => {
       expect(contrast(tokensV2.blue, tokensV2.ground)).toBeGreaterThanOrEqual(3);
@@ -130,7 +129,7 @@ describe('Landing (daylight) palette', () => {
       });
   });
 
-  it('photoGround (the hero photo sky) is the only extra hue, and navy ink reads on it', () => {
+  it('photoGround (the hero photo sky, also the Details band ground) is the only extra hue, and navy ink reads on it', () => {
     expect(tokensV2.photoGround).toBe('#57C8E1');
     expect(contrast(tokensV2.ink, tokensV2.photoGround)).toBeGreaterThanOrEqual(7);
   });
