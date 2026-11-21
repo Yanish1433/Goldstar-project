@@ -455,7 +455,7 @@ function Legend({ items, accent }) {
   );
 }
 
-const srOnly = { position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' };
+const srOnly = { position: 'absolute', width: '1px', height: '1px', margin: '-1px', padding: 0, border: 0, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' };
 
 export function CalloutsSection() {
   const p = pal('callouts');

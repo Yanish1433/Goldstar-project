@@ -8,7 +8,9 @@ import { formatNPR, formatRange } from '../../lib/format.js';
 import { PageBox } from '../Page.jsx';
 import { TOUCH } from '../../landing-v2/tokensV2.js';
 
-const srOnly = { position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' };
+// Explicit '1px' strings: inside MUI sx a bare 1 means 100%, which made these "hidden" labels as wide as the
+// screen and pushed the checkout AppBar buttons off phones.
+const srOnly = { position: 'absolute', width: '1px', height: '1px', margin: '-1px', padding: 0, border: 0, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap' };
 
 export function Eyebrow({ children, sx, component = 'p', ...rest }) {
   return (
