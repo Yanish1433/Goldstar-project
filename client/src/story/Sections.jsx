@@ -1,8 +1,8 @@
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import { Link as RouterLink } from 'react-router';
 import Box from '@mui/material/Box';
-import { Minus, Plus, RotateCcw, ArrowDown, ArrowUp, MoveHorizontal, Droplets, Layers } from 'lucide-react';
-import { INTRO, INTRO_BEATS, PALETTE, SECTIONS, introBeat, samplePose } from './storyline.js';
+import { Minus, Plus, RotateCcw, MoveHorizontal, Droplets, Layers } from 'lucide-react';
+import { PALETTE, SECTIONS, samplePose } from './storyline.js';
 import { STORY_MODEL, LABEL_ORDER, CALLOUTS, BADGES, COLOURWAYS, colourwayOf } from './model.config.js';
 import { live, touch, useStoryUi } from './state.js';
 import { scrollToSection } from './useStoryEngine.js';
@@ -212,21 +212,14 @@ function Sparkles() {
 // LCP poster: a transparent render of the first frame, placed with the stage-box maths of storyline.js, so it sits
 // under the live boot and crossfades into it when the canvas is ready (the crossfade starts only once the canvas
 // has mounted its first frame, onReady in Stage.jsx).
-//  - scrub mode: the whole boot at T=0 (key 0: box 'intro', fill 1.42, 3/4 front). The render is a square of k times
-//    the fill square (fill * min(box w, box h)), centred on the box (k = 1.1 desktop, 1.25 phone), so the shadow fits:
-//    desktop min(125vw, 96.8vh) at (50vw, 41vh); phone 113.6vw at (50vw, 33vh) (the phone box is width-bound).
-//    phone: the intro box is height-bound (h 0.44 of the stage height at 33.5%), so min(195vw, 78.1% of it);
-//    short landscape (a phone on its side): its own render (lite model, like the canvas there), k 1.25, box (72.5vw,
-//    56%) w 0.9 h 0.745 -> min(159.75vw, 132.2% of the stage height).
-//  - flow mode (reduced motion, no WebGL): the full hero pose (hero key: fill 0.9; the render is 1.3x / 1.15x that
-//    square). Devices without WebGL keep it as the hero image.
-function HeroPoster({ flow }) {
+//  - the hero pose (key 0 of storyline.js: box 'hero', fill 0.92, 3/4 front, toe right), the same in every tier: the
+//    render is a square 1.3x (desktop, landscape) / 1.15x (phone) the fill square, centred on the hero box. Devices
+//    without WebGL and reduced motion keep it as the hero image.
+function HeroPoster() {
   const ready = useStoryUi((s) => s.canvasReady);
   const reduced = useStoryUi((s) => s.reduced);
-  const size = flow
-    ? { desktop: 'min(65.52vw, 86.58vh)', phone: 'min(97.29vw, 41.4vh)', phoneTop: '32vh', land: `min(58.5vw, calc(${STAGE_H} * 0.866))`, landX: '72vw', landY: 0.56 }
-    : { desktop: 'min(125vw, 96.8vh)', phone: `min(195vw, calc(${STAGE_H} * 0.781))`, phoneTop: `calc(${STAGE_H} * 0.335)`, land: `min(159.75vw, calc(${STAGE_H} * 1.3224))`, landX: '72.5vw', landY: 0.56 };
-  const src = flow ? ['/img/hero/boot-desktop.webp', '/img/hero/boot-phone.webp'] : ['/img/hero/intro-desktop.webp', '/img/hero/intro-phone.webp', '/img/hero/intro-land.webp'];
+  const size = { desktop: 'min(65.52vw, 86.58vh)', phone: 'min(97.29vw, 41.4vh)', phoneTop: '32vh', land: `min(58.5vw, calc(${STAGE_H} * 0.866))`, landX: '72vw', landY: 0.56 };
+  const src = ['/img/hero/boot-desktop.webp', '/img/hero/boot-phone.webp'];
   return (
     <Box
       component="picture"
@@ -235,8 +228,8 @@ function HeroPoster({ flow }) {
       sx={{
         '--s': size.desktop,
         position: 'absolute',
-        left: flow ? 'calc(68vw - var(--s) / 2)' : 'calc(50vw - var(--s) / 2)',
-        top: flow ? 'calc(55vh - var(--s) / 2)' : 'calc(41vh - var(--s) / 2)',
+        left: 'calc(68vw - var(--s) / 2)',
+        top: 'calc(55vh - var(--s) / 2)',
         width: 'var(--s)',
         height: 'var(--s)',
         pointerEvents: 'none',
@@ -247,161 +240,8 @@ function HeroPoster({ flow }) {
         '& img': { display: 'block', width: '100%', height: '100%' },
       }}
     >
-      {src[2] ? <source media="(orientation: landscape) and (max-height: 500px)" srcSet={src[2]} width={900} height={900} /> : null}
       <source media="(max-width: 899.95px) and (orientation: portrait), (max-width: 899.95px) and (min-height: 501px)" srcSet={src[1]} width={720} height={720} />
       <img src={src[0]} alt="" width={1100} height={1100} fetchPriority="high" decoding="async" />
-    </Box>
-  );
-}
-
-// --- Hero intro ------------------------------------------------------------------------------------------
-// The first screen shows the whole boot, centred and big, and turns it by scroll so tongue logo, metal hardware and
-// outsole each face the camera in turn, then it glides to the hero pose (storyline.js INTRO). The captions (bottom band
-// on desktop, under the boot on phones) and the scroll rail are driven by the same story time T
-// as the 3D (applyIntro, called from the engine's onTime), so they scrub with it and play backward exactly.
-// Caption text comes from the part data in model.config.js (STORY_MODEL.parts), nothing is invented here.
-const introPart = (k) => STORY_MODEL.parts[k];
-export const INTRO_CAPTIONS = [introPart('tongue'), introPart('eyelets'), introPart('outsole')].map((part, i) => ({ n: i + 1, label: part.label, text: part.detail }));
-
-const intro = { caps: [], eyebrow: null, root: null, thumb: null, fill: null, btns: [], label: null };
-export function applyIntro(T) {
-  if (!intro.root) return;
-  const b = introBeat(T);
-  intro.caps.forEach((el, i) => {
-    if (!el) return;
-    const v = b.vis[i];
-    const dir = b.index > i ? -1 : 1; // leaves upward, arrives from below
-    el.style.opacity = String(v);
-    el.style.transform = `translateY(${(dir * (1 - v) * 14).toFixed(2)}px)`;
-  });
-  if (intro.eyebrow) intro.eyebrow.style.opacity = String(0.9 * b.rail);
-  const r = intro.root;
-  r.style.opacity = String(b.rail);
-  r.style.visibility = b.rail < 0.02 ? 'hidden' : 'visible'; // out of the tab order once it has left
-  r.dataset.end = b.index === INTRO_BEATS - 1 ? 'true' : 'false';
-  intro.thumb?.style.setProperty('--p', b.progress.toFixed(4));
-  intro.btns.forEach((el, i) => el && (el.dataset.active = String(i === b.index)));
-  intro.btns.forEach((el, i) => (i === b.index ? el?.setAttribute('aria-current', 'step') : el?.removeAttribute('aria-current')));
-}
-
-const RAIL_H = { xs: 150, md: 'clamp(190px, 34vh, 300px)', land: `min(150px, calc(${STAGE_H} - var(--appbar-h, 64px) - 110px))` };
-
-// The scroll rail: a vertical track with one real button per beat (>= 44px hit area, visible focus), a thumb that
-// follows the intro's progress and a "Scroll" label that flips to "Scroll back" with the last beat.
-function IntroRail({ ink }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const root = ref.current;
-    if (!root) return undefined;
-    intro.root = root;
-    intro.thumb = root.querySelector('[data-thumb]');
-    intro.btns = [...root.querySelectorAll('button')];
-    applyIntro(live.T);
-    return () => {
-      intro.root = null;
-      intro.thumb = null;
-      intro.btns = [];
-    };
-  }, []);
-  return (
-    <Box
-      ref={ref}
-      component="nav"
-      aria-label="Close-up chapters"
-      data-end="false"
-      sx={{
-        position: 'absolute', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pointerEvents: 'none',
-        left: { xs: 'calc(4px + env(safe-area-inset-left))', md: 'calc(3vw - 2px)' }, top: { xs: '59%', md: '50%' }, transform: { xs: 'none', md: 'translateY(-50%)' },
-        mt: { md: 'calc(var(--appbar-h, 64px) / 2)' }, width: 44,
-        [LAND]: { left: 'calc(4px + env(safe-area-inset-left))', top: '50%', transform: 'translateY(-50%)', marginTop: 'calc(var(--appbar-h, 64px) / 2)' },
-        '& [data-label]': { ...LABEL_TEXT, fontSize: { xs: 9, md: 10 }, letterSpacing: { xs: '0.06em', md: '0.14em' }, textAlign: 'center', lineHeight: 1.2, width: 44, userSelect: 'none' },
-        '& [data-label] svg': { animation: 'gsCue 1.8s ease-in-out infinite', '@media (prefers-reduced-motion: reduce)': { animation: 'none' } },
-        '@keyframes gsCue': { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(4px)' } },
-        '& [data-when="end"]': { display: 'none' },
-        '&[data-end="true"] [data-when="end"]': { display: 'inline-flex' },
-        '&[data-end="true"] [data-when="start"]': { display: 'none' },
-      }}
-    >
-      <Box aria-hidden="true" data-label sx={{ color: ink }}>
-        <Box component="span" data-when="start" sx={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>Scroll<ArrowDown size={14} strokeWidth={2.5} /></Box>
-        <Box component="span" data-when="end" sx={{ flexDirection: 'column', alignItems: 'center', gap: 0.5 }}><ArrowUp size={14} strokeWidth={2.5} />Scroll back</Box>
-      </Box>
-      <Box data-thumb sx={{ position: 'relative', width: 44, height: { xs: RAIL_H.xs, md: RAIL_H.md }, [LAND]: { height: RAIL_H.land }, '--p': 0 }}>
-        <Box aria-hidden="true" sx={{ position: 'absolute', left: 'calc(50% - 1px)', top: 0, bottom: 0, width: 2, borderRadius: 1, backgroundColor: ink, opacity: 0.25 }} />
-        <Box aria-hidden="true" sx={{ position: 'absolute', left: 'calc(50% - 1px)', top: 0, width: 2, borderRadius: 1, backgroundColor: ink, height: 'calc(var(--p) * 100%)' }} />
-        <Box aria-hidden="true" sx={{ position: 'absolute', left: 'calc(50% - 6px)', top: 'calc(var(--p) * 100% - 6px)', width: 12, height: 12, borderRadius: '50%', backgroundColor: ink, boxShadow: `0 0 0 4px ${ink}33`, zIndex: 1 }} />
-        {INTRO_CAPTIONS.map((c, i) => (
-          <Box
-            key={c.n}
-            component="button"
-            type="button"
-            aria-label={`Go to: ${c.label}, ${c.text}`}
-            onClick={() => scrollToSection('hero', INTRO.beatT[i])}
-            sx={{
-              position: 'absolute', left: 0, width: 44, height: 44, p: 0, border: 0, background: 'transparent', cursor: 'pointer', pointerEvents: 'auto', color: ink,
-              top: `calc(${(INTRO.beatT[i] / INTRO.captionOut[0]) * 100}% - 22px)`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              '&:focus-visible': { outline: `3px solid ${ink}`, outlineOffset: -3, borderRadius: '50%' },
-              '& span': { width: 8, height: 8, borderRadius: '50%', border: `2px solid ${ink}`, boxSizing: 'border-box', transition: 'transform 180ms ease, background-color 180ms ease', '@media (prefers-reduced-motion: reduce)': { transition: 'none' } },
-              '&[data-active="true"] span': { transform: 'scale(1.5)', backgroundColor: ink },
-              '&:hover span': { transform: 'scale(1.5)' },
-            }}
-          >
-            <span aria-hidden="true" />
-          </Box>
-        ))}
-      </Box>
-    </Box>
-  );
-}
-
-// The captions sit in one grid cell and cross-fade (opacity + <= 14px of travel). All three stay in the DOM in
-// order for screen readers (no live region), only their opacity changes.
-function IntroCaptions({ ink }) {
-  const wrap = useRef(null);
-  useEffect(() => {
-    intro.caps = [...(wrap.current?.querySelectorAll('li') || [])];
-    intro.eyebrow = wrap.current?.previousElementSibling || null;
-    applyIntro(live.T);
-    return () => {
-      intro.caps = [];
-      intro.eyebrow = null;
-    };
-  }, []);
-  return (
-    <Box
-      data-intro
-      sx={{
-        position: 'absolute', zIndex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: { xs: 1.25, md: 2 }, boxSizing: 'border-box', color: ink, pointerEvents: 'none',
-        // phones: under the boot, from 58% (the intro boxes in storyline.js keep the boot above this line)
-        left: 56, right: 20, top: '58%', bottom: 'calc(20px + env(safe-area-inset-bottom))',
-        // Desktop: the boot is centred, so the captions sit in a band along the bottom-left, below its bounding box.
-        // (one media block: a separate md key would share it and be overwritten)
-        '@media (min-width:900px)': { left: 'calc(3vw + 60px)', right: 'auto', top: 'auto', bottom: 'max(20px, 3.2vh)', justifyContent: 'flex-end', width: 'min(46vw, 680px)' },
-        // short landscape: a left column beside the rail, the boot on the right
-        [LAND]: { left: 'calc(56px + env(safe-area-inset-left))', right: 'auto', width: '38vw', top: 'calc(var(--appbar-h, 64px) + 8px)', bottom: '12px', justifyContent: 'center', gap: '8px' },
-      }}
-    >
-      <Box aria-hidden="true" sx={{ fontSize: { xs: 12, md: 13 }, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' }}>Goldstar Nepal · G10-401</Box>
-      <Box ref={wrap} component="ul" sx={{ m: 0, p: 0, listStyle: 'none', display: 'grid', '& > li': { gridArea: '1 / 1', willChange: 'opacity, transform' } }}>
-        {INTRO_CAPTIONS.map((c, i) => (
-          <li key={c.n} style={i === 0 ? undefined : { opacity: 0 }}>
-            <Box sx={{ fontSize: { xs: 12, md: 13 }, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', mb: { xs: 0.75, md: 1.25 } }}>{String(c.n).padStart(2, '0')} · {c.label}</Box>
-            <Box sx={{ fontWeight: 800, ...WIDE, lineHeight: 1, letterSpacing: '-0.02em', fontSize: { xs: 'clamp(26px, 7.4vw, 34px)', md: 'clamp(24px, 2.2vw, 40px)' }, [LAND]: { fontSize: 'clamp(20px, 6.4vh, 30px)' }, textWrap: 'balance' }}>{c.text}</Box>
-          </li>
-        ))}
-      </Box>
-    </Box>
-  );
-}
-
-// Reduced motion / no-scrub: the same captions, stacked and static under the buttons.
-function IntroList() {
-  return (
-    <Box component="ul" data-copy sx={{ m: 0, p: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 0.5, fontSize: { xs: 13, md: 15 }, fontWeight: 600, lineHeight: 1.3, opacity: 0.95 }}>
-      {INTRO_CAPTIONS.map((c) => (
-        <li key={c.n}><Box component="span" sx={{ ...LABEL_TEXT, fontSize: 11, mr: 1 }}>{c.label}</Box>{c.text}</li>
-      ))}
     </Box>
   );
 }
@@ -410,7 +250,7 @@ export function HeroSection({ product, flow }) {
   const p = pal('hero');
   const from = product?.colourways?.length ? Math.min(...product.colourways.map((c) => c.price)) : null;
   return (
-    <Panel id="hero" side="left" phoneTop={flow ? 'calc(var(--stage-h, 100svh) * 0.55)' : '55%'} sx={flow ? { '@media (max-width:899.95px)': { height: 'auto', minHeight: 'calc(var(--stage-h, 100svh) + 110px)' }, [LAND]: { height: STAGE_H, minHeight: 0 } } : { [SHORT]: { '& [data-copybox]': { top: '49%', gap: '10px' } } }} extra={<><HeroPoster flow={flow} /><Sparkles />{flow ? null : <><IntroCaptions ink={p.ink} /><IntroRail ink={p.ink} /></>}</>}>
+    <Panel id="hero" side="left" phoneTop={flow ? 'calc(var(--stage-h, 100svh) * 0.55)' : '55%'} sx={flow ? { '@media (max-width:899.95px)': { height: 'auto', minHeight: 'calc(var(--stage-h, 100svh) + 110px)' }, [LAND]: { height: STAGE_H, minHeight: 0 } } : { [SHORT]: { '& [data-copybox]': { top: '49%', gap: '10px' } } }} extra={<><HeroPoster /><Sparkles /></>}>
       <Eyebrow>Goldstar Nepal · G10-401</Eyebrow>
       <Headline component="h1" id="story-hero-h" sx={{ fontSize: { xs: 'clamp(40px, 12vw, 54px)', md: 'clamp(64px, 7vw, 120px)' }, [SHORT]: { fontSize: 'clamp(34px, 11vw, 46px)' }, [LAND]: { fontSize: 'clamp(28px, min(5.4vw, 10vh), 46px)' } }}>
         Explore further.
@@ -421,7 +261,6 @@ export function HeroSection({ product, flow }) {
         <PillLink to="/product/g10-401" ink={p.ink} bg={p.bg}>Shop the G10-401</PillLink>
         <PillButton ink={p.ink} bg={p.bg} filled={false} onClick={() => scrollToSection('anatomy', 70)}>See inside</PillButton>
       </Box>
-      {flow ? <IntroList /> : null}
     </Panel>
   );
 }

@@ -24,7 +24,7 @@ export const PALETTE = {
 };
 
 export const SECTIONS = [
-  { id: 'hero', pin: 200, colour: 'tangerine', title: 'Explore further' },
+  { id: 'hero', pin: 40, colour: 'tangerine', title: 'Explore further' },
   { id: 'performance', pin: 120, colour: 'lilac', title: 'Performance, redefined' },
   { id: 'callouts', pin: 180, colour: 'pine', title: 'Built in' },
   { id: 'anatomy', pin: 220, colour: 'glacier', title: 'Designed to endure' },
@@ -53,44 +53,9 @@ export const TOTAL = endOf(SECTIONS[SECTIONS.length - 1].id);
 // Absolute time of a fraction of a section's pin (0 = panel just pinned, 1 = about to leave).
 export const at = (id, frac) => START[id] + frac * pinOf(id);
 
-// The hero's opening: the WHOLE boot, centred and large (like the Add to cart studio), turned by scroll so each
-// part faces the camera in turn (tongue logo -> metal hardware -> outsole lugs), then it glides from the centre to the
-// hero pose on the right as the headline arrives. Everything is in vh from the top of the story, tied 1:1 to scroll,
-// so scrolling up plays it backward exactly. Captions and the rail read introBeat(T).
-const BEAT_AT = [34, 72]; // where the caption crossfades are centred (between beat 1|2 and 2|3)
-export const INTRO = {
-  end: at('hero', 0.8), // 160: full hero pose reached (this is also HOLD.hero)
-  fade: 12, // width of a caption crossfade
-  captionOut: [104, 112], // the last caption leaves, the rail goes with it
-  glide: [100, 126], // the boot glides from the centre box to the hero box (done before the headline starts)
-  copyIn: [126, 139], // hero headline + buttons arrive (their stagger ends exactly at `end`)
-  // The click targets of the rail: a point where each beat is fully shown.
-  beatT: [16, 56, 92],
-};
-export const INTRO_BEATS = 3;
-
-// Which close-up beat is on at T. vis[i] is caption i's opacity (0..1); rail is the rail's opacity; progress 0..1
-// is the rail thumb position (0 at the top, 1 when the last caption leaves); index is the strongest beat (for the rail's active dot / label).
-export function introBeat(T) {
-  const t = Number.isFinite(T) ? T : 0;
-  const h = INTRO.fade / 2;
-  const vis = [];
-  for (let i = 0; i < INTRO_BEATS; i += 1) {
-    const inn = i === 0 ? 1 : smooth(BEAT_AT[i - 1] - h, BEAT_AT[i - 1] + h, t);
-    const out = i === INTRO_BEATS - 1 ? 1 - smooth(INTRO.captionOut[0], INTRO.captionOut[1], t) : 1 - smooth(BEAT_AT[i] - h, BEAT_AT[i] + h, t);
-    vis.push(inn * out);
-  }
-  let index = 0;
-  vis.forEach((v, i) => {
-    if (v > vis[index]) index = i;
-  });
-  const rail = 1 - smooth(INTRO.captionOut[0], INTRO.captionOut[1], t);
-  return { vis, index, rail, progress: clamp01(t / INTRO.captionOut[0]) };
-}
-
 // The "hold" pose of each section: what reduced motion and the static screenshots show.
 export const HOLD = {
-  hero: INTRO.end,
+  hero: at('hero', 0),
   performance: at('performance', 0.2),
   callouts: at('callouts', 0.6),
   anatomy: at('anatomy', 0.55),
@@ -106,19 +71,13 @@ export const HOLD = {
 //  - desktop (>= 900 px wide, not a short landscape): copy beside the boot.
 //  - phone (portrait, < 900 px wide; tablets too): the stage is the top half and the copy sits below it. From the
 //    performance chapter on, the boxes are near full width and over half the screen tall, so the boot fills >= 85% of
-//    the viewport width. The intro boxes are height-bound (w*W > h*H on every portrait screen), so the boot is as big
-//    as fits above the caption block (58%) on short phones and spans ~85-92% of the width on tall ones; each beat has
-//    its own box (intro, intro2, intro3) because the side-on and tipped poses are wider/flatter than the 3/4 front.
+//    the viewport width.
 //    Sizes are fitted to the boot's real silhouette (test/fixtures/bootHull.json) in test/storyline.test.js.
 //  - landscape (a phone on its side, any width, <= 500 px tall): side by side like desktop, the copy in a left column
 //    (~44%) and the boot in the right half, below the AppBar.
 export const LAYOUTS = {
   desktop: {
     hero: { cx: 0.68, cy: 0.55, w: 0.56, h: 0.74 },
-    // the hero's opening: the whole boot, centred, with a caption band along the bottom (same box for each beat)
-    intro: { cx: 0.5, cy: 0.41, w: 0.8, h: 0.62 },
-    intro2: { cx: 0.5, cy: 0.41, w: 0.8, h: 0.62 },
-    intro3: { cx: 0.5, cy: 0.41, w: 0.8, h: 0.62 },
     right: { cx: 0.68, cy: 0.55, w: 0.56, h: 0.74 },
     left: { cx: 0.32, cy: 0.55, w: 0.56, h: 0.74 },
     mid: { cx: 0.53, cy: 0.55, w: 0.42, h: 0.86 },
@@ -126,9 +85,6 @@ export const LAYOUTS = {
   },
   phone: {
     hero: { cx: 0.5, cy: 0.32, w: 0.94, h: 0.4 },
-    intro: { cx: 0.5, cy: 0.335, w: 1.1, h: 0.44 }, // 3/4 front (tallest)
-    intro2: { cx: 0.5, cy: 0.335, w: 1.1, h: 0.36 }, // side-on (widest)
-    intro3: { cx: 0.5, cy: 0.335, w: 1.1, h: 0.355 }, // tipped
     right: { cx: 0.5, cy: 0.33, w: 0.98, h: 0.53 },
     left: { cx: 0.5, cy: 0.33, w: 0.98, h: 0.53 },
     mid: { cx: 0.5, cy: 0.32, w: 0.98, h: 0.55 },
@@ -136,9 +92,6 @@ export const LAYOUTS = {
   },
   landscape: {
     hero: { cx: 0.72, cy: 0.56, w: 0.5, h: 0.74 },
-    intro: { cx: 0.725, cy: 0.56, w: 0.9, h: 0.745 },
-    intro2: { cx: 0.725, cy: 0.56, w: 0.9, h: 0.755 },
-    intro3: { cx: 0.725, cy: 0.56, w: 0.9, h: 0.755 },
     right: { cx: 0.72, cy: 0.56, w: 0.5, h: 0.74 },
     left: { cx: 0.28, cy: 0.56, w: 0.5, h: 0.74 },
     mid: { cx: 0.72, cy: 0.56, w: 0.5, h: 0.78 },
@@ -160,20 +113,13 @@ export const compactLabels = (layout) => layout !== 'desktop';
 // rx/ry/rz: shoe rotation (Euler 'YXZ': yaw ry, then roll rx about the length axis, then pitch rz).
 // az/el: camera orbit around the shoe. lift: shoe y offset. explode: 0..1. shadow: contact shadow opacity.
 // fx/fy/fz: the point of the shoe (rig units, shoe-local, toe +x) that sits at the centre of the framing. 0 = the
-// whole shoe, centred (the hero intro no longer moves it).
+// whole shoe, centred.
 const BASE = { box: 'right', fill: 0.92, R: 1.6, az: 0, el: 0.14, rx: 0, ry: 0, rz: 0, lift: 0, explode: 0, shadow: 1, alpha: 1, studio: 0, fx: 0, fy: 0, fz: 0 };
 
 // Keyframes. `t` is absolute vh; `ease` is how we arrive at this key from the previous one.
 // Values not given are carried over from the previous key.
 // Yaw is unwrapped (it only ever accumulates), so every flight spins the short or deliberate way.
 const HERO_Y = -0.65; // 3/4 front, toe to the right (storyboard)
-// The intro turns the whole boot (toe +x; ry < 0 brings the toe toward the camera, rx < 0 tips the sole toward it).
-// Each beat is a pose that shows one part, with a push-in sized so the projected boot always stays inside the box.
-const INTRO_POSE = {
-  logo: { ry: -0.9, el: 0.24, rx: 0, fill: 1.42 }, // 3/4 front, the tongue logo faces the camera (also the first frame)
-  hardware: { ry: -0.15, el: 0.2, rx: 0, fill: 1.42 }, // side-on, the lace D-rings and hooks in profile
-  lugs: { ry: 0.3, el: 0.04, rx: -0.55, fill: 1.36 }, // tipped toward the camera (never sole-up): the outsole lugs
-};
 const PERF_Y0 = HERO_Y + 0.2 + Math.PI; // half a turn during the flight
 const PERF_Y1 = PERF_Y0 + TAU; // a full 360 in the pin
 const CALL_Y = 2 * TAU - 0.9; // toe toward the camera: logo on the tongue + lateral side
@@ -193,18 +139,8 @@ export const ANATOMY = {
 };
 
 export const KEYS = [
-  // 1. Whole boot, centred and big, tongue logo to camera (box intro; the focus point stays on the boot's centre).
-  { t: 0, ...BASE, box: 'intro', R: 1.6, fill: INTRO_POSE.logo.fill, ry: INTRO_POSE.logo.ry, rz: 0.03, el: INTRO_POSE.logo.el, shadow: 1 },
-  { t: 28, ry: INTRO_POSE.logo.ry - 0.1, ease: 'linear' },
-  // 2. Turn to the lace hardware, side-on.
-  { t: 46, box: 'intro2', ry: INTRO_POSE.hardware.ry, el: INTRO_POSE.hardware.el, fill: INTRO_POSE.hardware.fill, ease: 'inOut' },
-  { t: 64, ry: INTRO_POSE.hardware.ry + 0.1, ease: 'linear' },
-  // 3. Tip it toward the camera for the outsole lugs (contact shadow off while it is tipped).
-  { t: 84, box: 'intro3', ry: INTRO_POSE.lugs.ry, el: INTRO_POSE.lugs.el, rx: INTRO_POSE.lugs.rx, fill: INTRO_POSE.lugs.fill, shadow: 0, ease: 'inOut' },
-  { t: INTRO.glide[0], ry: INTRO_POSE.lugs.ry + 0.1, ease: 'linear' },
-  // Glide from the centre to the hero pose on the right (done before the headline arrives), then settle.
-  { t: INTRO.glide[1], box: 'hero', fill: 0.92, rx: 0, ry: HERO_Y - 0.1, rz: 0.04, el: 0.14, shadow: 1, ease: 'inOut' },
-  { t: INTRO.end, ry: HERO_Y, ease: 'linear' },
+  // 1. The hero pose from the first frame: 3/4 front, toe to the right (the page opens on it), then a slow drift.
+  { t: 0, ...BASE, box: 'hero', R: 1.6, fill: 0.92, ry: HERO_Y, rz: 0.04, el: 0.14, shadow: 1 },
   { t: endOf('hero'), ry: HERO_Y + 0.2, ease: 'linear' },
   // flight hero -> performance: lift and bank mid-air, half turn
   { t: endOf('hero') + 50, box: 'mid', lift: 0.3, rz: -0.16, ry: HERO_Y + 0.2 + Math.PI / 2, fill: 0.8, shadow: 0.2, ease: 'in' },
@@ -324,7 +260,7 @@ export function copyTrack(id) {
   const s = START[id];
   const e = endOf(id);
   return {
-    in: id === 'hero' ? INTRO.copyIn : [s - 75, s - 5],
+    in: id === 'hero' ? null : [s - 75, s - 5],
     out: id === 'finale' ? null : [e - 20, e + 18],
   };
 }
