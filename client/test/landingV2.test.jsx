@@ -83,6 +83,12 @@ describe('Landing (daylight) palette', () => {
       expect(contrast(tokensV2.sandDeep, tokensV2.cream)).toBeGreaterThanOrEqual(4.5);
       expect(contrast(tokensV2.ink, tokensV2.sandSoft)).toBeGreaterThanOrEqual(7);
     });
+    it('the navy Details band: white ink >= 7, secondary ink >= 4.5, sand >= 4.5; blue is never ink on navy (< 3)', () => {
+      expect(contrast(tokensV2.onNavy, tokensV2.navy)).toBeGreaterThanOrEqual(7);
+      expect(contrast(tokensV2.onNavy2, tokensV2.navy)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(tokensV2.sand, tokensV2.navy)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(tokensV2.blue, tokensV2.navy)).toBeLessThan(3);
+    });
     it('the focus ring (blue line, white halo) reads on white, cream and blue grounds (>= 3:1 non-text)', () => {
       expect(contrast(tokensV2.blue, tokensV2.ground)).toBeGreaterThanOrEqual(3);
       expect(contrast(tokensV2.white, tokensV2.blue)).toBeGreaterThanOrEqual(3);

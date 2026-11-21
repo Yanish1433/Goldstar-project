@@ -25,6 +25,8 @@ const C = {
   blueDeep: '#120FBF', // hover / pressed blue
   onBlue: '#FFFFFF', // ink on royal blue
   onBlue2: '#D9DBFF', // secondary ink on royal blue (>= 4.5:1)
+  onNavy: '#FFFFFF', // ink on the navy band (Details)
+  onNavy2: '#C5CCEA', // secondary ink on navy (>= 4.5:1)
   sand: '#EBC989', // the warm accent: fills and shapes on light grounds, text only on blue
   sandSoft: '#F7E9CB', // sand wash (pills, glows)
   sandDeep: '#7A5915', // sand as text on light grounds (sale, ratings)
@@ -41,6 +43,7 @@ export const tokensV2 = {
   line: alpha(C.navy, 0.1),
   lineStrong: alpha(C.navy, 0.22),
   lineOnBlue: alpha(C.onBlue, 0.28),
+  lineOnNavy: alpha(C.onBlue, 0.16),
   blueWash: alpha(C.blue, 0.08),
   scrim: alpha(C.navy, 0.55),
   onAccent: C.onBlue,
