@@ -6,13 +6,15 @@ import { Eyebrow, Display, WRAP } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
 import SideDoodles, { useSideScrub } from './SideDoodles.jsx';
 const SIDE = [
-  { k: 'star', s: 'l', top: '8%', w: 30, rot: 10, d: 140, spin: 180, o: 0.9 },
-  { k: 'sneaker', s: 'r', top: '12%', w: 60, rot: -6, d: 120, tilt: 5, c: 'blue', o: 0.6 },
-  { k: 'feet', s: 'l', top: '34%', w: 56, rot: 8, d: 150, tilt: -6, c: 'ink', o: 0.5 },
-  { k: 'star', s: 'r', top: '48%', w: 48, rot: -10, d: 190, spin: -220, o: 0.9 },
-  { k: 'boot', s: 'l', top: '62%', w: 68, rot: 5, d: 130, tilt: 6, c: 'blue', o: 0.6 },
-  { k: 'sparkle', s: 'r', top: '74%', w: 20, rot: 0, d: 100, spin: 100, o: 1 },
-  { k: 'star', s: 'r', top: '88%', w: 20, rot: 14, d: 160, spin: 200, o: 0.9 },
+  { k: 'sneaker', x: -480, y: 28, w: 54, rot: -5, d: 34, tilt: 5, c: 'blue', o: 0.6 },
+  { k: 'star', x: -320, y: 46, w: 26, rot: 10, d: 30, spin: 120, o: 0.9 },
+  { k: 'star', x: 120, y: 34, w: 22, rot: -12, d: 28, spin: -120, o: 0.9 },
+  { k: 'boot', x: 470, y: 26, w: 58, rot: 6, d: 34, tilt: -5, c: 'ink', o: 0.5 },
+  { k: 'feet', x: -460, b: 26, w: 50, rot: 8, d: 34, tilt: 5, c: 'ink', o: 0.5 },
+  { k: 'star', x: -260, b: 44, w: 30, rot: -8, d: 30, spin: 140, o: 0.9 },
+  { k: 'star', x: 280, b: 40, w: 24, rot: 14, d: 30, spin: -140, o: 0.9 },
+  { k: 'sneaker', x: 470, b: 30, w: 52, rot: -5, d: 34, tilt: 5, c: 'blue', o: 0.55 },
+  { k: 'boot', s: 'r', top: '30%', w: 66, rot: 5, d: 150, tilt: 5, c: 'blue', o: 0.55 },
 ];
 
 // 3. Shop by category: three tall photo cards, goldstarshoes.com's own home-page block (Trek Everyday / Sneakers /

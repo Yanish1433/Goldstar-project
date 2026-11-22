@@ -6,12 +6,15 @@ import { tokensV2, DISPLAY_HEADING } from './tokensV2.js';
 import { WIDE } from '../theme/tokens.js';
 import SideDoodles, { useSideScrub } from './SideDoodles.jsx';
 const SIDE = [
-  { k: 'star', s: 'l', top: '7%', w: 20, rot: -8, d: 110, spin: 180, o: 0.9 },
-  { k: 'boot', s: 'r', top: '20%', w: 62, rot: 6, d: 140, tilt: -6, c: 'blue', o: 0.6 },
-  { k: 'star', s: 'l', top: '42%', w: 44, rot: 12, d: 170, spin: -200, o: 0.9 },
-  { k: 'feet', s: 'r', top: '60%', w: 48, rot: -6, d: 120, tilt: 5, c: 'ink', o: 0.5 },
-  { k: 'sneaker', s: 'l', top: '74%', w: 56, rot: 4, d: 100, tilt: 5, c: 'blue', o: 0.55 },
-  { k: 'sparkle', s: 'r', top: '86%', w: 20, rot: 0, d: 90, spin: 100, o: 1 },
+  { k: 'boot', x: -510, y: 130, w: 64, rot: -6, d: 36, tilt: 5, c: 'blue', o: 0.6 },
+  { k: 'star', x: -500, y: 240, w: 36, rot: 12, d: 30, spin: 140, o: 0.9 },
+  { k: 'star', x: -380, y: 300, w: 20, rot: -10, d: 26, spin: -140, o: 0.9 },
+  { k: 'sneaker', x: 510, y: 140, w: 60, rot: 6, d: 36, tilt: -5, c: 'ink', o: 0.5 },
+  { k: 'star', x: 500, y: 236, w: 30, rot: -12, d: 30, spin: -140, o: 0.9 },
+  { k: 'feet', x: 420, y: 296, w: 44, rot: 8, d: 26, tilt: 5, c: 'blue', o: 0.55 },
+  { k: 'star', x: -300, b: 34, w: 26, rot: 10, d: 28, spin: 120, o: 0.9 },
+  { k: 'star', x: 300, b: 40, w: 22, rot: -10, d: 28, spin: -120, o: 0.9 },
+  { k: 'boot', s: 'r', top: '70%', w: 62, rot: 5, d: 130, tilt: 5, c: 'ink', o: 0.5 },
 ];
 
 const REVIEWS = [

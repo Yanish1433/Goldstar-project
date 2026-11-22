@@ -7,11 +7,14 @@ import SideDoodles, { useSideScrub } from './SideDoodles.jsx';
 
 // Side layer (see SideDoodles.jsx): desktop only, in the free strips beside the hero's content.
 const SIDE = [
-  { k: 'star', s: 'l', top: '22%', w: 20, rot: -10, d: 200, spin: 200, o: 0.9 },
-  { k: 'boot', s: 'l', top: '52%', w: 64, rot: -6, d: 240, tilt: 6, c: 'blue', o: 0.6 },
-  { k: 'star', s: 'r', top: '30%', w: 36, rot: 12, d: 260, spin: -180, o: 0.9 },
-  { k: 'sneaker', s: 'r', top: '58%', w: 56, rot: 5, d: 200, tilt: -5, c: 'ink', o: 0.5 },
-  { k: 'sparkle', s: 'l', top: '78%', w: 20, rot: 0, d: 160, spin: 90, o: 1 },
+  { k: 'star', lx: 5.5, top: '20%', w: 44, rot: -10, d: 160, spin: 200, o: 0.9 },
+  { k: 'boot', lx: 5.5, top: '40%', w: 68, rot: -6, d: 180, tilt: 6, c: 'blue', o: 0.6 },
+  { k: 'feet', lx: 5.5, top: '62%', w: 52, rot: 8, d: 150, tilt: -5, c: 'ink', o: 0.5 },
+  { k: 'star', lx: 5.5, top: '80%', w: 26, rot: 12, d: 200, spin: 240, o: 0.9 },
+  { k: 'sneaker', lx: 94.5, top: '14%', w: 64, rot: 6, d: 170, tilt: -5, c: 'blue', o: 0.6 },
+  { k: 'star', lx: 94.5, top: '34%', w: 40, rot: 12, d: 190, spin: -180, o: 0.9 },
+  { k: 'feet', lx: 94.5, top: '50%', w: 52, rot: -8, d: 140, tilt: 5, c: 'ink', o: 0.5 },
+  { k: 'star', lx: 94.5, top: '66%', w: 24, rot: -14, d: 200, spin: 220, o: 0.9 },
 ];
 
 // 1. Hero. First paint is a complete, still composition on a white ground: the headline whole in big, wide navy

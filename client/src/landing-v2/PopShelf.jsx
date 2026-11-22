@@ -10,12 +10,13 @@ import { Cta, Eyebrow, Display, GUTTER } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
 import SideDoodles, { useSideScrub } from './SideDoodles.jsx';
 const SIDE = [
-  { k: 'star', s: 'l', top: '9%', w: 20, rot: -12, d: 90, spin: 180, o: 0.9 },
-  { k: 'sneaker', s: 'r', top: '16%', w: 58, rot: 6, d: 80, tilt: -5, c: 'blue', o: 0.6 },
-  { k: 'boot', s: 'l', top: '40%', w: 66, rot: -4, d: 110, tilt: 5, c: 'ink', o: 0.5 },
-  { k: 'star', s: 'r', top: '50%', w: 40, rot: 10, d: 120, spin: -200, o: 0.9 },
-  { k: 'feet', s: 'r', top: '70%', w: 50, rot: -8, d: 90, tilt: 6, c: 'blue', o: 0.55 },
-  { k: 'star', s: 'l', top: '78%', w: 32, rot: 6, d: 100, spin: 220, o: 0.9 },
+  { k: 'star', lx: 60.5, y: 108, w: 28, rot: -10, d: 26, spin: 120, o: 0.9 },
+  { k: 'boot', lx: 64.5, y: 100, w: 52, rot: -5, d: 26, tilt: 5, c: 'blue', o: 0.6 },
+  { k: 'sneaker', lx: 70.5, y: 124, w: 46, rot: 5, d: 24, tilt: -5, c: 'ink', o: 0.5 },
+  { k: 'star', lx: 68, y: 100, w: 20, rot: 12, d: 22, spin: -120, o: 0.9 },
+  { k: 'star', lx: 62, y: 172, w: 20, rot: -8, d: 22, spin: 120, o: 0.9 },
+  { k: 'star', lx: 67.5, y: 168, w: 22, rot: 10, d: 22, spin: -120, o: 0.9 },
+  { k: 'feet', s: 'r', top: '60%', w: 52, rot: -8, d: 100, tilt: 5, c: 'blue', o: 0.55 },
 ];
 import { shelfPhoto } from './shots.js';
 

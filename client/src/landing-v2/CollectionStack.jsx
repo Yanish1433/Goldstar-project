@@ -8,14 +8,20 @@ import { Eyebrow, Display, WRAP } from './ui.jsx';
 import { useSectionMotion } from './motion.js';
 import SideDoodles, { useSideScrub } from './SideDoodles.jsx';
 const SIDE = [
-  { k: 'star', s: 'l', top: '6%', w: 20, rot: -10, d: 120, spin: 200, o: 0.9 },
-  { k: 'boot', s: 'l', top: '24%', w: 64, rot: -6, d: 160, tilt: 6, c: 'blue', o: 0.6 },
-  { k: 'star', s: 'r', top: '14%', w: 44, rot: 12, d: 200, spin: -160, o: 0.9 },
+  { k: 'boot', x: -470, y: 30, w: 56, rot: -6, d: 36, tilt: 5, c: 'blue', o: 0.6 },
+  { k: 'star', x: -330, y: 48, w: 28, rot: -10, d: 30, spin: 120, o: 0.9 },
+  { k: 'sneaker', x: 520, y: 34, w: 52, rot: 5, d: 36, tilt: -5, c: 'ink', o: 0.5 },
+  { k: 'star', x: 330, y: 52, w: 24, rot: 12, d: 30, spin: -120, o: 0.9 },
+  { k: 'feet', x: -420, b: 30, w: 52, rot: 8, d: 36, tilt: 5, c: 'blue', o: 0.55 },
+  { k: 'star', x: 400, b: 40, w: 30, rot: -8, d: 30, spin: 140, o: 0.9 },
   { k: 'sneaker', s: 'r', top: '38%', w: 56, rot: 5, d: 140, tilt: -5, c: 'ink', o: 0.5 },
-  { k: 'star', s: 'l', top: '50%', w: 30, rot: 8, d: 180, spin: 240, o: 0.9 },
-  { k: 'feet', s: 'l', top: '68%', w: 52, rot: -8, d: 110, tilt: 5, c: 'blue', o: 0.55 },
-  { k: 'sparkle', s: 'r', top: '62%', w: 20, rot: 0, d: 90, spin: 90, o: 1 },
-  { k: 'star', s: 'r', top: '82%', w: 36, rot: -14, d: 160, spin: -200, o: 0.9 },
+];
+
+// The empty middle of each card's text column (between the counter and the big title): a shoe and two stars.
+const CARD_SIDE = [
+  [{ k: 'boot', lx: 30, top: '14%', w: 52, rot: -6, d: 20, tilt: 5, c: 'blue', o: 0.6 }, { k: 'star', lx: 66, top: '30%', w: 26, rot: 10, d: 18, spin: 90, o: 0.9 }, { k: 'star', lx: 84, top: '8%', w: 18, rot: -12, d: 16, spin: -90, o: 0.9 }],
+  [{ k: 'sneaker', lx: 32, top: '16%', w: 52, rot: 5, d: 20, tilt: -5, c: 'ink', o: 0.5 }, { k: 'star', lx: 70, top: '26%', w: 24, rot: -10, d: 18, spin: -90, o: 0.9 }, { k: 'star', lx: 86, top: '6%', w: 18, rot: 12, d: 16, spin: 90, o: 0.9 }],
+  [{ k: 'feet', lx: 28, top: '14%', w: 48, rot: 8, d: 20, tilt: 5, c: 'blue', o: 0.55 }, { k: 'star', lx: 64, top: '28%', w: 26, rot: 12, d: 18, spin: 90, o: 0.9 }, { k: 'star', lx: 84, top: '6%', w: 18, rot: -8, d: 16, spin: -90, o: 0.9 }],
 ];
 import { shot } from './shots.js';
 
@@ -83,6 +89,9 @@ function Card({ c, i, count }) {
             <Box data-arrow component="span" aria-hidden="true" sx={{ width: 48, height: 48, borderRadius: '50%', display: 'grid', placeItems: 'center', border: `1px solid ${t.lineStrong}` }}>
               <ArrowUpRight size={22} strokeWidth={1.5} />
             </Box>
+          </Box>
+          <Box aria-hidden="true" sx={{ position: 'relative', flex: '1 1 0', minHeight: 0, display: { xs: 'none', md: 'block' }, [SHORT]: { display: 'none' } }}>
+            <SideDoodles items={CARD_SIDE[i % CARD_SIDE.length]} sx={{ display: 'block', '@media (min-width: 900px) and (min-height: 500.02px)': { display: 'block' } }} />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, md: 2.5 } }}>
             <Box component="h3" sx={{ ...KINETIC, fontSize: { xs: 'clamp(40px, 13vw, 64px)', md: 'clamp(64px, 6vw, 100px)' }, [SHORT]: { fontSize: 'clamp(32px, 12svh, 52px)' }, fontWeight: 800, lineHeight: 0.86 }}>{c.title}</Box>

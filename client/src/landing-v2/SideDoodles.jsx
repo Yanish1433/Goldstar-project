@@ -72,24 +72,36 @@ function Sparkle() {
 // column (a colour swatch's 44px tap box starts ~10px inside the gutter), so w + 28 <= strip. Only 20px stars fit at 1280-1440.
 const minVwFor = (w) => (w <= 20 ? 1200 : 1440 + 2 * (w + 28 - 48));
 
-// item: { k: 'star'|'sparkle'|'boot'|'sneaker'|'feet', s: 'l'|'r', top: '14%', w: 28, rot: -12, d: 90 (drift, px, + = ends higher), spin: 160 (star turn) | tilt: 6 (shoe), o: 0.5 (opacity), c: 'blue'|'ink'|'sand' }
+// item: { k: 'star'|'sparkle'|'boot'|'sneaker'|'feet', w: 28 (px), rot: -12, d: 90 (drift, px), spin: 160 (star turn) | tilt: 6 (shoe), o: 0.5 (opacity), c: 'blue'|'ink'|'sand' }
+// Position, one of:
+//   gutter:  s: 'l'|'r', top: '14%'            centred in the free strip beside the 1440px column (see top)
+//   zone:    x: -480 (px from the layer's centre) or lx: 7 (% of the layer's width), plus y: 40 (px from the top) | b: 36 (px from the
+//            bottom) | top: '20%'. A zone is a measured empty area INSIDE a section (hero strips, section padding bands, the gap
+//            beside a heading, the empty middle of a collection card). Shown from 1200px wide (laptops and up).
 export default function SideDoodles({ items, layerRef, sx }) {
   return (
     <Box ref={layerRef} data-side="layer" aria-hidden="true" sx={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'clip', pointerEvents: 'none', display: 'none', '@media (min-width: 900px) and (min-height: 500.02px)': { display: 'block' }, ...sx }}>
       {items.map((it, i) => {
+        const zone = it.x !== undefined || it.lx !== undefined;
         const free = '(100% - min(100%, 1440px)) / 4 + 24px';
-        const pos = it.s === 'l' ? { left: `max(4px, calc(${free} - ${it.w / 2}px))` } : { right: `max(4px, calc(${free} - ${it.w / 2}px))` };
+        let pos;
+        if (it.x !== undefined) pos = { left: `calc(50% + ${it.x}px - ${it.w / 2}px)` };
+        else if (it.lx !== undefined) pos = { left: `calc(${it.lx}% - ${it.w / 2}px)` };
+        else if (it.s === 'l') pos = { left: `max(4px, calc(${free} - ${it.w / 2}px))` };
+        else pos = { right: `max(4px, calc(${free} - ${it.w / 2}px))` };
+        const vert = it.y !== undefined ? { top: it.y } : it.b !== undefined ? { bottom: it.b } : { top: it.top };
         return (
           <Box
             key={i}
             data-side="item"
+            data-kind={it.k}
             data-d={it.d}
             data-spin={it.spin || 0}
             data-tilt={it.tilt || 0}
             sx={{
-              position: 'absolute', top: it.top, width: it.w, height: it.w, ...pos, opacity: it.o ?? 0.5,
+              position: 'absolute', ...vert, width: it.w, height: it.w, ...pos, opacity: it.o ?? 0.5,
               transform: `rotate(${it.rot || 0}deg)`, willChange: 'transform', display: 'none',
-              [`@media (min-width: ${minVwFor(it.w)}px) and (min-height: 500.02px)`]: { display: 'block' },
+              [`@media (min-width: ${zone ? 1200 : minVwFor(it.w)}px) and (min-height: 500.02px)`]: { display: 'block' },
             }}
           >
             {it.k === 'star' ? <StarShape sx={{ width: '100%', height: '100%' }} /> : it.k === 'sparkle' ? <Sparkle /> : <Doodle kind={it.k} colour={it.c} />}
@@ -105,7 +117,8 @@ export function useSideScrub({ start = 'top bottom', end = 'bottom top' } = {}) 
   const ref = useRef(null);
   useSectionMotion(ref, (gsap, ScrollTrigger, root) => {
     const section = root.closest('section');
-    const nodes = gsap.utils.toArray('[data-side="item"]', root);
+    // every item of the section, including those inside its cards (the collection cards carry their own small layers)
+    const nodes = gsap.utils.toArray('[data-side="item"]', section);
     if (!section || !nodes.length) return undefined;
     const tl = gsap.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: section, start, end, scrub: 0.8 } });
     nodes.forEach((n, i) => {
