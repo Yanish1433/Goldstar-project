@@ -11,7 +11,9 @@ import { BOOT, SNEAKER, HIGHTOP, PRINT, PRINT_A, PRINT_B } from './shoeArt.js';
 // No overlap with content, by construction: every section's content column is max 1440px with 48px side gutters
 // (32px under 1200px). An item of width w is centred in the free strip beside that column and only shown once the
 // strip is at least w + 28px wide (`minVw` below), so at 1280 / 1440 only the small stars fit, at 1920 everything does.
-// Phones (< 900px) and landscape phones: none (CSS display:none; the markup stays aria-hidden, absolute, inert).
+// Phones and tablets in portrait (< 900px wide, >= 500px tall) get their OWN small set (items flagged `ph: true`, see below) placed in
+// measured empty spots of the phone layouts; the desktop items never show there. Landscape phones: none (CSS display:none; the markup
+// stays aria-hidden, absolute, inert).
 //
 // Motion: one scrubbed timeline per section (useSideScrub): each item drifts up/down at its own pace, stars rotate
 // slowly, shoes tilt a few degrees. Reduced motion: no timeline, the markup's resting pose is the final state.
@@ -54,10 +56,31 @@ const minVwFor = (w) => (w <= 20 ? 1200 : 1440 + 2 * (w + 28 - 48));
 //   zone:    x: -480 (px from the layer's centre) or lx: 7 (% of the layer's width), plus y: 40 (px from the top) | b: 36 (px from the
 //            bottom) | top: '20%'. A zone is a measured empty area INSIDE a section (hero strips, section padding bands, the gap
 //            beside a heading, the empty middle of a collection card). Shown from 1200px wide (laptops and up).
+const PHONE_MQ = '@media (max-width: 899.95px) and (min-height: 500.02px)';
+// ph: true marks a phone-only item: lx (% of the layer's width) plus y (px from the top) | b (px from the bottom) | top ('12%'); d is the
+// drift (use about half the desktop travel).
 export default function SideDoodles({ items, layerRef, sx }) {
   return (
-    <Box ref={layerRef} data-side="layer" aria-hidden="true" sx={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'clip', pointerEvents: 'none', display: 'none', '@media (min-width: 900px) and (min-height: 500.02px)': { display: 'block' }, ...sx }}>
+    <Box ref={layerRef} data-side="layer" aria-hidden="true" sx={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'clip', pointerEvents: 'none', display: 'none', '@media (min-width: 900px) and (min-height: 500.02px)': { display: 'block' }, [PHONE_MQ]: { display: 'block' }, ...sx }}>
       {items.map((it, i) => {
+        if (it.ph) {
+          const pv = it.y !== undefined ? { top: it.y } : it.b !== undefined ? { bottom: it.b } : { top: it.top };
+          return (
+            <Box
+              key={i}
+              data-side="item"
+              data-kind={it.k}
+              data-phone="1"
+              data-fade={it.fade || 0}
+              data-d={it.d}
+              data-spin={it.spin || 0}
+              data-tilt={it.tilt || 0}
+              sx={{ position: 'absolute', ...pv, width: it.w, height: it.w, left: `calc(${it.lx}% - ${it.w / 2}px)`, opacity: it.o ?? 0.5, transform: `rotate(${it.rot || 0}deg)`, willChange: 'transform', display: 'none', [PHONE_MQ]: { display: 'block' } }}
+            >
+              {it.k === 'star' ? <StarShape sx={{ width: '100%', height: '100%' }} /> : it.k === 'sparkle' ? <Sparkle /> : <Doodle kind={it.k} colour={it.c} />}
+            </Box>
+          );
+        }
         const zone = it.x !== undefined || it.lx !== undefined;
         const free = '(100% - min(100%, 1440px)) / 4 + 24px';
         let pos;
@@ -102,6 +125,9 @@ export function useSideScrub({ start = 'top bottom', end = 'bottom top' } = {}) 
       const spin = parseFloat(n.dataset.spin) || 0;
       const tilt = parseFloat(n.dataset.tilt) || 0;
       const base = gsap.getProperty(n, 'rotation') || 0;
+      const fade = parseFloat(n.dataset.fade) || 0;
+      // the hero's phone items leave early: the arch swells over them as the scene starts
+      if (fade) tl.to(n, { opacity: 0, duration: fade }, 0);
       tl.fromTo(n, { y: d * 0.5, rotation: base - (spin ? spin / 2 : tilt) }, { y: -d * 0.5, rotation: base + (spin ? spin / 2 : tilt), duration: 1 }, 0);
     });
     return undefined;

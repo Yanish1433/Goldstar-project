@@ -15,6 +15,10 @@ const SIDE = [
   { k: 'star', lx: 94.5, top: '34%', w: 40, rot: 12, d: 190, spin: -180, o: 0.9 },
   { k: 'feet', lx: 94.5, top: '50%', w: 52, rot: -8, d: 140, tilt: 5, c: 'ink', o: 0.5 },
   { k: 'star', lx: 94.5, top: '66%', w: 24, rot: -14, d: 200, spin: 220, o: 0.9 },
+  // phones / portrait tablets: in the side margins beside the arch (measured 45-165px wide at 320-768), below the headline
+  { ph: true, k: 'boot', lx: 94, top: '53%', w: 30, rot: -6, d: 24, fade: 0.1, tilt: 4, c: 'blue', o: 0.6 },
+  { ph: true, k: 'sneaker', lx: 6.5, top: '46%', w: 30, rot: 6, d: 24, fade: 0.1, tilt: -4, c: 'ink', o: 0.55 },
+  { ph: true, k: 'star', lx: 94, top: '63%', w: 14, rot: 12, d: 12, fade: 0.1, spin: 160, o: 0.9 },
 ];
 
 // 1. Hero. First paint is a complete, still composition on a white ground: the headline whole in big, wide navy

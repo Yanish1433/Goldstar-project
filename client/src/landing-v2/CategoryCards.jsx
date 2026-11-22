@@ -15,6 +15,9 @@ const SIDE = [
   { k: 'star', x: 280, b: 40, w: 24, rot: 14, d: 30, spin: -140, o: 0.9 },
   { k: 'hightop', x: 470, b: 30, w: 52, rot: -5, d: 34, tilt: 5, c: 'blue', o: 0.55 },
   { k: 'boot', s: 'r', top: '30%', w: 66, rot: 5, d: 150, tilt: 5, c: 'blue', o: 0.55 },
+  { ph: true, k: 'sneaker', lx: 84, y: 14, w: 34, rot: 6, d: 8, tilt: -4, c: 'blue', o: 0.6 },
+  { ph: true, k: 'star', lx: 16, y: 30, w: 14, rot: -10, d: 8, spin: 120, o: 0.9 },
+  { ph: true, k: 'star', lx: 50, b: 22, w: 18, rot: 12, d: 8, spin: -120, o: 0.9 },
 ];
 
 // 3. Shop by category: three tall photo cards, goldstarshoes.com's own home-page block (Trek Everyday / Sneakers /

@@ -17,6 +17,9 @@ const SIDE = [
   { k: 'star', lx: 62, y: 172, w: 20, rot: -8, d: 22, spin: 120, o: 0.9 },
   { k: 'star', lx: 67.5, y: 168, w: 22, rot: 10, d: 22, spin: -120, o: 0.9 },
   { k: 'feet', s: 'r', top: '60%', w: 52, rot: -8, d: 100, tilt: 5, c: 'blue', o: 0.55 },
+  { ph: true, k: 'boot', lx: 84, y: 16, w: 36, rot: -6, d: 8, tilt: 4, c: 'blue', o: 0.6 },
+  { ph: true, k: 'star', lx: 14, y: 30, w: 14, rot: 10, d: 8, spin: 120, o: 0.9 },
+  { ph: true, k: 'star', lx: 52, y: 22, w: 18, rot: -8, d: 8, spin: -120, o: 0.9 },
 ];
 import { shelfPhoto } from './shots.js';
 

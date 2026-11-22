@@ -15,6 +15,13 @@ const SIDE = [
   { k: 'feet', x: -420, b: 30, w: 52, rot: 8, d: 36, tilt: 5, c: 'blue', o: 0.55 },
   { k: 'star', x: 400, b: 40, w: 30, rot: -8, d: 30, spin: 140, o: 0.9 },
   { k: 'hightop', s: 'r', top: '38%', w: 56, rot: 5, d: 140, tilt: -5, c: 'ink', o: 0.5 },
+  { ph: true, k: 'star', lx: 88, y: 26, w: 16, rot: 10, d: 20, spin: 120, o: 0.9 },
+];
+// phones: one shoe in each card's header row (the empty stretch between the counter and the arrow button)
+const CARD_PH = [
+  { ph: true, k: 'boot', lx: 52, y: 6, w: 36, rot: -6, d: 8, tilt: 4, c: 'blue', o: 0.6 },
+  { ph: true, k: 'hightop', lx: 52, y: 6, w: 36, rot: 5, d: 8, tilt: -4, c: 'ink', o: 0.55 },
+  { ph: true, k: 'sneaker', lx: 52, y: 6, w: 36, rot: 6, d: 8, tilt: 4, c: 'blue', o: 0.6 },
 ];
 
 // The empty middle of each card's text column (between the counter and the big title): a shoe and two stars.
@@ -86,6 +93,9 @@ function Card({ c, i, count }) {
         <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 2, p: { xs: 2.5, md: 4 }, [SHORT]: { p: 2.5, gap: 1 }, minWidth: 0 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box component="span" sx={{ ...EYEBROW, color: t.ink3, fontVariantNumeric: 'tabular-nums' }}>{c.no} / {String(COLLECTIONS.length).padStart(2, '0')}</Box>
+            <Box aria-hidden="true" sx={{ position: 'relative', flex: '1 1 0', alignSelf: 'stretch', minWidth: 0, display: { xs: 'block', md: 'none' }, [SHORT]: { display: 'none' } }}>
+              <SideDoodles items={[CARD_PH[i % CARD_PH.length]]} />
+            </Box>
             <Box data-arrow component="span" aria-hidden="true" sx={{ width: 48, height: 48, borderRadius: '50%', display: 'grid', placeItems: 'center', border: `1px solid ${t.lineStrong}` }}>
               <ArrowUpRight size={22} strokeWidth={1.5} />
             </Box>

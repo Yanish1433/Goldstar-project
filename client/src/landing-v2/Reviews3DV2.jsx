@@ -15,6 +15,9 @@ const SIDE = [
   { k: 'star', x: -300, b: 34, w: 26, rot: 10, d: 28, spin: 120, o: 0.9 },
   { k: 'star', x: 300, b: 40, w: 22, rot: -10, d: 28, spin: -120, o: 0.9 },
   { k: 'boot', s: 'r', top: '70%', w: 62, rot: 5, d: 130, tilt: 5, c: 'ink', o: 0.5 },
+  { ph: true, k: 'hightop', lx: 14, y: 10, w: 36, rot: 5, d: 17, tilt: -4, c: 'ink', o: 0.55 },
+  { ph: true, k: 'star', lx: 86, y: 20, w: 16, rot: -10, d: 14, spin: 120, o: 0.9 },
+  { ph: true, k: 'star', lx: 50, b: 20, w: 18, rot: 12, d: 14, spin: -120, o: 0.9 },
 ];
 
 const REVIEWS = [
