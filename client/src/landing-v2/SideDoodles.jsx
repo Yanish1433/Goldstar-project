@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import { tokensV2 as t } from './tokensV2.js';
 import { StarShape } from './ui.jsx';
 import { useSectionMotion } from './motion.js';
-import { BOOT, SNEAKER, PRINT, PRINT_A, PRINT_B } from './shoeArt.js';
+import { BOOT, SNEAKER, HIGHTOP, PRINT, PRINT_A, PRINT_B } from './shoeArt.js';
 
 // A decorative side layer for the landing's empty left and right edges: the Goldstar star (StarShape, the same one
 // the hero spins), a small sparkle, and shoe doodles (trek boot, sneaker, sole-print pair; the path data lives in shoeArt.js) in 2px rounded line-art.
@@ -24,6 +24,7 @@ function Doodle({ kind, colour }) {
   const paths = (arr) => arr.map((d, i) => <path key={i} {...common} d={d} />);
   const svgProps = { viewBox: '0 0 64 64', 'aria-hidden': 'true', focusable: 'false', sx: { display: 'block', width: '100%', height: '100%', overflow: 'visible' } };
   if (kind === 'boot') return <Box component="svg" {...svgProps}>{paths(BOOT)}</Box>;
+  if (kind === 'hightop') return <Box component="svg" {...svgProps}>{paths(HIGHTOP)}</Box>;
   if (kind === 'sneaker') return <Box component="svg" {...svgProps}>{paths(SNEAKER)}</Box>;
   // 'feet': a pair of shoe-sole prints, the second one a step ahead
   return (
@@ -47,7 +48,7 @@ function Sparkle() {
 // column (a colour swatch's 44px tap box starts ~10px inside the gutter), so w + 28 <= strip. Only 20px stars fit at 1280-1440.
 const minVwFor = (w) => (w <= 20 ? 1200 : 1440 + 2 * (w + 28 - 48));
 
-// item: { k: 'star'|'sparkle'|'boot'|'sneaker'|'feet', w: 28 (px), rot: -12, d: 90 (drift, px), spin: 160 (star turn) | tilt: 6 (shoe), o: 0.5 (opacity), c: 'blue'|'ink'|'sand' }
+// item: { k: 'star'|'sparkle'|'boot'|'sneaker'|'hightop'|'feet', w: 28 (px), rot: -12, d: 90 (drift, px), spin: 160 (star turn) | tilt: 6 (shoe), o: 0.5 (opacity), c: 'blue'|'ink'|'sand' }
 // Position, one of:
 //   gutter:  s: 'l'|'r', top: '14%'            centred in the free strip beside the 1440px column (see top)
 //   zone:    x: -480 (px from the layer's centre) or lx: 7 (% of the layer's width), plus y: 40 (px from the top) | b: 36 (px from the

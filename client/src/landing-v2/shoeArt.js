@@ -2,18 +2,18 @@
 // Plain data so the doodles and the scratch contact sheet draw exactly the same thing.
 
 export const BOOT = [
-  // upper: padded collar, shin, instep, toe box, down to the welt
-  'M12 15 Q23 12 31 13 M43 14 Q44 27 49 33 Q56 36 60 40 Q63 42 63 47 M12 15 Q10 30 9.5 47',
-  // tongue poking up over the collar
-  'M31 13 Q32 5 38 5 Q43 5 43 14',
-  // pull tab at the back
-  'M11.5 16 Q5 16 5.5 22 Q6 25 10.5 25',
-  // welt + chunky lugged outsole (zig-zag tread)
-  'M7 47 H63 M7 47 V51 L11 56 L17 51 L23 56 L29 51 L35 56 L41 51 L47 56 L53 51 L59 56 Q63.5 55 63.5 50 V47',
-  // crossing laces, lace bow, toe cap seam and mudguard line
-  'M29 20 L41.5 23 L29 26.5 L42.5 30 L30 33.5 L45 35.5 M36 18 C29 11.5 28 19.5 36 18 C43 11.5 44 19.5 36 18 M52 39 Q48.5 43 49.5 47 M10 42 Q30 39.5 47 42',
-  // eyelets
-  'M41.5 23 h.1 M42.5 30 h.1 M29 20 h.1 M29 26.5 h.1',
+  // upper: padded collar, back of the ankle curving in then out to the heel, instep slope, rounded toe with spring
+  'M13 13 C19 11 27 11 33 12.5 M13 13 C11.5 20 12 26 12.5 31 C12.8 36 9.5 38.5 9 45 M41 13 C41.5 22 44 28.5 49 32 C54 34.5 60 36 62 41 C63 43 63.2 44 63.5 45.5',
+  // tongue, pull loop, collar padding line
+  'M32 12.5 C32 7 35 4.5 38 4.5 C41 4.5 42 8 41.5 13 M12.5 14 C7 13 5.5 17 6.5 21 C7.2 23.5 10 24 12.3 23.5 M12.2 17.8 C17 16.6 22 16.6 26 17.3',
+  // laces: four short parallel crossing strokes, a bow at the top, eyelets
+  'M30.5 21 L38.5 16 M31.7 25.5 L39.7 20.5 M33.8 30 L41.8 25 M36.8 33.8 L44.8 28.8 M37 15.5 C32.5 11.5 31.5 16.5 37 15.5 C41.5 11.5 42.5 16.5 37 15.5 M37.5 18 h.1 M38.7 22.5 h.1 M40.8 27 h.1 M43.8 30.8 h.1',
+  // toe-cap seam and heel-counter seam
+  'M51 37 C48 40.5 48 43 49 45 M9.5 42.5 C15 41.5 19 36 18.5 29',
+  // midsole band
+  'M9 45 H63.5 M9 45 C7 45 6.5 46 6.5 47.5 V48 C6.5 49.5 7.5 50 9 50 H60 C62.5 50 63.5 48 63.5 45.5',
+  // outsole: small even lugs
+  'M8.5 50 V51.2 Q8.5 53 10.3 53 H12.7 Q14.5 53 14.5 51.2 V50 M15.5 50 V51.2 Q15.5 53 17.3 53 H19.7 Q21.5 53 21.5 51.2 V50 M22.5 50 V51.2 Q22.5 53 24.3 53 H26.7 Q28.5 53 28.5 51.2 V50 M29.5 50 V51.2 Q29.5 53 31.3 53 H33.7 Q35.5 53 35.5 51.2 V50 M36.5 50 V51.2 Q36.5 53 38.3 53 H40.7 Q42.5 53 42.5 51.2 V50 M43.5 50 V51.2 Q43.5 53 45.3 53 H47.7 Q49.5 53 49.5 51.2 V50 M50.5 50 V51.2 Q50.5 53 52.3 53 H54.7 Q56.5 53 56.5 51.2 V50 M57.5 50 V51.2 Q57.5 53 59.3 53 H61.7 Q63.5 53 63.5 51.2 V50',
 ];
 
 export const SNEAKER = [
@@ -29,6 +29,17 @@ export const SNEAKER = [
   'M26.5 29.5 l4 -5 M31.5 31.5 l4 -5 M36.5 32.5 l4 -4.5 M41.5 33.5 l3 -3',
   // Goldstar G swoosh
   'M13 41 C22 33 36 41 53 37.5',
+];
+
+export const HIGHTOP = [
+  // canvas upper: low back, scooped collar, tall lace panel, round toe
+  'M9 10 C15 8.5 24 8.5 31 9 M9 10 C8.5 20 9 28 9.5 34 C9.5 38 7.5 40 7 44.5 M31 9 C33.5 18 36 26 41 31.5 C46 34 56 34.5 60 39 C62.5 41.5 62.5 43 62.5 44.5',
+  // five laces
+  'M23.7 13.5 L31.2 9.5 M24.8 18 L32.3 14 M26 22.5 L33.5 18.5 M27.5 27 L35 23 M29.5 31 L37 27',
+  // rounded toe cap and ankle circle patch
+  'M49.5 34.5 C45.5 37 45.5 41.5 46.5 44.5 M21.5 22 a4.5 4.5 0 1 0 -9 0 a4.5 4.5 0 1 0 9 0',
+  // flat vulcanised sole with foxing stripe
+  'M7 44.5 H62.5 M7 44.5 V50 C7 52 8 53 10 53 H58 C61.5 53 63 51 63 47.5 V44.5 M7.2 48.2 H62.8',
 ];
 
 // one shoe-sole print: forefoot, heel, tread dashes

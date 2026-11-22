@@ -13,7 +13,7 @@ const SIDE = [
   { k: 'feet', x: -460, b: 26, w: 50, rot: 8, d: 34, tilt: 5, c: 'ink', o: 0.5 },
   { k: 'star', x: -260, b: 44, w: 30, rot: -8, d: 30, spin: 140, o: 0.9 },
   { k: 'star', x: 280, b: 40, w: 24, rot: 14, d: 30, spin: -140, o: 0.9 },
-  { k: 'sneaker', x: 470, b: 30, w: 52, rot: -5, d: 34, tilt: 5, c: 'blue', o: 0.55 },
+  { k: 'hightop', x: 470, b: 30, w: 52, rot: -5, d: 34, tilt: 5, c: 'blue', o: 0.55 },
   { k: 'boot', s: 'r', top: '30%', w: 66, rot: 5, d: 150, tilt: 5, c: 'blue', o: 0.55 },
 ];
 

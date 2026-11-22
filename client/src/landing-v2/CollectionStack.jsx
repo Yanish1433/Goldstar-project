@@ -14,13 +14,13 @@ const SIDE = [
   { k: 'star', x: 330, y: 52, w: 24, rot: 12, d: 30, spin: -120, o: 0.9 },
   { k: 'feet', x: -420, b: 30, w: 52, rot: 8, d: 36, tilt: 5, c: 'blue', o: 0.55 },
   { k: 'star', x: 400, b: 40, w: 30, rot: -8, d: 30, spin: 140, o: 0.9 },
-  { k: 'sneaker', s: 'r', top: '38%', w: 56, rot: 5, d: 140, tilt: -5, c: 'ink', o: 0.5 },
+  { k: 'hightop', s: 'r', top: '38%', w: 56, rot: 5, d: 140, tilt: -5, c: 'ink', o: 0.5 },
 ];
 
 // The empty middle of each card's text column (between the counter and the big title): a shoe and two stars.
 const CARD_SIDE = [
   [{ k: 'boot', lx: 30, top: '14%', w: 52, rot: -6, d: 20, tilt: 5, c: 'blue', o: 0.6 }, { k: 'star', lx: 66, top: '30%', w: 26, rot: 10, d: 18, spin: 90, o: 0.9 }, { k: 'star', lx: 84, top: '8%', w: 18, rot: -12, d: 16, spin: -90, o: 0.9 }],
-  [{ k: 'sneaker', lx: 32, top: '16%', w: 52, rot: 5, d: 20, tilt: -5, c: 'ink', o: 0.5 }, { k: 'star', lx: 70, top: '26%', w: 24, rot: -10, d: 18, spin: -90, o: 0.9 }, { k: 'star', lx: 86, top: '6%', w: 18, rot: 12, d: 16, spin: 90, o: 0.9 }],
+  [{ k: 'hightop', lx: 32, top: '16%', w: 52, rot: 5, d: 20, tilt: -5, c: 'ink', o: 0.5 }, { k: 'star', lx: 70, top: '26%', w: 24, rot: -10, d: 18, spin: -90, o: 0.9 }, { k: 'star', lx: 86, top: '6%', w: 18, rot: 12, d: 16, spin: 90, o: 0.9 }],
   [{ k: 'feet', lx: 28, top: '14%', w: 48, rot: 8, d: 20, tilt: 5, c: 'blue', o: 0.55 }, { k: 'star', lx: 64, top: '28%', w: 26, rot: 12, d: 18, spin: 90, o: 0.9 }, { k: 'star', lx: 84, top: '6%', w: 18, rot: -8, d: 16, spin: -90, o: 0.9 }],
 ];
 import { shot } from './shots.js';
