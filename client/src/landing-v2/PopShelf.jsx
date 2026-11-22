@@ -8,6 +8,15 @@ import { makeLine, addToCartAnimated, pickSourceRect } from '../lib/addToCart.js
 import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_TILE, FOCUS_RING, EASE_CSS, FINE_POINTER, PHONE, SHORT } from './tokensV2.js';
 import { Cta, Eyebrow, Display, GUTTER } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
+import SideDoodles, { useSideScrub } from './SideDoodles.jsx';
+const SIDE = [
+  { k: 'star', s: 'l', top: '9%', w: 20, rot: -12, d: 90, spin: 180, o: 0.9 },
+  { k: 'sneaker', s: 'r', top: '16%', w: 58, rot: 6, d: 80, tilt: -5, c: 'blue', o: 0.6 },
+  { k: 'boot', s: 'l', top: '40%', w: 66, rot: -4, d: 110, tilt: 5, c: 'ink', o: 0.5 },
+  { k: 'star', s: 'r', top: '50%', w: 40, rot: 10, d: 120, spin: -200, o: 0.9 },
+  { k: 'feet', s: 'r', top: '70%', w: 50, rot: -8, d: 90, tilt: 6, c: 'blue', o: 0.55 },
+  { k: 'star', s: 'l', top: '78%', w: 32, rot: 6, d: 100, spin: 220, o: 0.9 },
+];
 import { shelfPhoto } from './shots.js';
 
 // 4. The centrepiece: "shoes pop up". The captain's favourite was the round-1 shoe shelf, where the cards came in
@@ -156,6 +165,7 @@ export default function PopShelf({ onQuickView }) {
   const q = useProducts({ limit: 12 });
   const items = useMemo(() => q.data?.items || [], [q.data]);
 
+  const sideRef = useSideScrub();
   useSectionMotion(ref, (gsap, ScrollTrigger, root) => {
     if (!items.length) return undefined;
     const mm = gsap.matchMedia();
@@ -196,9 +206,10 @@ export default function PopShelf({ onQuickView }) {
           data-pin
           sx={{
             minHeight: { md: '100svh' }, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'center',
-            pt: { xs: 10, md: 'calc(var(--appbar-h, 64px) + 24px)' }, pb: { xs: 10, md: 5 }, overflow: 'hidden',
+            position: 'relative', pt: { xs: 10, md: 'calc(var(--appbar-h, 64px) + 24px)' }, pb: { xs: 10, md: 5 }, overflow: 'hidden',
           }}
         >
+          <SideDoodles items={SIDE} layerRef={sideRef} />
           <Box data-shead sx={{ ...GUTTER, maxWidth: 1440, mx: 'auto', width: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { md: 'flex-end' }, gap: 2.5, mb: { xs: 4, md: 'clamp(24px, 4svh, 48px)' } }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Eyebrow>Best sellers · {items.length || '—'} styles</Eyebrow>

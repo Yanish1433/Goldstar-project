@@ -6,6 +6,17 @@ import { useCategories } from '../api/hooks.js';
 import { tokensV2 as t, KINETIC, EYEBROW, PHOTO_TILE, FOCUS_RING, EASE_CSS, FINE_POINTER, PHONE, SHORT } from './tokensV2.js';
 import { Eyebrow, Display, WRAP } from './ui.jsx';
 import { useSectionMotion } from './motion.js';
+import SideDoodles, { useSideScrub } from './SideDoodles.jsx';
+const SIDE = [
+  { k: 'star', s: 'l', top: '6%', w: 20, rot: -10, d: 120, spin: 200, o: 0.9 },
+  { k: 'boot', s: 'l', top: '24%', w: 64, rot: -6, d: 160, tilt: 6, c: 'blue', o: 0.6 },
+  { k: 'star', s: 'r', top: '14%', w: 44, rot: 12, d: 200, spin: -160, o: 0.9 },
+  { k: 'sneaker', s: 'r', top: '38%', w: 56, rot: 5, d: 140, tilt: -5, c: 'ink', o: 0.5 },
+  { k: 'star', s: 'l', top: '50%', w: 30, rot: 8, d: 180, spin: 240, o: 0.9 },
+  { k: 'feet', s: 'l', top: '68%', w: 52, rot: -8, d: 110, tilt: 5, c: 'blue', o: 0.55 },
+  { k: 'sparkle', s: 'r', top: '62%', w: 20, rot: 0, d: 90, spin: 90, o: 1 },
+  { k: 'star', s: 'r', top: '82%', w: 36, rot: -14, d: 160, spin: -200, o: 0.9 },
+];
 import { shot } from './shots.js';
 
 // 3. The collections, by who is walking (Women / Men / Kids), as a deck of cards. Each card is sticky just under the
@@ -109,6 +120,7 @@ export default function CollectionStack() {
   const cats = useCategories();
   const count = (key) => (key ? cats.data?.find((x) => x.slug === key)?.count : undefined);
 
+  const sideRef = useSideScrub();
   useSectionMotion(ref, (gsap, ScrollTrigger, root) => {
     const cards = gsap.utils.toArray('[data-ccard]');
     cards.forEach((card, i) => {
@@ -145,7 +157,8 @@ export default function CollectionStack() {
 
   return (
     <Box component="section" id="collections" aria-labelledby="col-heading" sx={{ position: 'relative', backgroundColor: t.ground, color: t.ink, py: { xs: 10, md: 16 } }}>
-      <Box ref={ref} sx={WRAP}>
+      <SideDoodles items={SIDE} layerRef={sideRef} />
+      <Box ref={ref} sx={{ ...WRAP, position: 'relative', zIndex: 1 }}>
         <Box data-chead sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { md: 'flex-end' }, gap: 3, mb: { xs: 5, md: 8 } }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <Eyebrow>Shop by wearer</Eyebrow>

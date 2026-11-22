@@ -4,6 +4,15 @@ import Typography from '@mui/material/Typography';
 import { Star, CheckCircle, Quote, ThumbsUp } from 'lucide-react';
 import { tokensV2, DISPLAY_HEADING } from './tokensV2.js';
 import { WIDE } from '../theme/tokens.js';
+import SideDoodles, { useSideScrub } from './SideDoodles.jsx';
+const SIDE = [
+  { k: 'star', s: 'l', top: '7%', w: 20, rot: -8, d: 110, spin: 180, o: 0.9 },
+  { k: 'boot', s: 'r', top: '20%', w: 62, rot: 6, d: 140, tilt: -6, c: 'blue', o: 0.6 },
+  { k: 'star', s: 'l', top: '42%', w: 44, rot: 12, d: 170, spin: -200, o: 0.9 },
+  { k: 'feet', s: 'r', top: '60%', w: 48, rot: -6, d: 120, tilt: 5, c: 'ink', o: 0.5 },
+  { k: 'sneaker', s: 'l', top: '74%', w: 56, rot: 4, d: 100, tilt: 5, c: 'blue', o: 0.55 },
+  { k: 'sparkle', s: 'r', top: '86%', w: 20, rot: 0, d: 90, spin: 100, o: 1 },
+];
 
 const REVIEWS = [
   {
@@ -163,19 +172,24 @@ function Card3D({ rev }) {
 }
 
 export default function Reviews3DV2() {
+  const sideRef = useSideScrub();
   return (
     <Box
       id="reviews-section"
       component="section"
       aria-labelledby="reviews-heading"
       sx={{
+        position: 'relative',
         py: { xs: 8, md: 14 },
         backgroundColor: tokensV2.ground,
         color: tokensV2.ink,
       }}
     >
+      <SideDoodles items={SIDE} layerRef={sideRef} />
       <Box
         sx={{
+          position: 'relative',
+          zIndex: 1,
           maxWidth: 1440,
           mx: 'auto',
           px: { xs: 2.5, sm: 4, lg: 6 },

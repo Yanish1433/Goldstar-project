@@ -4,6 +4,16 @@ import Box from '@mui/material/Box';
 import { tokensV2 as t, alpha, KINETIC, FOCUS_RING, EASE_CSS, FINE_POINTER, PHONE, REDUCED, SHORT, SHORT_QUERY } from './tokensV2.js';
 import { Eyebrow, Display, WRAP } from './ui.jsx';
 import { useSectionMotion, MQ } from './motion.js';
+import SideDoodles, { useSideScrub } from './SideDoodles.jsx';
+const SIDE = [
+  { k: 'star', s: 'l', top: '8%', w: 30, rot: 10, d: 140, spin: 180, o: 0.9 },
+  { k: 'sneaker', s: 'r', top: '12%', w: 60, rot: -6, d: 120, tilt: 5, c: 'blue', o: 0.6 },
+  { k: 'feet', s: 'l', top: '34%', w: 56, rot: 8, d: 150, tilt: -6, c: 'ink', o: 0.5 },
+  { k: 'star', s: 'r', top: '48%', w: 48, rot: -10, d: 190, spin: -220, o: 0.9 },
+  { k: 'boot', s: 'l', top: '62%', w: 68, rot: 5, d: 130, tilt: 6, c: 'blue', o: 0.6 },
+  { k: 'sparkle', s: 'r', top: '74%', w: 20, rot: 0, d: 100, spin: 100, o: 1 },
+  { k: 'star', s: 'r', top: '88%', w: 20, rot: 14, d: 160, spin: 200, o: 0.9 },
+];
 
 // 3. Shop by category: three tall photo cards, goldstarshoes.com's own home-page block (Trek Everyday / Sneakers /
 // Casual Shoes, their photos and lines). Each card is one link (title, line and the SHOP NOW pill inside it).
@@ -86,6 +96,7 @@ function Card({ c }) {
 export default function CategoryCards() {
   const ref = useRef(null);
 
+  const sideRef = useSideScrub();
   useSectionMotion(ref, (gsap) => {
     const mm = gsap.matchMedia();
     const cards = gsap.utils.toArray('[data-catcard]');
@@ -111,7 +122,8 @@ export default function CategoryCards() {
 
   return (
     <Box component="section" id="categories" aria-labelledby="cat-heading" sx={{ position: 'relative', backgroundColor: t.cream, color: t.ink, py: { xs: 9, md: 14 } }}>
-      <Box ref={ref} sx={WRAP}>
+      <SideDoodles items={SIDE} layerRef={sideRef} />
+      <Box ref={ref} sx={{ ...WRAP, position: 'relative', zIndex: 1 }}>
         <Box data-cathead sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { md: 'flex-end' }, gap: 3, mb: { xs: 4, md: 7 } }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <Eyebrow>Shop by category</Eyebrow>
