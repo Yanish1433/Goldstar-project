@@ -31,7 +31,7 @@ export default function Ticker() {
   const half = Math.ceil(RANGES.length / 2);
   return (
     <Box component="section" ref={ref} aria-label="Goldstar collections" sx={{ position: 'relative', backgroundColor: t.blue, color: t.onBlue, py: { xs: 6, md: 10 }, overflow: 'hidden' }}>
-      <Box component="ul" sx={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)', m: 0, p: 0 }}>
+      <Box component="ul" sx={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0 0 0 0)', m: 0, p: 0 }}>
         {RANGES.map((r) => <li key={r}>{r}</li>)}
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, md: 2 } }}>
