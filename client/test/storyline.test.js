@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HOLD, INTRO, INTRO_BEATS, KEYS, LAYOUTS, storyLayout, compactLabels, PALETTE, SECTIONS, START, TOTAL, TRACKS, TRANSITION, backgroundAt, colourIndexAt, copyTrack, endOf, introBeat, pinOf, trackAt, samplePose, sectionAt } from '../src/story/storyline.js';
+import { HOLD, KEYS, LAYOUTS, storyLayout, compactLabels, PALETTE, SECTIONS, START, TOTAL, TRACKS, TRANSITION, backgroundAt, colourIndexAt, copyTrack, endOf, pinOf, trackAt, samplePose, sectionAt } from '../src/story/storyline.js';
 import { STORY_MODEL, LABEL_ORDER, CALLOUTS, BADGES, COLOURWAYS, partColours } from '../src/story/model.config.js';
 
 // WCAG relative luminance / contrast.
@@ -189,22 +189,13 @@ describe('phone framing from the performance chapter on (captain addendum 4b)', 
 
 import { projectBoot, AABB } from './fitModel.js';
 
-describe('hero intro: the whole boot, centred and big, turned by scroll (reversible)', () => {
-  const sweep = (fn, step = 0.5) => { for (let t = 0; t <= INTRO.end; t += step) fn(t); };
+describe('hero opening: the page starts on the hero pose (no intro)', () => {
   // Every size of the responsive matrix (client/scripts/responsive-matrix.mjs), with the layout storyLayout picks.
-  // Where the captions are: desktop, a bottom band from 81% of the height; phone, under the boot from 58%;
-  // landscape, a left column (rail 56 px + 38vw), so there the boot must stay right of it. AppBar: 68 / 64 px.
   const MATRIX = [[320, 568], [360, 640], [360, 800], [375, 667], [375, 812], [390, 844], [393, 852], [412, 915], [414, 896], [430, 932],
     [667, 375], [844, 390], [932, 430], [740, 360], [768, 1024], [820, 1180], [1024, 768], [1024, 1366], [1280, 720], [1366, 650], [1440, 900], [1536, 730], [1841, 822], [1920, 1080], [2560, 1080], [2560, 1440]];
   const VIEWPORTS = MATRIX.map(([W, H]) => {
     const l = storyLayout(W, H);
     return [W, H, l, l === 'desktop' ? 68 : 64];
-  });
-  const free = (W, H, l, appbar) => ({
-    x0: l === 'landscape' ? 56 + 0.38 * W + 12 : 0.015 * W,
-    x1: 0.985 * W,
-    y0: appbar + 6,
-    y1: l === 'desktop' ? 0.81 * H : l === 'phone' ? 0.58 * H - 8 : H - 10,
   });
   it('picks the layout from the viewport: landscape phones side by side, portrait < 900 stacked, the rest desktop', () => {
     expect(storyLayout(844, 390)).toBe('landscape');
@@ -218,105 +209,42 @@ describe('hero intro: the whole boot, centred and big, turned by scroll (reversi
     expect(storyLayout(2560, 1080)).toBe('desktop');
     expect(compactLabels('landscape') && compactLabels('phone') && !compactLabels('desktop')).toBe(true);
   });
-  it('every layout has every box', () => {
+  it('every layout has every box, and none is left over from the removed intro', () => {
     Object.values(LAYOUTS).forEach((boxes) => expect(Object.keys(boxes).sort()).toEqual(Object.keys(LAYOUTS.desktop).sort()));
+    expect(Object.keys(LAYOUTS.desktop)).not.toContain('intro');
   });
-  it('the silhouette model is the real boot: inside its AABB, and much tighter than it at the 3/4 front opening', () => {
+  it('the first frame is the hero pose in its own box, held for a short pin, and the hold is the first frame', () => {
+    ['desktop', 'phone', 'landscape'].forEach((l) => expect(samplePose(0, l)).toMatchObject(LAYOUTS[l].hero));
+    expect(HOLD.hero).toBe(0);
+    expect(pinOf('hero')).toBe(40);
+    expect(samplePose(0).fill).toBeCloseTo(0.92, 6);
+  });
+  it('the hero headline is not scroll-driven: it is on screen at load', () => {
+    expect(copyTrack('hero').in).toBeNull();
+  });
+  it('the silhouette model is the real boot: inside its AABB at the hero pose', () => {
     const o = samplePose(0, 'desktop');
     const h = projectBoot(o, 1440, 900);
     const a = projectBoot(o, 1440, 900, AABB);
     expect(h.x0).toBeGreaterThanOrEqual(a.x0);
     expect(h.x1).toBeLessThanOrEqual(a.x1);
-    expect((h.x1 - h.x0) / (a.x1 - a.x0)).toBeLessThan(0.85);
-    // measured in the browser (canvas pixels, alpha > 150) at 1440x900, T=0: x 500-986, y 144-659
-    expect(Math.abs(h.x0 - 500)).toBeLessThan(6);
-    expect(Math.abs(h.y1 - 659)).toBeLessThan(6);
+    expect((h.x1 - h.x0) / (a.x1 - a.x0)).toBeLessThan(0.95);
   });
   VIEWPORTS.forEach(([W, H, l, appbar]) => {
-    it(`${W}x${H} (${l}): the whole boot stays inside the viewport, below the AppBar and clear of the captions at every intro step`, () => {
-      const f = free(W, H, l, appbar);
-      for (let t = 0; t <= INTRO.glide[0]; t += 2) {
-        const b = projectBoot(samplePose(t, l), W, H);
-        expect(b.x0, `x0 @${t}`).toBeGreaterThanOrEqual(f.x0);
-        expect(b.x1, `x1 @${t}`).toBeLessThanOrEqual(f.x1);
-        expect(b.y0, `top @${t}`).toBeGreaterThanOrEqual(f.y0);
-        expect(b.y1, `bottom @${t}`).toBeLessThanOrEqual(f.y1);
-      }
-      // the glide to the hero box stays on screen too
-      for (let t = INTRO.glide[0]; t <= INTRO.end; t += 2) {
-        const b = projectBoot(samplePose(t, l), W, H);
-        expect(b.x0 >= 0 && b.x1 <= W && b.y0 >= appbar && b.y1 <= H, `glide @${t}`).toBe(true);
-      }
-    });
-    it(`${W}x${H} (${l}): the opening boot is the hero: centred in its space and large`, () => {
-      const f = free(W, H, l, appbar);
+    it(`${W}x${H} (${l}): the hero boot is on screen, below the AppBar, and on the side the copy leaves free`, () => {
       const b = projectBoot(samplePose(0, l), W, H);
-      const midX = l === 'landscape' ? (f.x0 + f.x1) / 2 / W : 0.5;
-      expect(Math.abs(b.cx - midX)).toBeLessThanOrEqual(0.05);
-      if (l === 'desktop') expect(Math.abs(b.cy - 0.5)).toBeLessThanOrEqual(0.06); // real silhouette: ~0.45 (the AABB centre is 0.5)
-      else expect(Math.abs(b.cy * H - (f.y0 + f.y1) / 2)).toBeLessThanOrEqual(0.05 * H);
-      // phones: at least 66% of the width (short phones are bound by the height above the captions, tall ones by the width)
-      if (l === 'phone' && W < 600) expect((b.x1 - b.x0) / W).toBeGreaterThanOrEqual(H / W < 1.9 ? 0.66 : 0.8);
-      if (l === 'landscape') expect((b.y1 - b.y0) / (f.y1 - f.y0)).toBeGreaterThanOrEqual(0.75);
+      expect(b.x0).toBeGreaterThanOrEqual(0);
+      expect(b.x1).toBeLessThanOrEqual(W);
+      expect(b.y0).toBeGreaterThanOrEqual(appbar);
+      expect(b.y1).toBeLessThanOrEqual(H);
+      if (l !== 'phone') expect(b.cx).toBeGreaterThan(0.55); // copy left, boot right
     });
   });
-  it('phone beats: the 3/4 front opening is the tallest box, the side-on and tipped poses get flatter ones (so each fits)', () => {
-    expect(LAYOUTS.phone.intro.h).toBeGreaterThan(LAYOUTS.phone.intro2.h);
-    INTRO.beatT.forEach((t, i) => expect(samplePose(t, 'phone')).toMatchObject(LAYOUTS.phone[['intro', 'intro2', 'intro3'][i]]));
-    // the intro boxes are height-bound on every portrait screen up to 2.4:1
-    ['intro', 'intro2', 'intro3'].forEach((k) => expect(LAYOUTS.phone[k].w).toBeGreaterThanOrEqual(LAYOUTS.phone[k].h * 2.4));
-  });
-  it('each beat turns the whole boot so its part faces the camera; the outsole beat tips but is never sole-up, shadow off', () => {
-    const [p1, p2, p3] = INTRO.beatT.map((t) => samplePose(t));
-    expect(new Set([p1.ry, p2.ry, p3.ry].map((v) => v.toFixed(2))).size).toBe(3);
-    expect(p1.ry).toBeLessThan(-0.6); // 3/4 front: the tongue logo faces the camera
-    expect(Math.abs(p2.ry)).toBeLessThan(0.4); // side-on: the lace hardware in profile
-    expect(p3.rx).toBeLessThan(-0.3); // tipped: the lugs show
-    expect(p3.shadow).toBe(0);
-    sweep((t) => { const p = samplePose(t); expect(p.rx).toBeGreaterThanOrEqual(-0.6); expect(p.rx).toBeLessThanOrEqual(0); });
-  });
-  it('is a pure function of T: the same T gives the same pose (so scrolling up plays it backward exactly)', () => {
-    const key = (t) => { const p = samplePose(t); return [p.cx, p.cy, p.fill, p.R, p.rx, p.ry, p.rz, p.el, p.shadow].join(); };
-    const fwd = [];
-    const back = [];
-    sweep((t) => fwd.push(key(t)));
-    for (let t = INTRO.end; t >= 0; t -= 0.5) back.unshift(key(t));
-    expect(back).toEqual(fwd);
-  });
-  it('the glide from the centre to the hero box finishes before the headline starts to arrive', () => {
-    expect(INTRO.glide[1]).toBeLessThanOrEqual(copyTrack('hero').in[0]);
-    expect(INTRO.glide[0]).toBeLessThanOrEqual(INTRO.captionOut[1]);
-    ['desktop', 'phone'].forEach((l) => {
-      const g = samplePose(INTRO.glide[1], l);
-      expect(g).toMatchObject(LAYOUTS[l].hero);
-      expect(g.rx).toBe(0);
-    });
-  });
-  it('the first caption is up at T=0 and one caption leads at every T; each beat is fully shown >= 25vh', () => {
-    expect(introBeat(0).vis[0]).toBe(1);
-    sweep((t) => { if (t <= INTRO.captionOut[0]) expect(Math.max(...introBeat(t).vis)).toBeGreaterThanOrEqual(0.5 - 1e-9); });
-    for (let i = 0; i < INTRO_BEATS; i += 1) {
-      let run = 0;
-      let best = 0;
-      for (let t = 0; t <= INTRO.end; t += 0.5) { if (introBeat(t).vis[i] > 0.999) { run += 0.5; best = Math.max(best, run); } else run = 0; }
-      expect(best).toBeGreaterThanOrEqual(25);
-    }
-  });
-  it('rail click targets sit inside their own beat, the thumb is monotonic and the rail leaves after the last caption', () => {
-    INTRO.beatT.forEach((t, i) => expect(introBeat(t).index).toBe(i));
-    let p = 0;
-    sweep((t) => { const b = introBeat(t); expect(b.progress).toBeGreaterThanOrEqual(p); p = b.progress; });
-    expect(introBeat(INTRO.captionOut[0] - 1).rail).toBe(1);
-    expect(introBeat(INTRO.captionOut[1]).rail).toBe(0);
-    expect(introBeat(HOLD.hero).vis.every((v) => v === 0)).toBe(true);
-  });
-  it('the hero headline arrives after the last caption has left and is fully in by the hold', () => {
-    const tr = copyTrack('hero');
-    expect(tr.in[0]).toBeGreaterThanOrEqual(INTRO.captionOut[0]);
-    expect(tr.in[1] + 21).toBeLessThanOrEqual(HOLD.hero + 1e-9);
-  });
-  it('the intro does not push later chapters out of order', () => {
-    expect(START.performance).toBe(100 + pinOf('hero'));
-    expect(pinOf('hero')).toBeGreaterThan(INTRO.end);
+  it('the hero pin hands over to performance in order, and the story is the old one shifted earlier', () => {
+    expect(pinOf('hero')).toBeLessThan(START.performance);
+    expect(START.performance).toBe(140);
+    expect(HOLD.performance).toBeGreaterThan(endOf('hero'));
+    const hs = KEYS.filter((k) => k.t <= endOf('hero'));
+    expect(hs).toHaveLength(2);
   });
 });
