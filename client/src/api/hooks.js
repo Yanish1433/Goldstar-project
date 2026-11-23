@@ -14,6 +14,10 @@ export const useMe = () =>
     },
     staleTime: 60_000,
     retry: (n, e) => isUnreachable(e) && n < 2, // a 401 means guest: never retried
+    // Several components read the session, and the layout swaps them when it fails (admin shell -> store chrome):
+    // without this each newly mounted reader would refetch a failed session check, looping while the API is down.
+    // The Retry button refetches explicitly.
+    retryOnMount: false,
   });
 
 export const useProducts = (params) =>

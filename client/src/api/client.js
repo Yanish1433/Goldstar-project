@@ -122,7 +122,8 @@ async function request(method, path, body, query, signal, timeout) {
  * `signal` (from React Query or an AbortController) cancels the request; `timeout` defaults to 15 s.
  */
 export async function apiFetch(path, { method = 'GET', body, query, signal, timeout = TIMEOUT_MS } = {}) {
-  if (apiState.mock) return viaMock(method, path, body, query);
+  // Production builds without VITE_USE_MOCK=true drop the mock entirely (this branch and the chunk are dead code).
+  if ((MOCK_BUILD || import.meta.env.DEV) && apiState.mock) return viaMock(method, path, body, query);
   try {
     return await request(method, path, body, query, signal, timeout);
   } catch (err) {
