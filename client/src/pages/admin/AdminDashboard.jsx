@@ -36,7 +36,11 @@ export default function AdminDashboard() {
   const loading = stats.isLoading;
   const vs = `vs previous ${days} days`;
 
-  if (stats.isError && !s) return <Panel><ErrorState title="Could not load the dashboard" onRetry={() => stats.refetch()} /></Panel>;
+  // A brand-new store (no orders in the range) gets explanatory empty states instead of flat-zero charts.
+  const noOrders = !!s && s.series.every((d) => !d.orders && !d.revenue);
+  const inRange = s ? s.statusBreakdown.reduce((a, r) => a + r.count, 0) : 0;
+
+  if (stats.isError && !s) return <Panel><ErrorState title="Could not load the dashboard" error={stats.error} onRetry={() => stats.refetch()} /></Panel>;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 3 } }}>
@@ -82,15 +86,21 @@ export default function AdminDashboard() {
             </Box>
           )}
         >
-          {loading ? <Skeleton variant="rectangular" height={300} /> : asTable ? <TrendTable data={s.series} /> : (
+          {loading ? <Skeleton variant="rectangular" height={300} /> : noOrders && !asTable ? (
+            <Box sx={{ minHeight: 300, display: 'grid', placeItems: 'center' }}>
+              <EmptyState icon={ShoppingCart} title={`No orders in the last ${days} days`} body="Revenue and orders per day appear here as soon as customers start ordering." />
+            </Box>
+          ) : asTable ? <TrendTable data={s.series} /> : (
             <TrendChart height={300} data={s.series} measure={measure} label={measure === 'revenue' ? 'Revenue per day' : 'Orders per day'} />
           )}
         </Panel>
 
-        <Panel title="Orders by status" action={<Typography variant="caption" sx={(th) => ({ color: th.admin.ink3 })}>{s ? `${s.statusBreakdown.reduce((a, r) => a + r.count, 0)} in ${days} days` : ''}</Typography>}>
+        <Panel title="Orders by status" action={<Typography variant="caption" sx={(th) => ({ color: th.admin.ink3 })}>{s ? `${inRange} in ${days} days` : ''}</Typography>}>
           {loading ? <Skeleton variant="rectangular" height={220} /> : (
             <>
-              <StatusBars rows={s.statusBreakdown} onPick={(st) => navigate(`/admin/orders?status=${st}`)} />
+              {inRange ? <StatusBars rows={s.statusBreakdown} onPick={(st) => navigate(`/admin/orders?status=${st}`)} /> : (
+                <EmptyState icon={Inbox} title="Nothing to sort yet" body="Each order's status (placed, confirmed, shipped, delivered) is counted here." />
+              )}
               <Box sx={(th) => ({ mt: 2.5, p: 1.5, borderRadius: '10px', backgroundColor: th.admin.accentWash, display: 'flex', alignItems: 'center', gap: 1.5 })}>
                 <PackageCheck size={18} aria-hidden="true" />
                 <Typography variant="body2" sx={{ flex: 1 }}><b>{s.openOrders}</b> open {s.openOrders === 1 ? 'order needs' : 'orders need'} action</Typography>
@@ -110,7 +120,7 @@ export default function AdminDashboard() {
               </TableHead>
               <TableBody>
                 {loading ? <SkeletonRows rows={6} cols={5} /> : s.recentOrders.length === 0 ? (
-                  <TableRow><TableCell colSpan={5}><EmptyState icon={Inbox} title="No orders yet" body="New orders will show up here." /></TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5}><EmptyState icon={Inbox} title="No orders yet" body="New orders show up here the moment a customer checks out." /></TableCell></TableRow>
                 ) : s.recentOrders.map((o) => (
                   <TableRow key={o.id} hover sx={{ cursor: 'pointer' }} onClick={() => navigate(`/admin/orders/${o.id}`)}>
                     <TableCell sx={{ fontWeight: 700 }}>

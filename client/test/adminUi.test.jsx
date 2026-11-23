@@ -7,6 +7,7 @@ import { theme } from '../src/theme/theme.js';
 import { routes } from '../src/routes.jsx';
 import { apiState } from '../src/api/client.js';
 import { mockRequest } from '../src/api/mock/index.js';
+import { seedMockShop } from './mockShop.js';
 import { validateProduct } from '../src/pages/admin/AdminProductEdit.jsx';
 import { niceTicks } from '../src/pages/admin/charts.jsx';
 
@@ -27,7 +28,7 @@ function renderAt(path) {
 describe('admin console (signed in as admin)', () => {
   beforeAll(async () => {
     apiState.mock = true;
-    await mockRequest('POST', '/auth/login', { email: 'admin@goldstar.test', password: 'x' });
+    await seedMockShop(mockRequest); // signs in as the admin
   });
   afterAll(async () => {
     await mockRequest('POST', '/auth/logout');

@@ -79,7 +79,7 @@ export default function AdminCustomers() {
         <Typography variant="body2" sx={(th) => ({ color: th.admin.ink2 })}>{data ? `${total} ${total === 1 ? 'customer' : 'customers'}` : ''}</Typography>
       </Box>
 
-      {list.isError && !data ? <ErrorState title="Could not load customers" onRetry={() => list.refetch()} /> : !list.isLoading && items.length === 0 ? (
+      {list.isError && !data ? <ErrorState title="Could not load customers" error={list.error} onRetry={() => list.refetch()} /> : !list.isLoading && items.length === 0 ? (
         <EmptyState
           icon={UsersRound}
           title={qParam ? 'No customers match' : 'No customers yet'}

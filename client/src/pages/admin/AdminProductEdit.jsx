@@ -280,7 +280,7 @@ export default function AdminProductEdit() {
 
   if (!isNew && isLoading) return <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: 'minmax(0,1fr)', lg: '2fr 1fr' } }}><Skeleton variant="rectangular" height={520} sx={{ borderRadius: '12px' }} /><Skeleton variant="rectangular" height={420} sx={{ borderRadius: '12px' }} /></Box>;
   if (!isNew && (error?.status === 404 || (!error && !data))) return <AdminNotFound what="product" />;
-  if (!isNew && error) return <Panel><ErrorState title="Could not load this product" onRetry={refetch} /></Panel>;
+  if (!isNew && error) return <Panel><ErrorState title="Could not load this product" error={error} onRetry={refetch} /></Panel>;
   if (!form) return null;
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));

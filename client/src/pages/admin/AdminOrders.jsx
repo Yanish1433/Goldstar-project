@@ -162,7 +162,13 @@ export default function AdminOrders() {
 
   const exportCsv = async () => {
     try {
-      const all = await apiFetch('/admin/orders', { query: { ...query, page: 1, limit: 100 } });
+      // Every matching order, 100 per request (the API's page limit).
+      const all = { items: [] };
+      for (let pg = 1; pg <= 50; pg++) {
+        const r = await apiFetch('/admin/orders', { query: { ...query, page: pg, limit: 100 } });
+        all.items.push(...r.items);
+        if (all.items.length >= r.total || r.items.length === 0) break;
+      }
       const blob = new Blob([`﻿${toCsv(all.items)}`], { type: 'text/csv;charset=utf-8' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -227,7 +233,7 @@ export default function AdminOrders() {
         </Tooltip>
       </Box>
 
-      {orders.isError && !data ? <ErrorState title="Could not load orders" onRetry={() => orders.refetch()} /> : !orders.isLoading && items.length === 0 ? (
+      {orders.isError && !data ? <ErrorState title="Could not load orders" error={orders.error} onRetry={() => orders.refetch()} /> : !orders.isLoading && items.length === 0 ? (
         <EmptyState
           icon={Inbox}
           title={filtered || status !== 'all' ? 'No orders match' : 'No orders yet'}

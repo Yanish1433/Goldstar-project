@@ -13,18 +13,20 @@ import Skeleton from '@mui/material/Skeleton';
 import { PageBox, useTitle } from '../components/Page.jsx';
 import { HistoryList, OrderItemsTable, ShippingBlock, StatusChip } from '../components/OrderParts.jsx';
 import NotFound from './NotFound.jsx';
+import { LoadError } from '../api/NetworkStates.jsx';
 import { useCancelOrder, useOrder } from '../api/hooks.js';
 import { formatDate } from '../lib/format.js';
 import { Panel } from '../components/shop/kit.jsx';
 
 export default function AccountOrder() {
   const { id } = useParams();
-  const { data: order, isLoading, error } = useOrder(id);
+  const { data: order, isLoading, error, refetch } = useOrder(id);
   const cancel = useCancelOrder();
   const [confirm, setConfirm] = useState(false);
   const [err, setErr] = useState('');
   useTitle(order ? `Order ${order.orderNumber}` : 'Order');
   if (isLoading) return <PageBox sx={{ py: 10 }}><Skeleton variant="rectangular" height={320} /></PageBox>;
+  if (error && !order && error.status !== 404 && error.status !== 400) return <LoadError error={error} onRetry={refetch} />;
   if (error || !order) return <NotFound />;
 
   const doCancel = async () => {

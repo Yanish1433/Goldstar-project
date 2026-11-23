@@ -76,7 +76,7 @@ export async function runSeed({ offline = false, reset = false, admin, wooUrl, l
     const existing = await User.findOne({ email }).select('+passwordHash');
     if (!existing) {
       await User.create({
-        name: admin.name || 'Demo Admin',
+        name: admin.name || 'Store Admin',
         email,
         passwordHash: await bcrypt.hash(admin.password, 12),
         role: 'admin',

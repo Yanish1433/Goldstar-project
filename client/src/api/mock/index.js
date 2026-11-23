@@ -1,9 +1,10 @@
-// In-memory implementation of the REST contract (SPEC 3.3) for VITE_USE_MOCK=true and the dev fallback.
+// In-memory implementation of the REST contract (SPEC 3.3). Used only by an explicit VITE_USE_MOCK=true showcase build,
+// by tests, and (dev only) for public catalogue requests while the API is down. It holds the bundled catalogue and two
+// sign-in accounts, and starts with no orders and no customers: nothing invented ever shows up in the admin.
 import seed from './products.json';
 import { ApiError } from '../client.js';
 import { canTransition } from '../../lib/orders.js';
 import { computeStats, customerRollup, matchCustomer, orderMatches, sortCustomers, sortOrders, statusCounts } from '../../lib/adminStats.js';
-import { makeDemo, rng } from './demoData.js';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const now = () => new Date().toISOString();
@@ -12,18 +13,12 @@ const fail = (status, code, message, details) => {
 };
 const delay = (ms = 120) => new Promise((r) => setTimeout(r, ms));
 
-const demo = makeDemo();
 let seq = 1;
-const products = clone(seed).map((p, i) => ({
-  ...p,
-  id: `mock-p${seq++}`,
-  updatedAt: demo.daysAgo(3 + i * 4).toISOString(),
-  colourways: p.colourways.map((c) => ({ ...c, stock: demo.stockFor(c) })),
-}));
+const loadedAt = Date.now();
+const products = clone(seed).map((p, i) => ({ ...p, id: `mock-p${seq++}`, updatedAt: new Date(loadedAt - i * 60_000).toISOString() }));
 const users = [
-  { id: 'mock-u1', name: 'Demo Shopper', email: 'demo@goldstar.test', phone: '9841234567', role: 'user', createdAt: demo.daysAgo(58).toISOString() },
-  { id: 'mock-u2', name: 'Demo Admin', email: 'admin@goldstar.test', phone: null, role: 'admin', createdAt: demo.daysAgo(120).toISOString() },
-  ...demo.users,
+  { id: 'mock-u1', name: 'Test Shopper', email: 'shopper@goldstar.test', phone: null, role: 'user', createdAt: now() },
+  { id: 'mock-u2', name: 'Store Admin', email: 'admin@goldstar.test', phone: null, role: 'admin', createdAt: now() },
 ];
 const orders = [];
 let session = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('gs-mock-user')) || null;
@@ -92,38 +87,24 @@ const orderOut = (o, admin) => {
 };
 
 const code4 = (r = Math.random) => Array.from({ length: 4 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(r() * 32)]).join('');
-const orderNumber = (at = new Date(), r = Math.random) => {
+const orderNumber = (at, r = Math.random) => {
   const d = new Date(at);
   const yy = String(d.getFullYear()).slice(2);
   return `GS-${yy}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${code4(r)}`;
 };
 
-function makeOrder(userId, items, shipping, status = 'placed', createdAt = now()) {
+function makeOrder(userId, items, shipping) {
+  const status = 'placed';
+  const createdAt = now();
   const q = quote(items);
   const o = {
-    id: `mock-o${seq++}`, userId, orderNumber: orderNumber(createdAt), status, paymentMethod: 'cod', paymentStatus: status === 'delivered' ? 'paid' : 'unpaid',
+    id: `mock-o${seq++}`, userId, orderNumber: orderNumber(createdAt), status, paymentMethod: 'cod', paymentStatus: 'unpaid',
     items: q.lines, subtotal: q.subtotal, deliveryFee: 0, total: q.total, currency: 'NPR', shipping,
     statusHistory: [{ status: 'placed', at: createdAt, note: '' }], createdAt, updatedAt: createdAt,
   };
-  if (status !== 'placed') o.statusHistory.push({ status, at: createdAt, note: '' });
   orders.unshift(o);
   return o;
 }
-
-const g10 = products.find((p) => p.slug === 'g10-401');
-const demoShip = { fullName: 'Demo Shopper', phone: '9841234567', addressLine: 'House 12, Tole Marg', area: 'Maharajgunj', city: 'Kathmandu', landmark: '', notes: '' };
-const numberRand = rng(7);
-demo.plans(products.flatMap((p) => p.colourways.filter((c) => c.inStock).map((c) => ({ p, c })))).forEach((pl) => {
-  const o = makeOrder(pl.userId, pl.items, pl.shipping, 'placed', pl.at);
-  o.orderNumber = orderNumber(pl.at, numberRand);
-  o.status = pl.status;
-  o.statusHistory = pl.history;
-  o.paymentStatus = pl.status === 'delivered' ? 'paid' : 'unpaid';
-  o.updatedAt = pl.history[pl.history.length - 1].at;
-});
-makeOrder('mock-u1', [{ productId: g10.id, colourwayKey: 'olive', size: '8', qty: 1 }], demoShip, 'delivered', demo.daysAgo(18, 9).toISOString());
-makeOrder('mock-u1', [{ productId: g10.id, colourwayKey: 'black', size: '9', qty: 2 }], demoShip, 'placed', now());
-orders.sort((x, y) => y.createdAt.localeCompare(x.createdAt));
 
 const PHONE = /^(\+977)?9[678]\d{8}$/;
 
