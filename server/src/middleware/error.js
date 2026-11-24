@@ -37,6 +37,11 @@ export function errorHandler(err, req, res, _next) {
     return res.status(404).json(body('NOT_FOUND', 'Not found.'));
   }
 
+  // Express/router client errors that carry their own 4xx (e.g. a malformed %-escape in the path: "Failed to decode param").
+  if (err instanceof URIError || (Number.isInteger(err?.status) && err.status >= 400 && err.status < 500)) {
+    return res.status(err instanceof URIError ? 400 : err.status).json(body('BAD_REQUEST', 'The request could not be understood.'));
+  }
+
   // Unexpected: log the message server-side only, never leak it to the client.
   if (!env.isTest) {
     console.error(`[error] ${req.method} ${req.originalUrl}:`, env.isDev ? err : err?.message);

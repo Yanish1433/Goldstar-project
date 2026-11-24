@@ -543,3 +543,78 @@ describe('11. transport rules', () => {
     expect(evil.headers['access-control-allow-origin']).not.toBe('http://evil.test');
   });
 });
+
+describe('audit3: slugs, 404s and per-size stock', () => {
+  it('finds a product by slug regardless of case, trailing slash or surrounding noise', async () => {
+    expect((await request(app).get('/api/products/G10-401')).status).toBe(200);
+    expect((await request(app).get('/api/products/g10-401/')).status).toBe(200);
+    expect((await request(app).get('/api/products/g10-401?x=1')).body.product.slug).toBe('g10-401');
+  });
+
+  it('an unknown, malformed, unicode or encoded slug is a JSON 404, never a 500', async () => {
+    for (const slug of ['nope', 'g10_401', encodeURIComponent('जुत्ता'), encodeURIComponent('a/b'), 'g10-401%00', 'x'.repeat(300)]) {
+      const res = await request(app).get(`/api/products/${slug}`);
+      expect(res.status, slug).toBe(404);
+      expect(res.body.error.code).toBe('NOT_FOUND');
+    }
+  });
+
+  it('a malformed %-escape in the path is a JSON 400, not a 500', async () => {
+    const res = await request(app).get('/api/products/%E0%A4%A');
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('BAD_REQUEST');
+  });
+
+  it('an inactive product is hidden from the public slug lookup and list but not the admin', async () => {
+    const admin = await adminAgent(app);
+    const list = await admin.get('/api/admin/products?limit=100');
+    const ax = list.body.items.find((p) => p.slug === 'ax');
+    await admin.patch(`/api/admin/products/${ax.id}`).send({ active: false }).expect(200);
+    try {
+      expect((await request(app).get('/api/products/ax')).status).toBe(404);
+      expect((await request(app).get('/api/products?limit=48')).body.items.some((p) => p.slug === 'ax')).toBe(false);
+      expect((await admin.get(`/api/admin/products/${ax.id}`)).status).toBe(200);
+    } finally {
+      await admin.patch(`/api/admin/products/${ax.id}`).send({ active: true }).expect(200);
+    }
+  });
+
+  it('creating a product normalises the slug case and rejects duplicates and bad characters', async () => {
+    const admin = await adminAgent(app);
+    const base = (await request(app).get('/api/products/g10-401')).body.product;
+    const body = (slug) => ({ slug, name: 'Slug test', categories: ['casual'], colourways: base.colourways.map(({ id, ...c }) => c) });
+    const created = await admin.post('/api/admin/products').send(body('  Slug-TEST-1 '));
+    expect(created.status).toBe(201);
+    expect(created.body.product.slug).toBe('slug-test-1');
+    expect((await request(app).get('/api/products/SLUG-test-1')).status).toBe(200);
+    expect((await admin.post('/api/admin/products').send(body('slug-test-1'))).status).toBe(409);
+    expect((await admin.post('/api/admin/products').send(body('SLUG-TEST-1'))).body.error.code).toBe('SLUG_TAKEN');
+    for (const bad of ['has space', 'ünïcode', 'under_score', 'a/b', '']) {
+      expect((await admin.post('/api/admin/products').send(body(bad))).status, bad).toBe(400);
+    }
+  });
+
+  it('a malformed admin product id is a 404', async () => {
+    const admin = await adminAgent(app);
+    expect((await admin.get('/api/admin/products/g10-401')).status).toBe(404);
+    expect((await admin.get('/api/admin/products/not-an-id')).status).toBe(404);
+  });
+
+  it('a size tracked at 0 pairs cannot be quoted or ordered', async () => {
+    const admin = await adminAgent(app);
+    const list = await admin.get('/api/admin/products?limit=100');
+    const p = list.body.items.find((x) => x.slug === 'g10-401');
+    const colourways = p.colourways.map(({ id, ...c }) => (c.key === 'black' ? { ...c, stock: { [c.sizes[0]]: 0 } } : c));
+    await admin.patch(`/api/admin/products/${p.id}`).send({ colourways }).expect(200);
+    try {
+      const black = colourways.find((c) => c.key === 'black');
+      const quote = await request(app).post('/api/cart/quote').send({ items: [{ productId: p.id, colourwayKey: 'black', size: black.sizes[0], qty: 1 }] });
+      expect(quote.status).toBe(200);
+      expect(quote.body.problems[0]).toMatchObject({ index: 0, code: 'OUT_OF_STOCK' });
+      const other = await request(app).post('/api/cart/quote').send({ items: [{ productId: p.id, colourwayKey: 'black', size: black.sizes[1], qty: 1 }] });
+      expect(other.body.problems).toEqual([]);
+    } finally {
+      await admin.patch(`/api/admin/products/${p.id}`).send({ colourways: p.colourways.map(({ id, ...c }) => c) }).expect(200);
+    }
+  });
+});

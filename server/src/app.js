@@ -44,6 +44,7 @@ const CSP = {
 export function createApp({ limits, serveClient = env.isProd } = {}) {
   const app = express();
   app.disable('x-powered-by');
+  if (env.TRUST_PROXY !== undefined) app.set('trust proxy', env.TRUST_PROXY);
 
   const limiters = createLimiters(
     limits ?? (env.isTest ? { global: 100_000, auth: 100_000 } : { global: 300, auth: 10 }),

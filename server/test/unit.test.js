@@ -107,3 +107,15 @@ describe('phone schema', () => {
     expect(phone.safeParse('9512345678').success).toBe(false);
   });
 });
+
+describe('TRUST_PROXY', () => {
+  it('parses hops, true, loopback and "off" values', async () => {
+    const { parseTrustProxy } = await import('../src/config/env.js');
+    expect(parseTrustProxy(undefined)).toBeUndefined();
+    expect(parseTrustProxy('')).toBeUndefined();
+    expect(parseTrustProxy('false')).toBeUndefined();
+    expect(parseTrustProxy('true')).toBe(1);
+    expect(parseTrustProxy('2')).toBe(2);
+    expect(parseTrustProxy('loopback')).toBe('loopback');
+  });
+});

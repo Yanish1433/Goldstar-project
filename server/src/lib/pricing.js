@@ -37,6 +37,11 @@ export async function priceItems(items) {
       problems.push({ index, code: 'OUT_OF_STOCK', message: `${product.name} ${colour.name} is out of stock.` });
       return;
     }
+    // Stock is only tracked for some products; a tracked size at 0 pairs cannot be ordered.
+    if (colour.stock?.get(item.size) === 0) {
+      problems.push({ index, code: 'OUT_OF_STOCK', message: `${product.name} ${colour.name} is out of stock in UK ${item.size}.` });
+      return;
+    }
     const img = colour.images?.[0];
     lines.push({
       productId: String(product._id),

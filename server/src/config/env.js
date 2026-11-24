@@ -26,6 +26,10 @@ const schema = z.object({
     .default('7d'),
   COOKIE_SECURE: bool,
   CLIENT_ORIGIN: z.string().default('http://localhost:5173'),
+  // Set when the API sits behind a reverse proxy / load balancer (Render, Railway, nginx): a number of hops ("1"),
+  // "true" (= 1 hop) or an Express value such as "loopback". Without it every visitor shares the proxy's IP, so the
+  // rate limits (10 logins / 15 min, 300 requests / 15 min) would be shared by everyone.
+  TRUST_PROXY: z.string().trim().optional(),
   SEED_ADMIN_EMAIL: z.string().optional(),
   SEED_ADMIN_PASSWORD: z.string().optional(),
   SEED_ADMIN_NAME: z.string().default('Store Admin'),
@@ -41,11 +45,19 @@ export function durationToMs(value) {
   return Number(m[1]) * UNIT_MS[m[2] || 's'];
 }
 
+/** "1" -> 1, "true" -> 1 hop, "" / "false" / unset -> undefined (do not trust proxy headers), anything else is passed to Express. */
+export function parseTrustProxy(value) {
+  if (value === undefined || value === '' || value === 'false' || value === '0') return undefined;
+  if (value === 'true') return 1;
+  return /^\d+$/.test(value) ? Number(value) : value;
+}
+
 /** Pure parser (throws ZodError). Used by tests and by loadEnv. */
 export function parseEnv(source) {
   const parsed = schema.parse(source);
   return {
     ...parsed,
+    TRUST_PROXY: parseTrustProxy(parsed.TRUST_PROXY),
     CLIENT_ORIGINS: parsed.CLIENT_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean),
     COOKIE_MAX_AGE_MS: durationToMs(parsed.JWT_EXPIRES_IN),
     isProd: parsed.NODE_ENV === 'production',
