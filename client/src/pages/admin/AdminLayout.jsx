@@ -189,7 +189,7 @@ function TopBar({ desktop }) {
               <Box component="ol" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', alignItems: 'center', gap: 0.5, fontSize: 12.5 }}>
                 {crumbs.map((c) => (
                   <Box component="li" key={c.to} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Box component={RouterLink} to={c.to} sx={(th) => ({ color: th.admin.ink2, textDecoration: 'none', fontWeight: 600, '&:hover': { color: th.admin.ink, textDecoration: 'underline' } })}>{c.label}</Box>
+                    <Box component={RouterLink} to={c.to} sx={(th) => ({ color: th.admin.ink2, textDecoration: 'none', fontWeight: 600, [ADMIN_COARSE]: { display: 'inline-flex', alignItems: 'center', minHeight: 44, minWidth: 44 }, '&:hover': { color: th.admin.ink, textDecoration: 'underline' } })}>{c.label}</Box>
                     <ChevronRight size={13} aria-hidden="true" />
                   </Box>
                 ))}

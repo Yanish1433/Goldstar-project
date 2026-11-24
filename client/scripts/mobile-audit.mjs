@@ -103,7 +103,7 @@ const PROBE = () => {
   return out;
 };
 
-const parse = (s) => { const [w, h] = s.split('x').map(Number); const touch = true; return { w, h, name: s }; };
+const parse = (s) => { const [w, h] = s.split('x').map(Number); const touch = w < 1000; return { w, h, name: s, touch }; };
 
 const results = [];
 let page;
@@ -136,7 +136,7 @@ const want = (n) => !only || only.includes(n);
 async function runSize(s) {
   size = parse(s);
   const browser = await chromium.launch({ executablePath: CHROME, headless: true, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--disable-dev-shm-usage'] });
-  const ctx = await browser.newContext({ viewport: { width: size.w, height: size.h }, deviceScaleFactor: 1, hasTouch: true, isMobile: true });
+  const ctx = await browser.newContext({ viewport: { width: size.w, height: size.h }, deviceScaleFactor: 1, hasTouch: size.touch, isMobile: size.touch });
   page = await ctx.newPage();
   page.on('pageerror', (e) => log(`  [pageerror ${size.name}] ${e.message.slice(0, 120)}`));
   try {
