@@ -59,6 +59,7 @@ export function validateProduct(f, isNew) {
   const add = (path, message) => e.push({ path, message });
   if (!f.name.trim()) add('name', 'Enter a product name.');
   if (isNew && !/^[a-z0-9-]+$/.test(f.slug.trim())) add('slug', 'Use lowercase letters, numbers and hyphens.');
+  else if (isNew && f.slug.trim().length > 80) add('slug', 'Keep the slug to 80 characters or fewer.');
   if (!f.colourways.length) add('colourways', 'Add at least one colour.');
   const keys = new Set();
   f.colourways.forEach((c, i) => {

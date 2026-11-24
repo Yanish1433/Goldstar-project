@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { useCart, lineId, cartCount, cartSubtotal, cartVisibleCount, MAX_LINES } from '../src/store/cart.js';
+import { useCart, lineId, cartCount, cartSubtotal, cartVisibleCount, sanitizeLines, MAX_LINES } from '../src/store/cart.js';
 
 const line = (o = {}) => ({ productId: 'p1', slug: 'g10-401', name: 'G10-401', colourwayKey: 'olive', colourwayName: 'Olive', size: '8', qty: 1, unitPrice: 2775, image: null, ...o });
 
@@ -61,5 +61,15 @@ describe('cart store', () => {
     const saved = JSON.parse(localStorage.getItem('gs-cart-v1'));
     expect(saved.state.lines).toHaveLength(1);
     expect(saved.state.pendingFlights).toBeUndefined();
+  });
+});
+
+describe('sanitizeLines (a saved cart is user-editable)', () => {
+  it('drops malformed lines, repeats and bad prices; clamps qty; caps length', () => {
+    const good = line();
+    const out = sanitizeLines([good, good, null, 'x', { ...good, productId: 5 }, { ...good, size: '9', unitPrice: 'free' }, { ...good, size: 10, qty: 99 }, { ...good, size: '11', qty: 'abc' }]);
+    expect(out.map((l) => [l.size, l.qty])).toEqual([['8', 1], ['10', 5], ['11', 1]]);
+    expect(sanitizeLines('nope')).toEqual([]);
+    expect(sanitizeLines(Array.from({ length: 30 }, (_, i) => line({ size: String(i + 1) })))).toHaveLength(MAX_LINES);
   });
 });

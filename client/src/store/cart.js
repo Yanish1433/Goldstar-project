@@ -8,6 +8,27 @@ export const CART_KEY = 'gs-cart-v1';
 export const lineId = (l) => `${l.productId}|${l.colourwayKey}|${l.size}`;
 const clampQty = (q) => Math.min(MAX_QTY, Math.max(1, Math.floor(Number(q) || 1)));
 
+// localStorage is user-editable and survives deploys: keep only well-formed lines (a bad one would crash the header badge,
+// the drawer and the checkout totals), clamp quantities, drop repeats and cap the length.
+export function sanitizeLines(raw) {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const l of raw) {
+    if (!l || typeof l !== 'object') continue;
+    const { productId, slug, colourwayKey, size } = l;
+    if (![productId, slug, colourwayKey].every((v) => typeof v === 'string' && v) || !['string', 'number'].includes(typeof size) || size === '') continue;
+    if (!Number.isFinite(l.unitPrice) || l.unitPrice < 0) continue;
+    const line = { ...l, size: String(size), qty: clampQty(l.qty) };
+    const id = lineId(line);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    out.push(line);
+    if (out.length >= MAX_LINES) break;
+  }
+  return out;
+}
+
 export const useCart = create(
   persist(
     (set, get) => ({
@@ -53,6 +74,7 @@ export const useCart = create(
       name: CART_KEY,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({ lines: s.lines }),
+      merge: (persisted, current) => ({ ...current, lines: sanitizeLines(persisted?.lines) }),
     },
   ),
 );

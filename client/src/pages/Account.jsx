@@ -11,11 +11,13 @@ import TableRow from '@mui/material/TableRow';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import Skeleton from '@mui/material/Skeleton';
+import Alert from '@mui/material/Alert';
 import { PageBox, useTitle } from '../components/Page.jsx';
 import { StatusChip } from '../components/OrderParts.jsx';
 import { useLogout, useMe, useMyOrders } from '../api/hooks.js';
 import { formatDate, formatNPR } from '../lib/format.js';
 import { Panel } from '../components/shop/kit.jsx';
+import { useUi } from '../store/ui.js';
 import { shop } from '../theme/tokens.js';
 
 export default function Account() {
@@ -44,12 +46,20 @@ export default function Account() {
             <Typography component="dt" color="text.secondary">Phone</Typography><Typography component="dd" sx={{ m: 0 }}>{user.phone || 'Not added'}</Typography>
           </Box>
         ) : <Skeleton variant="rectangular" width={280} height={96} />}
-        <Button variant="outlined" onClick={async () => { navigate('/'); await logout.mutateAsync(); }} aria-disabled={logout.isPending}>Log out</Button>
+        <Button variant="outlined" onClick={async () => {
+          navigate('/');
+          // If the server could not be reached the cookie is still valid: say so rather than fail silently.
+          try { await logout.mutateAsync(); } catch { useUi.getState().showSnackbar({ message: 'Could not log you out. Check your connection and try again.' }); }
+        }} aria-disabled={logout.isPending}>Log out</Button>
       </Panel>
 
       <Panel>
         <Typography variant="h4" component="h2" sx={{ mb: 3 }}>Your orders</Typography>
-        {orders.isLoading ? <Skeleton variant="rectangular" height={160} /> : items.length === 0 ? (
+        {orders.isLoading ? <Skeleton variant="rectangular" height={160} /> : orders.isError && !orders.data ? (
+          <Alert severity="error" action={<Button color="inherit" size="small" onClick={() => orders.refetch()} disabled={orders.isFetching}>Retry</Button>}>
+            {orders.error?.code === 'OFFLINE' ? 'You are offline, so your orders could not load.' : 'Could not load your orders. Check your connection and retry.'}
+          </Alert>
+        ) : items.length === 0 ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>
             <Typography color="text.secondary">No orders yet.</Typography>
             <Button component={RouterLink} to="/shop" variant="contained">Shop all</Button>
