@@ -26,7 +26,6 @@ import LineReveal from '../components/LineReveal.jsx';
 import Swatches from '../components/Swatches.jsx';
 import SizePicker from '../components/SizePicker.jsx';
 import QtyStepper from '../components/QtyStepper.jsx';
-import ExternalLink from '../components/ExternalLink.jsx';
 import Quiet3D from '../components/Quiet3D.jsx';
 import ProductCard from '../components/shop/ProductCard.jsx';
 import { Band, Eyebrow, PriceTag, ShopBadge, TrustRow, badgesFor, descriptorFor } from '../components/shop/kit.jsx';
@@ -377,7 +376,6 @@ export default function Product() {
               </Button>
             </Box>
 
-            <ExternalLink href={colour.productUrl} sx={{ alignSelf: 'flex-start', mt: -1.5, fontSize: 14, color: shop.ink }}>View on goldstarshoes.com</ExternalLink>
 
             <Box sx={{ backgroundColor: shop.surface, borderRadius: `${shop.radius.lg}px`, boxShadow: `inset 0 0 0 1px ${shop.line}`, p: 2.5 }}>
               <TrustRow variant="stack" />

@@ -42,10 +42,10 @@ describe('route smoke renders with the mock API', () => {
     expect(await screen.findByRole('heading', { name: 'Shop all' }, T)).toBeInTheDocument();
     expect(await screen.findByText('AX-3', {}, T)).toBeInTheDocument();
   });
-  it('/product/g10-401 shows the buy panel with a safe external link', async () => {
+  it('/product/g10-401 shows the buy panel and no link out to goldstarshoes.com', async () => {
     renderAt('/product/g10-401');
     expect(await screen.findByRole('button', { name: 'Add to cart' }, T)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /View on goldstarshoes.com/ })).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(screen.queryByRole('link', { name: /goldstarshoes.com/ })).toBeNull();
   });
   it('/product/<unknown slug> is a Not found page, not a blank page', async () => {
     renderAt('/product/no-such-shoe');
