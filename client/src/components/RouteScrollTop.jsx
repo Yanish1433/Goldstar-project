@@ -13,6 +13,15 @@ export function scrollToTop() {
   window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
 }
 
+// Product page colour switch: bring the shopper up to the shoe in its new colour. Smooth (instant under reduced
+// motion); nothing when already near the top. Lenis (landing/story only) is driven too if present.
+export function scrollTopForColour() {
+  if (window.scrollY < 8) return;
+  const reduced = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  try { window.__lenis?.scrollTo(0, { immediate: reduced }); } catch { /* ignore */ }
+  window.scrollTo({ top: 0, left: 0, behavior: reduced ? 'instant' : 'smooth' });
+}
+
 export default function RouteScrollTop() {
   const { pathname, hash } = useLocation();
   const navType = useNavigationType();

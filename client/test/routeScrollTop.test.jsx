@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider, Outlet } from 'react-router';
-import RouteScrollTop from '../src/components/RouteScrollTop.jsx';
+import RouteScrollTop, { scrollTopForColour } from '../src/components/RouteScrollTop.jsx';
 
 function setup(initial = ['/product/a']) {
   const router = createMemoryRouter(
@@ -41,6 +41,22 @@ describe('RouteScrollTop', () => {
   it('leaves hash links alone', async () => {
     const r = setup(['/']);
     await act(async () => { await r.navigate('/g10#story'); });
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('a colour change scrolls smoothly to the top, only when scrolled down', () => {
+    window.matchMedia = window.matchMedia || (() => ({ matches: false }));
+    Object.defineProperty(window, 'scrollY', { value: 500, configurable: true });
+    scrollTopForColour();
+    expect(spy).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'smooth' });
+    spy.mockClear();
+    Object.defineProperty(window, 'scrollY', { value: 3, configurable: true });
+    scrollTopForColour();
+    expect(spy).not.toHaveBeenCalled();
+  });
+  it('the router guard itself ignores a colour replace (the swatch handler owns it)', async () => {
+    const r = setup();
+    await act(async () => { await r.navigate('/product/a?colour=x', { replace: true }); });
     expect(spy).not.toHaveBeenCalled();
   });
 });

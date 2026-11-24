@@ -26,6 +26,7 @@ import LineReveal from '../components/LineReveal.jsx';
 import Swatches from '../components/Swatches.jsx';
 import SizePicker from '../components/SizePicker.jsx';
 import QtyStepper from '../components/QtyStepper.jsx';
+import { scrollTopForColour } from '../components/RouteScrollTop.jsx';
 import Quiet3D from '../components/Quiet3D.jsx';
 import ProductCard from '../components/shop/ProductCard.jsx';
 import { Band, Eyebrow, PriceTag, ShopBadge, TrustRow, badgesFor, descriptorFor } from '../components/shop/kit.jsx';
@@ -394,7 +395,7 @@ export default function Product() {
 
             <Box sx={{ height: '1px', backgroundColor: shop.line }} />
 
-            <Swatches colourways={product.colourways} value={colour.key} onChange={(k) => { const n = new URLSearchParams(params); n.set('colour', k); setParams(n, { replace: true, preventScrollReset: true }); }} />
+            <Swatches colourways={product.colourways} value={colour.key} onChange={(k) => { const n = new URLSearchParams(params); n.set('colour', k); setParams(n, { replace: true, preventScrollReset: true }); scrollTopForColour(); }} />
             <SizePicker ref={sizeRef} sizes={colour.sizes} allSizes={allSizes} value={size} onChange={(v) => { setSize(v); if (v) setSizeError(false); }} error={sizeError} onGuide={() => setGuide(true)} />
 
             <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
