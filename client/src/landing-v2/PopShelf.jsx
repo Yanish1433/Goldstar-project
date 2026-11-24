@@ -107,7 +107,7 @@ export function PopCard({ product, onQuickView }) {
           <Eye size={18} strokeWidth={1.75} aria-hidden="true" />
         </Box>
       </Box>
-      <Box data-info sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, md: 1.5 } }}>
+      <Box data-info sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, md: 1.5 }, flex: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.5, [PHONE]: { flexDirection: 'column', gap: 0.25 } }}>
           <Box sx={{ minWidth: 0 }}>
             <Box component="h3" sx={{ ...KINETIC, fontSize: { xs: 26, md: 34 }, fontWeight: 760, lineHeight: 0.95, color: t.ink }}>
@@ -120,7 +120,7 @@ export function PopCard({ product, onQuickView }) {
             {sale ? <Box component="s" sx={{ fontSize: 12, color: t.ink3 }}>{formatNPR(c.regularPrice)}</Box> : null}
           </Box>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap', mt: 'auto' }}>
           <Box role="radiogroup" aria-label={`${product.name} colour`} sx={{ display: 'flex', ml: -1.25 }}>
             {product.colourways.map((x) => (
               <Box
