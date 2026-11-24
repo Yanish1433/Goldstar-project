@@ -50,7 +50,10 @@
           // The boot starts once the poster has painted (first LCP entry, or 2.5 s at the latest), so the 1.4 to 3.5 MB model
           // never competes with the poster, the scripts or the styles for the first paint; it is still in flight long
           // before the first scroll chapter.
-          var glb = full ? '/models/g10-hd.glb' : '/models/g10-hd-mobile.glb', fired = false;
+          // Same rule as wantsLiteModel() in src/three/tier.js: phones get the full model unless memory < 4 GB or 2G/3G.
+          var mq = new URLSearchParams(location.search).get('model'), et = n.connection && n.connection.effectiveType;
+          var lite = !full && (mq === 'lite' || (mq !== 'full' && ((typeof n.deviceMemory === 'number' && n.deviceMemory < 4) || et === 'slow-2g' || et === '2g' || et === '3g')));
+          var glb = lite ? '/models/g10-hd-mobile.glb' : '/models/g10-hd.glb', fired = false;
           var go = function () { if (fired) return; fired = true; pre(glb, 'fetch', null, null, true); };
           try { new PerformanceObserver(function () { setTimeout(go, 0); }).observe({ type: 'largest-contentful-paint', buffered: true }); } catch (e) {}
           setTimeout(go, 2500);

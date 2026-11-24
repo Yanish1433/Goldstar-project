@@ -7,6 +7,7 @@ import { gsap } from 'gsap';
 import { STORY_MODEL, CALLOUTS, BADGES, partColours } from './model.config.js';
 import { buildParts, createTinter, disposeParts, sharpenTextures } from './splitModel.js';
 import StudioLights from '../three/StudioLights.jsx';
+import { wantsLiteModel } from '../three/tier.js';
 import { compactLabels, trackAt, makePose, samplePose } from './storyline.js';
 import { live, touch, useStoryUi } from './state.js';
 
@@ -49,7 +50,7 @@ function ShoeRig({ url, onReady, shadowRef }) {
   const gltf = useGLTF(url, false, true);
   const gl = useThree((s) => s.gl);
   const built = useMemo(() => {
-    sharpenTextures(gltf.scene, gl, url === STORY_MODEL.urls.mobile ? 8 : 16);
+    sharpenTextures(gltf.scene, gl, 16);
     return buildParts(gltf.scene, STORY_MODEL);
   }, [gltf, gl, url]);
   const tinter = useMemo(() => createTinter(built.parts), [built]);
@@ -221,10 +222,10 @@ function positionLabels(built, rigGroup, camera, W, H, layout, v) {
 export default function Stage({ rootRef }) {
   const tier = useStoryUi((s) => s.tier);
   const reduced = useStoryUi((s) => s.reduced);
-  const [dpr, setDpr] = useState(tier === 'lite' ? [1, 1.25] : [1, 1.5]);
+  const [dpr, setDpr] = useState(tier === 'lite' ? [1, 2] : [1, 1.5]);
   const active = useRef(true);
   const shadowRef = useRef();
-  const url = tier === 'lite' ? STORY_MODEL.urls.mobile : STORY_MODEL.urls.desktop;
+  const url = wantsLiteModel(tier) ? STORY_MODEL.urls.mobile : STORY_MODEL.urls.desktop;
   const [ready, setReady] = useState(false);
 
   // Only render while the story is on screen and the tab is visible.
@@ -266,7 +267,7 @@ export default function Stage({ rootRef }) {
         style={{ position: 'absolute', inset: 0 }}
       >
         <Driver active={active} />
-        <PerformanceMonitor bounds={() => [45, 60]} flipflops={3} onDecline={() => setDpr(1)} />
+        <PerformanceMonitor bounds={() => [45, 60]} flipflops={3} onDecline={() => setDpr((d) => { const top = Array.isArray(d) ? d[1] : d; return top > 1.5 ? 1.5 : 1; })} />
         <StudioLights />
         <Suspense fallback={null}>
           <ShoeRig
@@ -278,7 +279,7 @@ export default function Stage({ rootRef }) {
             }}
           />
         </Suspense>
-        <ContactShadows ref={shadowRef} position={[0, -0.8, 0]} scale={7} far={2.2} blur={2.6} resolution={tier === 'lite' ? 256 : 512} opacity={0.55} color="#000000" />
+        <ContactShadows ref={shadowRef} position={[0, -0.8, 0]} scale={7} far={2.2} blur={2.6} resolution={512} opacity={0.55} color="#000000" />
       </Canvas>
     </div>
   );
