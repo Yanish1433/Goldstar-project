@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { FINALE, HOLD, PALETTE, SECTIONS, START, TOTAL, TRANSITION, copyTrack, endOf } from './storyline.js';
 import { live, touch } from './state.js';
+import { scrollToTime } from './scrollTime.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -76,6 +77,23 @@ export function useStoryEngine({ rootRef, bgRef, reduced, onTime }) {
     window.__lenis = lenis; // used by in-page links (scroll to a section)
 
     const vh = () => live.vh;
+    let scrub = null;
+    let syncing = false;
+    // After every Lenis frame, re-derive the story time from the real scroll position. onUpdate is the fast path;
+    // this makes the time a pure function of scroll even when an update was missed (fast fling to the top, a refresh
+    // mid-scroll, a native jump), so the hero can never stay on a stale mid-story frame.
+    const sync = () => {
+      if (!scrub || syncing) return;
+      const T = scrollToTime(scrub.scroll(), scrub.start, scrub.end, TOTAL);
+      if (Math.abs(T - live.T) < 1e-3) return;
+      syncing = true;
+      tlRef.time(T);
+      live.T = T;
+      touch();
+      onTime?.(T);
+      syncing = false;
+    };
+    let tlRef = null;
     const ctx = gsap.context(() => {
       // 1. Pins, in DOM order.
       SECTIONS.forEach((s) => {
@@ -92,6 +110,7 @@ export function useStoryEngine({ rootRef, bgRef, reduced, onTime }) {
       // 2. Master timeline in vh units.
       const tl = gsap.timeline({ paused: true, defaults: { ease: 'none' } });
       tl.set({}, {}, TOTAL);
+      tlRef = tl;
 
       // Background + ink crossfades during each transition.
       bg.style.backgroundColor = colourOf(0).bg;
@@ -143,7 +162,7 @@ export function useStoryEngine({ rootRef, bgRef, reduced, onTime }) {
       }
 
       // 3. The scrub: story scroll (px) -> timeline time (vh). Exact: no extra smoothing (Lenis already smooths).
-      ScrollTrigger.create({
+      scrub = ScrollTrigger.create({
         trigger: root,
         start: 'top top',
         end: () => `+=${TOTAL * vh()}`,
@@ -164,6 +183,7 @@ export function useStoryEngine({ rootRef, bgRef, reduced, onTime }) {
         },
       });
     }, root);
+    gsap.ticker.add(sync);
 
     // Recompute pins after fonts settle (headline heights) and the first layout.
     const refresh = () => ScrollTrigger.refresh();
@@ -175,6 +195,7 @@ export function useStoryEngine({ rootRef, bgRef, reduced, onTime }) {
       window.removeEventListener('resize', onResize);
       ctx.revert();
       gsap.ticker.remove(raf);
+      gsap.ticker.remove(sync);
       lenis.destroy();
       if (window.__lenis === lenis) window.__lenis = null;
       doc.style.removeProperty('--story-ink');
