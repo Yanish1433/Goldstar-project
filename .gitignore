@@ -9,3 +9,5 @@ _dl/
 *.log
 .DS_Store
 .firstmate/
+.dev.vars
+.wrangler/

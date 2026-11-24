@@ -1,0 +1,15 @@
+# Cloudflare Pages config. Deploy from this folder (client/):
+#   npm run build
+#   npx wrangler@4 pages deploy dist
+# (wrangler is intentionally not in package.json; npx fetches it on demand.)
+name = "goldstar-3d"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-11-01"
+
+# The /api proxy (functions/api/[[path]].js) forwards to this origin. Set it as a Pages
+# variable/secret in the dashboard (Settings -> Variables and Secrets) or with:
+#   npx wrangler@4 pages secret put API_ORIGIN --project-name goldstar-3d
+# Local test: npx wrangler@4 pages dev dist --port 5196 --binding API_ORIGIN=http://localhost:5050
+# NOTE: once [vars] is present in this file the dashboard no longer manages variables, so leave it commented.
+# [vars]
+# API_ORIGIN = "https://goldstar-api.onrender.com"
