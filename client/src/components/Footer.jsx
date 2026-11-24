@@ -24,7 +24,7 @@ export const SOCIAL = [
   { key: 'facebook', name: 'Facebook', href: 'https://www.facebook.com/Goldstarnepal/' },
   { key: 'instagram', name: 'Instagram', href: 'https://www.instagram.com/goldstar_shoes/' },
   { key: 'tiktok', name: 'TikTok', href: 'https://www.tiktok.com/@goldstarshoes.official' },
-  { key: 'pinterest', name: 'Pinterest', href: '#' }, // no Pinterest account is linked from goldstarshoes.com yet
+  // Pinterest is left out until the shop has an account to link: a '#' link only scrolled the page to the top.
 ];
 
 export const COLUMNS = [

@@ -306,7 +306,6 @@ export default function AppBar() {
             anchor="right"
             open={menuOpen}
             onClose={closeMenu}
-            PaperProps={{ sx: { width: { xs: '100vw', sm: 360 }, height: '100%', backgroundColor: brand ? '#FFFFFF' : '#0D0C0A', color: brand ? BAR.brand.ink : BAR.dark.ink } }}
           >
             <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end', [SHORT]: { p: 1, pr: 'max(8px, env(safe-area-inset-right))' } }}>
               <IconButton aria-label="Close menu" onClick={closeMenu} sx={{ color: brand ? BAR.brand.ink : BAR.dark.ink }}>
