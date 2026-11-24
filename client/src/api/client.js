@@ -24,7 +24,8 @@ export const isUnreachable = (e) => e instanceof ApiError && (e.code === 'NETWOR
 const MOCK_BUILD = import.meta.env.VITE_USE_MOCK === 'true';
 export const apiState = { mock: MOCK_BUILD };
 
-export const TIMEOUT_MS = 15_000;
+// 60 s: the API on Render's free tier cold-starts in ~30-50 s after idling. A dead API still fails fast (the proxy answers 502).
+export const TIMEOUT_MS = 60_000;
 
 // Public catalogue requests. In dev only, when the API is down (e.g. while `node --watch` restarts it), these fall back
 // to the bundled catalogue so the storefront still shows products. Auth, orders and every /admin request never do:
