@@ -1,0 +1,9 @@
+name = "goldstar-keepwarm"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+API_ORIGIN = "https://goldstar-api.onrender.com"
+
+[triggers]
+crons = ["*/10 * * * *"]
