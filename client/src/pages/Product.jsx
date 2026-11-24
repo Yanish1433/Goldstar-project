@@ -1,5 +1,5 @@
-import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
-import { Link as RouterLink, useParams, useSearchParams } from 'react-router';
+import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Link as RouterLink, useNavigationType, useParams, useSearchParams } from 'react-router';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -264,6 +264,15 @@ function Related({ slug }) {
 export default function Product() {
   const { slug } = useParams();
   const { data: product, isLoading, error, refetch } = useProduct(slug);
+  const navType = useNavigationType();
+  // Opening another shoe (e.g. from "Complete the look") always starts at the top of the page, before paint.
+  // Back/Forward (POP) is left to ScrollRestoration so it returns to where the shopper was.
+  const lastSlug = useRef(slug);
+  useLayoutEffect(() => {
+    if (lastSlug.current === slug) return;
+    lastSlug.current = slug;
+    if (navType !== 'POP') window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [slug, navType]);
   const [params, setParams] = useSearchParams();
   const [size, setSize] = useState(null);
   const [qty, setQty] = useState(1);
