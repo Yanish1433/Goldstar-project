@@ -1,0 +1,31 @@
+# Render Blueprint: New -> Blueprint -> pick this repo. Free web service for the API only;
+# the storefront lives on Cloudflare Pages (see docs/deploy-cloudflare.md).
+services:
+  - type: web
+    name: goldstar-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "1"
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      # Atlas connection string, with the database name in the path: ...mongodb.net/goldstar?...
+      - key: MONGODB_URI
+        sync: false
+      # The Pages URL (https://goldstar-3d.pages.dev), or several separated by commas.
+      - key: CLIENT_ORIGIN
+        sync: false
