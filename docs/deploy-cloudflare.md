@@ -60,7 +60,7 @@ Free tier note: the service sleeps after ~15 minutes without traffic, and the fi
 cd client
 npx wrangler@4 login                                   # opens the browser, approve once
 npx wrangler@4 pages project create goldstar-3d --production-branch main
-npm run build
+$env:SITE_URL = "https://goldstar-3d.pages.dev"; npm run build   # SITE_URL makes the share-card og:image an absolute URL (WhatsApp/Facebook need it)
 npx wrangler@4 pages deploy dist --project-name goldstar-3d
 ```
 
@@ -96,7 +96,7 @@ Render → goldstar-api → Environment → set `CLIENT_ORIGIN` to the exact Pag
 
 ## Updating later
 
-- Site: `cd client; npm run build; npx wrangler@4 pages deploy dist --project-name goldstar-3d`.
+- Site: `cd client; $env:SITE_URL = "https://goldstar-3d.pages.dev"; npm run build; npx wrangler@4 pages deploy dist --project-name goldstar-3d`.
 - API: push to the branch Render watches (auto-deploy is on).
 - A new Pages variable only takes effect on the next `pages deploy`.
 
