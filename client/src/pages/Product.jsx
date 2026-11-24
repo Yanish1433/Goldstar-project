@@ -126,8 +126,8 @@ function luminance(hex) {
 }
 // As strong a tint as asked, but backed off for dark colourways until the grey secondary text (shop.ink2)
 // still reads at 4.5:1 on it. Pink/olive/grey get the full strength; black stops at a light grey.
-function readableTint(hex, base, amount) {
-  const floor = 4.5 * (luminance(shop.ink2) + 0.05) - 0.05;
+function readableTint(hex, base, amount, ink = shop.ink2, ratio = 4.5) {
+  const floor = ratio * (luminance(ink) + 0.05) - 0.05;
   for (let k = amount; k > 0; k -= 0.02) {
     const out = mixHex(hex, base, k);
     if (luminance(out) >= floor) return out;
@@ -334,7 +334,8 @@ export default function Product() {
   };
 
   const pageTint = readableTint(colour.hex, shop.ground, 0.42);
-  const panelTint = readableTint(colour.hex, shop.tile, 0.6);
+  // The 3D/photo panel carries no grey text (only white pills), so it takes a much stronger wash: dark ink keeps 7:1 on it.
+  const panelTint = readableTint(colour.hex, shop.tile, 0.8, shop.ink, 7);
 
   const viewToggle = can3d ? <Box sx={{ position: 'absolute', top: { xs: 12, md: 16 }, left: { xs: 12, md: 16 }, zIndex: 2 }}><ViewToggle value={view} onChange={setView} /></Box> : null;
 
