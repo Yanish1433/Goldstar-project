@@ -10,6 +10,7 @@ import { theme as storyTheme } from '../theme/theme.js';
 import { shop } from '../theme/tokens.js';
 import AppBar from './AppBar.jsx';
 import Footer from './Footer.jsx';
+import RouteScrollTop from './RouteScrollTop.jsx';
 import { useUi } from '../store/ui.js';
 import { useMe } from '../api/hooks.js';
 import { visuallyHidden } from './Page.jsx';
@@ -138,6 +139,7 @@ export default function Layout() {
         <Outlet />
         <Announcer />
         <ScrollRestoration />
+        <RouteScrollTop />
       </>
     );
   }
@@ -174,6 +176,7 @@ export default function Layout() {
       {/* Keyed by history entry (the default), not by URL: only Back/Forward restores a position. Keyed by URL, a
           colour switch (?colour=) or a second visit to a shoe jumped to wherever that URL was last scrolled. */}
       <ScrollRestoration />
+      <RouteScrollTop />
     </Box>
   );
 }
