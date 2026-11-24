@@ -25,8 +25,9 @@ export function makeQueryClient({ onAuthLost } = {}) {
       queries: {
         staleTime: 60_000,
         refetchOnWindowFocus: false,
-        retry: (n, e) => (isUnreachable(e) || (e instanceof ApiError && e.status >= 500)) && n < 2,
-        retryDelay: (n) => Math.min(1000 * 2 ** n, 6000),
+        // Up to 4 retries (~25 s in all): long enough to ride out a free-tier API waking from sleep.
+        retry: (n, e) => (isUnreachable(e) || (e instanceof ApiError && e.status >= 500)) && n < 4,
+        retryDelay: (n) => Math.min(1500 * 2 ** n, 10000),
       },
       mutations: { retry: false }, // placing an order twice would be worse than asking the user to retry
     },

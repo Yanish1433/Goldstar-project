@@ -77,4 +77,29 @@ describe('Pages /api proxy', () => {
     await call('/api/health', {}, { API_ORIGIN: `${ORIGIN}/` });
     expect(fetchMock.mock.calls[0][0]).toBe(`${ORIGIN}/api/health`);
   });
+
+  it('retries while Render wakes a sleeping instance (HTML 502), resending the same body', async () => {
+    vi.useFakeTimers();
+    const wake = () => new Response('<html>502</html>', { status: 502, headers: { 'Content-Type': 'text/html' } });
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(wake())
+      .mockResolvedValueOnce(wake())
+      .mockResolvedValueOnce(new Response('{"items":[]}', { status: 200, ...json }));
+    vi.stubGlobal('fetch', fetchMock);
+    const p = call('/api/cart/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"items":[1]}' });
+    await vi.runAllTimersAsync();
+    const res = await p;
+    vi.useRealTimers();
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    for (const [, init] of fetchMock.mock.calls) expect(await new Response(init.body).text()).toBe('{"items":[1]}');
+  });
+
+  it('passes a JSON 5xx from the API straight through (no retry)', async () => {
+    const fetchMock = vi.fn(async () => new Response('{"error":{"code":"INTERNAL"}}', { status: 502, ...json }));
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await call('/api/products');
+    expect(res.status).toBe(502);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });

@@ -86,7 +86,8 @@ describe('query client', () => {
     const qc = makeQueryClient({ onAuthLost });
     const retry = qc.getDefaultOptions().queries.retry;
     expect(retry(0, new ApiError(0, 'NETWORK', 'x'))).toBe(true);
-    expect(retry(2, new ApiError(0, 'NETWORK', 'x'))).toBe(false);
+    expect(retry(3, new ApiError(0, 'NETWORK', 'x'))).toBe(true); // rides out a free-tier API waking up
+    expect(retry(4, new ApiError(0, 'NETWORK', 'x'))).toBe(false);
     expect(retry(0, new ApiError(503, 'INTERNAL', 'x'))).toBe(true);
     expect(retry(0, new ApiError(404, 'NOT_FOUND', 'x'))).toBe(false);
     expect(retry(0, new ApiError(429, 'RATE_LIMITED', 'x'))).toBe(false);

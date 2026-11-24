@@ -68,6 +68,9 @@ export function buildClientHeaders(upstream) {
   return out;
 }
 
+// 1 s, 2 s, then every 3 s while Render boots a sleeping instance (~20-50 s).
+export const wakeDelay = (attempt) => Math.min(3000, 1000 * (attempt + 1));
+
 export async function onRequest({ request, env }) {
   const base = upstreamBase(env?.API_ORIGIN);
   if (!base) return badGateway();
@@ -75,14 +78,26 @@ export async function onRequest({ request, env }) {
   const url = new URL(request.url);
   const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
   try {
-    const upstream = await fetch(`${base}${url.pathname}${url.search}`, {
-      method: request.method,
-      headers: buildUpstreamHeaders(request),
-      body: hasBody ? request.body : undefined,
-      duplex: hasBody ? 'half' : undefined,
-      redirect: 'manual',
-      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
-    });
+    // Buffered (API bodies are small JSON) so the request can be re-sent while Render wakes the instance.
+    const body = hasBody ? await request.arrayBuffer() : undefined;
+    const headers = buildUpstreamHeaders(request);
+    const deadline = Date.now() + UPSTREAM_TIMEOUT_MS;
+    let upstream;
+    for (let attempt = 0; ; attempt++) {
+      upstream = await fetch(`${base}${url.pathname}${url.search}`, {
+        method: request.method,
+        headers,
+        body,
+        redirect: 'manual',
+        signal: AbortSignal.timeout(Math.max(1000, deadline - Date.now())),
+      });
+      // Render's free tier answers with its own HTML 502/503/504 page while a sleeping instance boots: the request
+      // never reached the API, so it is safe to re-send. Our API always answers in JSON, so a JSON 5xx passes through.
+      const waking = upstream.status >= 502 && upstream.status <= 504 && !(upstream.headers.get('content-type') || '').includes('json');
+      if (!waking || Date.now() + wakeDelay(attempt) >= deadline - 1000) break;
+      await upstream.body?.cancel();
+      await new Promise((r) => setTimeout(r, wakeDelay(attempt)));
+    }
     const noBody = upstream.status === 204 || upstream.status === 205 || upstream.status === 304;
     return new Response(noBody ? null : upstream.body, {
       status: upstream.status,
