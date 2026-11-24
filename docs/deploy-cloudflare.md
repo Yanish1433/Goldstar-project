@@ -46,7 +46,7 @@ node scripts/copy-db.mjs             # copies documents + indexes
 3. Fill in the two prompted variables:
    - `MONGODB_URI` = the **ATLAS_URI** from step 1.
    - `CLIENT_ORIGIN` = anything valid for now, e.g. `https://goldstar-3d.pages.dev` (you set the real value in step 5).
-   - The rest is preset: `NODE_ENV=production`, `TRUST_PROXY=1`, `COOKIE_SECURE=true`, `JWT_SECRET` (generated), Node 24.
+   - The rest is preset: `NODE_ENV=production`, `TRUST_PROXY` (Cloudflare + private + loopback address ranges, see render.yaml), `COOKIE_SECURE=true`, `JWT_SECRET` (generated), Node 24.
 4. Apply. Wait for the first deploy, then open `https://<service>.onrender.com/api/health`. You should see `{"ok":true,"db":"up"}`.
    Note this URL: it is your **API_ORIGIN** (just the origin, no `/api`).
 
@@ -91,7 +91,7 @@ Render → goldstar-api → Environment → set `CLIENT_ORIGIN` to the exact Pag
 2. Open the site: the 5 products appear; deep links work (reload `/g10`, a product page, `/admin/products`).
 3. Log in at `/admin` with the admin from your local DB. DevTools → Application → Cookies: `gs_token` is set on the Pages host, `HttpOnly`, `Secure`.
 4. Place a test order as a customer, check it appears in admin → Orders, then delete or cancel it there.
-5. Rate limit sanity: 11 wrong logins in a row should give a "Too many attempts" message **for you only**. If a different device on another network also gets blocked straight away, the real client IP is not reaching the API: raise `TRUST_PROXY` on Render to `2` and retry.
+5. Rate limit sanity: 11 wrong logins in a row should give a "Too many attempts" message **for you only**. TRUST_PROXY is a list of trusted address ranges (render.yaml), not a hop count: a hop count cannot be right for both proxied and direct requests on Render. If Cloudflare publishes new ranges (https://www.cloudflare.com/ips/), add them.
 6. Stop the API (Render → Suspend) and reload the site: it shows the "Can't reach the server" state, not a blank page. Resume it afterwards.
 
 ## Updating later
