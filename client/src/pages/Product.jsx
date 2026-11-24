@@ -111,7 +111,17 @@ function ViewToggle({ value, onChange }) {
 }
 
 // Big image + thumbnails (desktop) / a swipe track with dots (phones).
-function Gallery({ images, index, setIndex, alt, onZoom, top }) {
+// The page takes on a soft wash of the colourway the shopper picks: mix its hex into the cream ground.
+// Light enough that dark text stays readable for every colour (black included).
+function mixHex(hex, base, amount) {
+  const p = (h) => { const m = /^#?([0-9a-f]{6})$/i.exec(h || ''); return m ? [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16)) : null; };
+  const a = p(hex); const b = p(base);
+  if (!a || !b) return base;
+  return '#' + a.map((v, i) => Math.round(b[i] + (v - b[i]) * amount).toString(16).padStart(2, '0')).join('');
+}
+const TINT_EASE = 'background-color 600ms cubic-bezier(0.22,1,0.36,1)';
+
+function Gallery({ images, index, setIndex, alt, onZoom, top, bg = shop.tile }) {
   const track = useRef(null);
   const fromScroll = useRef(false);
   // Phones: keep the track in sync when the index changes from outside (thumbnail, colour change).
@@ -134,7 +144,7 @@ function Gallery({ images, index, setIndex, alt, onZoom, top }) {
   };
   const main = images[index] || images[0];
   const go = (d) => setIndex((index + d + images.length) % images.length);
-  const tile = { position: 'relative', borderRadius: { xs: `${shop.radius.lg}px`, md: `${shop.radius.xl}px` }, overflow: 'hidden', backgroundColor: shop.tile };
+  const tile = { position: 'relative', borderRadius: { xs: `${shop.radius.lg}px`, md: `${shop.radius.xl}px` }, overflow: 'hidden', backgroundColor: bg, transition: TINT_EASE };
   return (
     <Box sx={{ display: 'flex', gap: 2, minWidth: 0 }}>
       {images.length > 1 ? (
@@ -308,10 +318,13 @@ export default function Product() {
     addToCartAnimated(makeLine(product, colour, size, qty), { sourceRect: pickSourceRect(galleryRef.current, from || addRef.current) });
   };
 
+  const pageTint = mixHex(colour.hex, shop.ground, 0.2);
+  const panelTint = mixHex(colour.hex, shop.tile, 0.35);
+
   const viewToggle = can3d ? <Box sx={{ position: 'absolute', top: { xs: 12, md: 16 }, left: { xs: 12, md: 16 }, zIndex: 2 }}><ViewToggle value={view} onChange={setView} /></Box> : null;
 
   return (
-    <Box sx={{ pb: { xs: 14, md: 12 } }}>
+    <Box sx={{ pb: { xs: 14, md: 12 }, backgroundColor: pageTint, transition: TINT_EASE, '@media (prefers-reduced-motion: reduce)': { transition: 'none' } }}>
       <PageBox sx={{ pt: { xs: 2, md: 3 } }}>
         <Box component="nav" aria-label="Breadcrumb" sx={{ mb: { xs: 2, md: 3 } }}>
           <Box component="ol" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, fontSize: 14, color: shop.ink2, '& a': { color: shop.ink2, textDecoration: 'none', fontWeight: 600, minHeight: 44, minWidth: 44, my: '-6px', display: 'inline-flex', alignItems: 'center', '&:hover': { color: shop.ink, textDecoration: 'underline' } } }}>
@@ -326,10 +339,10 @@ export default function Product() {
           {/* Landscape phones: photo beside the details, sticky, and never taller than the screen. */}
           <Box ref={galleryRef} sx={{ minWidth: 0, position: { md: 'sticky' }, top: { md: 'calc(var(--appbar-h, 64px) + 24px)' }, [SHORT]: { position: 'sticky', top: 'calc(var(--appbar-h, 52px) + 12px)', width: '100%', maxWidth: 'calc(100svh - var(--appbar-h, 52px) - 32px)', justifySelf: 'center' } }}>
             {can3d && view === '3d' ? (
-              <Box sx={{ position: 'relative', borderRadius: { xs: `${shop.radius.lg}px`, md: `${shop.radius.xl}px` }, overflow: 'hidden', backgroundColor: '#E9E3D8' }}>
+              <Box sx={{ position: 'relative', borderRadius: { xs: `${shop.radius.lg}px`, md: `${shop.radius.xl}px` }, overflow: 'hidden', backgroundColor: panelTint, transition: TINT_EASE }}>
                 <Quiet3D fallback={<ProductPhoto image={main} alt={main?.alt || `${product.name} in ${colour.name}`} sizes="(min-width:900px) 55vw, 100vw" />}>
-                  <Suspense fallback={<Box sx={{ aspectRatio: '1 / 1', width: '100%', backgroundColor: '#E9E3D8' }} />}>
-                    <ProductViewer tier={tier === 'lite' ? 'lite' : 'full'} colourKey={colour.key} spots={spots} showSpots={showParts} onSelect={(spot, el) => setPop({ spot, el })} />
+                  <Suspense fallback={<Box sx={{ aspectRatio: '1 / 1', width: '100%', backgroundColor: panelTint }} />}>
+                    <ProductViewer tier={tier === 'lite' ? 'lite' : 'full'} colourKey={colour.key} spots={spots} showSpots={showParts} onSelect={(spot, el) => setPop({ spot, el })} bg={panelTint} />
                   </Suspense>
                 </Quiet3D>
                 {viewToggle}
@@ -345,7 +358,7 @@ export default function Product() {
                 </Popover>
               </Box>
             ) : (
-              <Gallery images={images} index={imgIndex} setIndex={setImgIndex} alt={`${product.name} in ${colour.name}`} onZoom={() => setZoom(true)} top={viewToggle} />
+              <Gallery images={images} index={imgIndex} setIndex={setImgIndex} alt={`${product.name} in ${colour.name}`} onZoom={() => setZoom(true)} top={viewToggle} bg={panelTint} />
             )}
           </Box>
 

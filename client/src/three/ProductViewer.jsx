@@ -43,10 +43,14 @@ function Hotspot({ spot, onSelect, wrapRef }) {
   );
 }
 
-function Scene({ url, colourKey, controlsRef, interacted, spots, showSpots, onSelect }) {
+function Scene({ url, colourKey, controlsRef, interacted, spots, showSpots, onSelect, bg = VIEWER_BG }) {
+  // Background eases to the chosen colourway tint (the page fades with it).
+  const bgColor = useMemo(() => new THREE.Color(bg), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const bgTarget = useMemo(() => new THREE.Color(bg), []); // eslint-disable-line react-hooks/exhaustive-deps
   const boot = useRef();
   const rig = useRef();
   const { invalidate } = useThree();
+  useEffect(() => { bgTarget.set(bg); invalidate(); }, [bg, bgTarget, invalidate]);
   const [points, setPoints] = useState({});
 
   const ready = useCallback(({ built }) => {
@@ -65,6 +69,12 @@ function Scene({ url, colourKey, controlsRef, interacted, spots, showSpots, onSe
   const wraps = useRef({});
   useFrame(({ camera }, dt) => {
     if (boot.current?.step(Math.min(dt, 0.05))) invalidate();
+    if (!bgColor.equals(bgTarget)) {
+      const k = 1 - Math.exp(-6 * Math.min(dt, 0.05));
+      bgColor.lerp(bgTarget, k);
+      if (Math.abs(bgColor.r - bgTarget.r) + Math.abs(bgColor.g - bgTarget.g) + Math.abs(bgColor.b - bgTarget.b) < 0.002) bgColor.copy(bgTarget);
+      invalidate();
+    }
     Object.entries(points).forEach(([key, p]) => {
       const el = wraps.current[key];
       if (!el) return;
@@ -79,7 +89,7 @@ function Scene({ url, colourKey, controlsRef, interacted, spots, showSpots, onSe
 
   return (
     <>
-      <color attach="background" args={[VIEWER_BG]} />
+      <primitive attach="background" object={bgColor} />
       <StudioLights />
       <group ref={rig} position={[0, 0.05, 0]}>
         <Boot ref={boot} url={url} colourKey={colourKey} onReady={(r) => setTimeout(() => ready(r), 0)} />
@@ -101,7 +111,7 @@ function Scene({ url, colourKey, controlsRef, interacted, spots, showSpots, onSe
   );
 }
 
-export default function ProductViewer({ tier = 'full', colourKey, spots, showSpots, onSelect }) {
+export default function ProductViewer({ tier = 'full', colourKey, spots, showSpots, onSelect, bg = VIEWER_BG }) {
   const display = displayForProduct(colourKey).key;
   const [interacted, setInteracted] = useState(false);
   const [visible, setVisible] = useState(document.visibilityState === 'visible');
@@ -153,7 +163,7 @@ export default function ProductViewer({ tier = 'full', colourKey, spots, showSpo
       tabIndex={0}
       aria-label="3D view of the G10-401. Drag or use the left and right arrow keys to turn it, plus and minus to zoom."
       onKeyDown={onKey}
-      sx={{ position: 'relative', aspectRatio: '1 / 1', width: '100%', backgroundColor: VIEWER_BG, outlineOffset: 2, touchAction: 'pan-y', '& canvas': { display: 'block' } }}
+      sx={{ position: 'relative', aspectRatio: '1 / 1', width: '100%', backgroundColor: bg, transition: 'background-color 600ms cubic-bezier(0.22,1,0.36,1)', outlineOffset: 2, touchAction: 'pan-y', '& canvas': { display: 'block' } }}
     >
       <Canvas
         dpr={settings.dpr}
@@ -165,7 +175,7 @@ export default function ProductViewer({ tier = 'full', colourKey, spots, showSpo
           gl.toneMappingExposure = 1.05;
         }}
       >
-        <Scene url={url} colourKey={display} controlsRef={controlsRef} interacted={interacted} spots={spotsMemo} showSpots={showSpots} onSelect={onSelect} />
+        <Scene url={url} colourKey={display} controlsRef={controlsRef} interacted={interacted} spots={spotsMemo} showSpots={showSpots} onSelect={onSelect} bg={bg} />
       </Canvas>
     </Box>
   );
