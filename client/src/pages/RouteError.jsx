@@ -1,10 +1,15 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import { useRouteError } from 'react-router';
 import { SITE_TITLE } from '../components/Page.jsx';
+import { isChunkError, reloadForNewBuild } from '../lib/staleBuild.js';
 
 // Last-resort page for an unexpected error anywhere under the root route (instead of the router's developer screen).
 export default function RouteError() {
+  const error = useRouteError();
+  // A chunk from a previous deploy: reload once onto the new build instead of showing this page.
+  if (typeof window !== 'undefined' && isChunkError(error) && reloadForNewBuild()) return null;
   if (typeof document !== 'undefined') document.title = SITE_TITLE;
   return (
     <Box component="main" sx={{ minHeight: '100svh', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: 3, px: { xs: 2, sm: 4 }, maxWidth: 720, mx: 'auto' }}>
