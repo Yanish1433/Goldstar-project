@@ -119,6 +119,21 @@ function mixHex(hex, base, amount) {
   if (!a || !b) return base;
   return '#' + a.map((v, i) => Math.round(b[i] + (v - b[i]) * amount).toString(16).padStart(2, '0')).join('');
 }
+// WCAG relative luminance of a #rrggbb colour.
+function luminance(hex) {
+  const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
+// As strong a tint as asked, but backed off for dark colourways until the grey secondary text (shop.ink2)
+// still reads at 4.5:1 on it. Pink/olive/grey get the full strength; black stops at a light grey.
+function readableTint(hex, base, amount) {
+  const floor = 4.5 * (luminance(shop.ink2) + 0.05) - 0.05;
+  for (let k = amount; k > 0; k -= 0.02) {
+    const out = mixHex(hex, base, k);
+    if (luminance(out) >= floor) return out;
+  }
+  return base;
+}
 const TINT_EASE = 'background-color 600ms cubic-bezier(0.22,1,0.36,1)';
 
 function Gallery({ images, index, setIndex, alt, onZoom, top, bg = shop.tile }) {
@@ -318,8 +333,8 @@ export default function Product() {
     addToCartAnimated(makeLine(product, colour, size, qty), { sourceRect: pickSourceRect(galleryRef.current, from || addRef.current) });
   };
 
-  const pageTint = mixHex(colour.hex, shop.ground, 0.2);
-  const panelTint = mixHex(colour.hex, shop.tile, 0.35);
+  const pageTint = readableTint(colour.hex, shop.ground, 0.42);
+  const panelTint = readableTint(colour.hex, shop.tile, 0.6);
 
   const viewToggle = can3d ? <Box sx={{ position: 'absolute', top: { xs: 12, md: 16 }, left: { xs: 12, md: 16 }, zIndex: 2 }}><ViewToggle value={view} onChange={setView} /></Box> : null;
 
