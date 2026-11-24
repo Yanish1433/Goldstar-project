@@ -137,7 +137,7 @@ export default function Layout() {
       <>
         <Outlet />
         <Announcer />
-        <ScrollRestoration getKey={(l) => l.pathname + l.search} />
+        <ScrollRestoration />
       </>
     );
   }
@@ -171,7 +171,9 @@ export default function Layout() {
         <Toasts />
       </ThemeProvider>
       <Announcer />
-      <ScrollRestoration getKey={(l) => l.pathname + l.search} />
+      {/* Keyed by history entry (the default), not by URL: only Back/Forward restores a position. Keyed by URL, a
+          colour switch (?colour=) or a second visit to a shoe jumped to wherever that URL was last scrolled. */}
+      <ScrollRestoration />
     </Box>
   );
 }
