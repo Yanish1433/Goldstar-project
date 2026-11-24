@@ -147,10 +147,10 @@ function CustomerPanel({ order }) {
           </Box>
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {c?.email ? <Box component="a" href={`mailto:${c.email}`} sx={(th) => ({ display: 'flex', alignItems: 'center', gap: 1, color: th.admin.accentText, fontSize: 14, fontWeight: 600, textDecoration: 'none', overflowWrap: 'anywhere', '&:hover': { textDecoration: 'underline' } })}><Mail size={15} aria-hidden="true" />{c.email}</Box> : null}
+          {c?.email ? <Box component="a" href={`mailto:${c.email}`} sx={(th) => ({ display: 'flex', alignItems: 'center', gap: 1, minHeight: { xs: 44, md: 0 }, color: th.admin.accentText, fontSize: 14, fontWeight: 600, textDecoration: 'none', overflowWrap: 'anywhere', '&:hover': { textDecoration: 'underline' } })}><Mail size={15} aria-hidden="true" />{c.email}</Box> : null}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box component="a" href={`tel:${s.phone}`} sx={(th) => ({ display: 'flex', alignItems: 'center', gap: 1, color: th.admin.accentText, fontSize: 14, fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } })}><Phone size={15} aria-hidden="true" />{s.phone}</Box>
-            <Button size="small" variant="text" onClick={() => copy(s.phone, 'Phone number')} aria-label="Copy phone number" sx={{ minWidth: 0, px: 1 }}><Copy size={14} aria-hidden="true" /></Button>
+            <Box component="a" href={`tel:${s.phone}`} sx={(th) => ({ display: 'flex', alignItems: 'center', gap: 1, minHeight: { xs: 44, md: 0 }, minWidth: { xs: 44, md: 0 }, color: th.admin.accentText, fontSize: 14, fontWeight: 600, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } })}><Phone size={15} aria-hidden="true" />{s.phone}</Box>
+            <Button size="small" variant="text" onClick={() => copy(s.phone, 'Phone number')} aria-label="Copy phone number" sx={{ minWidth: { xs: 44, md: 0 }, px: 1 }}><Copy size={14} aria-hidden="true" /></Button>
           </Box>
         </Box>
       </Panel>

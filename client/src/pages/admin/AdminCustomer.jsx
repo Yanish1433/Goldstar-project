@@ -32,7 +32,7 @@ export default function AdminCustomer() {
   const live = orders.filter((o) => o.status !== 'cancelled');
   const aov = live.length ? Math.round(c.totalSpent / live.length) : 0;
   const a = c.address;
-  const link = (th) => ({ display: 'inline-flex', alignItems: 'center', gap: 0.75, color: th.admin.accentText, fontWeight: 600, fontSize: 14, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } });
+  const link = (th) => ({ display: 'inline-flex', alignItems: 'center', gap: 0.75, minHeight: { xs: 44, md: 0 }, color: th.admin.accentText, fontWeight: 600, fontSize: 14, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } });
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, md: 3 } }}>

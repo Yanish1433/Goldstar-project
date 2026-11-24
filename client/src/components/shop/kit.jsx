@@ -40,7 +40,7 @@ export function ShopBadge({ kind, sx }) {
       component="span"
       sx={{
         display: 'inline-flex', alignItems: 'center', height: 24, px: 1.25, borderRadius: `${shop.radius.pill}px`, backgroundColor: b.bg, color: b.fg, boxShadow: b.border ? `inset 0 0 0 1.5px ${b.border}` : 'none',
-        fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', lineHeight: 1, whiteSpace: 'nowrap', ...WIDE, ...sx,
+        fontSize: { xs: 12, md: 11 }, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', lineHeight: 1, whiteSpace: 'nowrap', ...WIDE, ...sx,
       }}
     >
       {b.label}

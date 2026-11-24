@@ -22,7 +22,7 @@ const STAGE_H = 'var(--stage-h, 100svh)';
 
 // --- Type ------------------------------------------------------------------------------------------
 export const Eyebrow = ({ children, ...p }) => (
-  <Box component="p" data-copy sx={{ m: 0, fontSize: { xs: 12, md: 13 }, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', opacity: 0.9, [LAND]: { fontSize: 11 } }} {...p}>
+  <Box component="p" data-copy sx={{ m: 0, fontSize: { xs: 12, md: 13 }, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', opacity: 0.9, [LAND]: { fontSize: 12 } }} {...p}>
     {children}
   </Box>
 );

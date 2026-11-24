@@ -96,6 +96,8 @@ export function makeAdminTheme(mode = 'light') {
         styleOverrides: {
           root: {
             borderRadius: ADMIN_RADIUS, backgroundColor: t.surface, fontSize: 14.5,
+            // Touch: 16 px stops iOS zooming into the field; the input element itself is a 44 px target.
+            [ADMIN_COARSE]: { fontSize: 16, '& .MuiOutlinedInput-input:not(textarea)': { paddingBlock: '10.5px', boxSizing: 'border-box', minHeight: TAP } },
             '& .MuiOutlinedInput-notchedOutline': { borderColor: t.lineStrong, transition: `border-color ${m.hover}ms ease` },
             '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: t.ink3 },
             '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderWidth: 2, borderColor: t.accentText },
@@ -115,12 +117,12 @@ export function makeAdminTheme(mode = 'light') {
       MuiTableCell: {
         styleOverrides: {
           root: { borderBottom: `1px solid ${t.line}`, padding: '12px 16px', fontSize: 14, color: t.ink, fontVariantNumeric: 'tabular-nums', [ADMIN_COARSE]: { '& a:not(.MuiButtonBase-root)': tapBand } },
-          head: { fontSize: 11.5, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: t.ink2, backgroundColor: t.surface, whiteSpace: 'nowrap' },
+          head: { fontSize: 11.5, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: t.ink2, backgroundColor: t.surface, whiteSpace: 'nowrap', [ADMIN_COARSE]: { fontSize: 12 } },
           sizeSmall: { padding: '8px 16px' },
         },
       },
       MuiTableRow: { styleOverrides: { root: { '&.MuiTableRow-hover:hover': { backgroundColor: t.sunk }, '&:last-of-type td': { borderBottom: 0 } } } },
-      MuiTableSortLabel: { styleOverrides: { root: { '&.Mui-active': { color: t.ink }, '&:hover': { color: t.ink } }, icon: { fontSize: 16 } } },
+      MuiTableSortLabel: { styleOverrides: { root: { '&.Mui-active': { color: t.ink }, '&:hover': { color: t.ink }, [ADMIN_COARSE]: { paddingBlock: 10, marginBlock: -10 } }, icon: { fontSize: 16 } } },
       MuiChip: { styleOverrides: { root: { height: 24, borderRadius: 999, fontSize: 12.5, fontWeight: 700 }, label: { padding: '0 10px' } } },
       MuiTabs: { styleOverrides: { root: { minHeight: 40, [ADMIN_COARSE]: { minHeight: TAP } }, indicator: { height: 2, backgroundColor: t.accentText } } },
       MuiTab: { styleOverrides: { root: { textTransform: 'none', fontSize: 14, fontWeight: 700, minHeight: 40, minWidth: 0, padding: '0 12px', color: t.ink2, '&.Mui-selected': { color: t.ink }, [ADMIN_COARSE]: { minHeight: TAP } } } },
@@ -143,13 +145,12 @@ export function makeAdminTheme(mode = 'light') {
       MuiTooltip: { styleOverrides: { tooltip: { backgroundColor: dark ? '#F2EDE3' : '#16120E', color: dark ? '#16120E' : '#FFFFFF', fontSize: 12.5, borderRadius: 6 } } },
       MuiPaginationItem: { styleOverrides: { root: { borderRadius: 8, minWidth: 36, height: 36, fontSize: 14, fontWeight: 700, [ADMIN_COARSE]: { minWidth: TAP, height: TAP }, '&.Mui-selected': { backgroundColor: t.ink, color: t.surface, '&:hover': { backgroundColor: t.ink } } } } },
       MuiSwitch: { styleOverrides: { switchBase: { '&.Mui-checked': { color: t.accentText }, '&.Mui-checked + .MuiSwitch-track': { backgroundColor: t.accentText, opacity: 0.5 } } } },
-      MuiToggleButton: { styleOverrides: { root: { [ADMIN_COARSE]: { minHeight: TAP, minWidth: TAP } } } },
       MuiCheckbox: { styleOverrides: { root: { color: t.ink2, '&.Mui-checked': { color: t.accentText } } } },
       MuiDivider: { styleOverrides: { root: { borderColor: t.line } } },
       MuiToggleButton: {
         styleOverrides: {
           root: {
-            textTransform: 'none', fontSize: 13, fontWeight: 700, padding: '0 12px', minHeight: 32, color: t.ink2, borderColor: t.lineStrong,
+            textTransform: 'none', fontSize: 13, fontWeight: 700, padding: '0 12px', minHeight: 32, color: t.ink2, borderColor: t.lineStrong, [ADMIN_COARSE]: { minHeight: TAP, minWidth: TAP },
             '&.Mui-selected': { backgroundColor: t.accentWash, color: t.accentText, '&:hover': { backgroundColor: t.accentWash } },
           },
         },

@@ -315,7 +315,7 @@ export default function Product() {
     <Box sx={{ pb: { xs: 14, md: 12 } }}>
       <PageBox sx={{ pt: { xs: 2, md: 3 } }}>
         <Box component="nav" aria-label="Breadcrumb" sx={{ mb: { xs: 2, md: 3 } }}>
-          <Box component="ol" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, fontSize: 14, color: shop.ink2, '& a': { color: shop.ink2, textDecoration: 'none', fontWeight: 600, minHeight: 32, display: 'inline-flex', alignItems: 'center', '&:hover': { color: shop.ink, textDecoration: 'underline' } } }}>
+          <Box component="ol" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, fontSize: 14, color: shop.ink2, '& a': { color: shop.ink2, textDecoration: 'none', fontWeight: 600, minHeight: 44, minWidth: 44, my: '-6px', display: 'inline-flex', alignItems: 'center', '&:hover': { color: shop.ink, textDecoration: 'underline' } } }}>
             <li><RouterLink to="/shop">Shop</RouterLink></li>
             {cat ? <><li aria-hidden="true">/</li><li><RouterLink to={`/shop?category=${cat}`}>{CAT_NAMES[cat]}</RouterLink></li></> : null}
             <li aria-hidden="true">/</li>

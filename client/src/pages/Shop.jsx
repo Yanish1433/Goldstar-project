@@ -162,7 +162,7 @@ function PromoTile({ index }) {
         }}
       >
         <Box sx={{ position: 'relative', zIndex: 1 }}>
-          <Eyebrow sx={{ color: store.sand, mb: 1, fontSize: { xs: 10, md: 12 } }}>G10-401 · In 3D</Eyebrow>
+          <Eyebrow sx={{ color: store.sand, mb: 1, fontSize: 12 }}>G10-401 · In 3D</Eyebrow>
           <Typography component="p" sx={{ ...DISPLAY, fontSize: { xs: 22, md: 'clamp(28px, 2.6vw, 40px)' }, color: '#FFFFFF' }}>
             Turn it. Take it apart.
           </Typography>
