@@ -183,9 +183,11 @@ function PromoTile({ index }) {
 export default function Shop() {
   const [params, setParams] = useSearchParams();
   const reduced = useReducedMotion();
-  const category = params.get('category') || '';
-  const sort = params.get('sort') || 'featured';
-  const page = Math.max(1, Number(params.get('page')) || 1);
+  // The URL is user input (a typed or old link): anything the API would reject with a 400 falls back to the default.
+  const rawCategory = (params.get('category') || '').trim().toLowerCase();
+  const category = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(rawCategory) && rawCategory.length <= 60 ? rawCategory : '';
+  const sort = SORTS.some((s) => s.value === params.get('sort')) ? params.get('sort') : 'featured';
+  const page = Math.min(1000, Math.max(1, Math.floor(Number(params.get('page'))) || 1));
   const cats = useCategories();
   const q = useProducts({ category: category || undefined, sort, page, limit: LIMIT });
   const catName = (cats.data || []).find((c) => c.slug === category)?.name;
@@ -203,6 +205,11 @@ export default function Shop() {
   const items = q.data?.items || [];
   const total = q.data?.total ?? null;
   const pages = q.data ? Math.max(1, Math.ceil(q.data.total / q.data.limit)) : 1;
+  // A stale ?page= beyond the last page (the catalogue shrank, or a typed link): go to the last page rather than show an empty shop.
+  useEffect(() => {
+    if (q.data && !q.isPlaceholderData && page > 1 && q.data.items.length === 0 && q.data.total > 0) update({ page: pages > 1 ? String(pages) : '' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q.data, q.isPlaceholderData, page, pages]);
   const hasG10 = items.some((p) => p.slug === 'g10-401');
   const promoAt = page === 1 && hasG10 && items.length >= 4 ? 3 : -1;
   const cells = items.map((p) => ({ kind: 'product', p }));

@@ -23,7 +23,7 @@ export const useMe = () =>
 export const useProducts = (params) =>
   useQuery({ queryKey: ['products', params], queryFn: ({ signal }) => apiFetch('/products', { query: params, signal }), placeholderData: keepPreviousData });
 
-export const useProduct = (slug) => useQuery({ queryKey: ['product', slug], queryFn: async ({ signal }) => (await apiFetch(`/products/${slug}`, { signal })).product, enabled: !!slug });
+export const useProduct = (slug) => useQuery({ queryKey: ['product', slug], queryFn: async ({ signal }) => (await apiFetch(`/products/${encodeURIComponent(slug)}`, { signal })).product, enabled: !!slug });
 
 export const useCategories = () => useQuery({ queryKey: ['categories'], queryFn: async ({ signal }) => (await apiFetch('/categories', { signal })).items });
 
@@ -36,7 +36,7 @@ export const useQuote = (items, enabled = true) =>
   });
 
 export const useMyOrders = (params) => useQuery({ queryKey: ['orders', 'mine', params], queryFn: ({ signal }) => apiFetch('/orders/mine', { query: params, signal }) });
-export const useOrder = (id) => useQuery({ queryKey: ['order', id], queryFn: async ({ signal }) => (await apiFetch(`/orders/${id}`, { signal })).order, enabled: !!id });
+export const useOrder = (id) => useQuery({ queryKey: ['order', id], queryFn: async ({ signal }) => (await apiFetch(`/orders/${encodeURIComponent(id)}`, { signal })).order, enabled: !!id });
 
 export function useLogin() {
   const qc = useQueryClient();

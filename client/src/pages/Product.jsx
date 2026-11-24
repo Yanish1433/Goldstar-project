@@ -292,7 +292,7 @@ export default function Product() {
   if (error && !product) return <LoadError error={error} onRetry={refetch} />;
   if (!product || !colour) return <NotFound />;
 
-  const can3d = slug === 'g10-401' && tier !== 'static' && !reduced;
+  const can3d = product.slug === 'g10-401' && tier !== 'static' && !reduced;
   const images = colour.images || [];
   const main = images[imgIndex] || images[0];
   const allSizes = [...new Set(product.colourways.flatMap((c) => c.sizes || []))].sort((a, b) => Number(a) - Number(b));
@@ -433,7 +433,7 @@ export default function Product() {
         </Box>
       </PageBox>
 
-      {slug === 'g10-401' ? (
+      {product.slug === 'g10-401' ? (
         <Reveal sx={{ mt: { xs: 8, md: 12 } }}>
           <Band ground="pine" innerSx={{ py: { xs: 5, md: 7 }, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { md: 'center' }, justifyContent: 'space-between', gap: 3 }}>
             <Box>

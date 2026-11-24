@@ -174,7 +174,7 @@ export async function mockRequest(method, path, body, query = {}) {
     return { ...pg, items: pg.items.map(summary) };
   }
   if (key === 'GET /products' && b) {
-    const p = products.find((x) => x.slug === b && x.active);
+    const p = products.find((x) => x.slug === String(b).toLowerCase() && x.active);
     if (!p) fail(404, 'NOT_FOUND', 'Product not found.');
     return { product: full(p) };
   }

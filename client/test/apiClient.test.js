@@ -34,6 +34,18 @@ describe('apiFetch', () => {
     await expect(apiFetch('/admin/orders')).rejects.toMatchObject({ code: 'NETWORK', status: 0 });
   });
 
+  it('a 200 that is not JSON (a static host answering /api with index.html) is "unreachable", not null data', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('<!doctype html><html></html>', { status: 200, headers: { 'Content-Type': 'text/html' } })));
+    await expect(apiFetch('/admin/products')).rejects.toMatchObject({ code: 'NETWORK', status: 0 });
+  });
+
+  it('a 404 without our JSON envelope means the API is not there; a real API 404 keeps its code', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('Not Found', { status: 404, headers: { 'Content-Type': 'text/plain' } })));
+    await expect(apiFetch('/orders/abc')).rejects.toMatchObject({ code: 'NETWORK' });
+    vi.stubGlobal('fetch', vi.fn(async () => json(404, { error: { code: 'NOT_FOUND', message: 'Product not found.' } })));
+    await expect(apiFetch('/orders/abc')).rejects.toMatchObject({ status: 404, code: 'NOT_FOUND' });
+  });
+
   it('server errors keep their JSON code and message; 429 names the wait', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => json(400, { error: { code: 'VALIDATION_ERROR', message: 'Check the highlighted fields.', details: [{ path: 'email', message: 'x' }] } })));
     await expect(apiFetch('/auth/login', { method: 'POST', body: {} })).rejects.toMatchObject({ status: 400, code: 'VALIDATION_ERROR', details: [{ path: 'email', message: 'x' }] });

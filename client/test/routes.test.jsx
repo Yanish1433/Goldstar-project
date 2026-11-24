@@ -47,6 +47,23 @@ describe('route smoke renders with the mock API', () => {
     expect(await screen.findByRole('button', { name: 'Add to cart' }, T)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /View on goldstarshoes.com/ })).toHaveAttribute('rel', 'noopener noreferrer');
   });
+  it('/product/<unknown slug> is a Not found page, not a blank page', async () => {
+    renderAt('/product/no-such-shoe');
+    expect(await screen.findByRole('heading', { name: 'Page not found' }, T)).toBeInTheDocument();
+  });
+  it('/product/<slug> works with capitals and a trailing slash', async () => {
+    renderAt('/product/AX-3/');
+    expect(await screen.findByRole('button', { name: 'Add to cart' }, T)).toBeInTheDocument();
+  });
+  it('/shop with junk query params still lists products (no API 400)', async () => {
+    renderAt('/shop?category=Not%20A%20Slug&sort=bogus&page=-3.5');
+    expect(await screen.findByRole('heading', { name: 'Shop all' }, T)).toBeInTheDocument();
+    expect(await screen.findByText('AX-3', {}, T)).toBeInTheDocument();
+  });
+  it('/shop?category=WOMEN is the Women category', async () => {
+    renderAt('/shop?category=WOMEN');
+    expect(await screen.findByRole('heading', { name: 'Women' }, T)).toBeInTheDocument();
+  });
   it('/login renders', async () => {
     renderAt('/login');
     expect(await screen.findByRole('heading', { name: 'Log in' }, T)).toBeInTheDocument();

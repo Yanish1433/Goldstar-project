@@ -105,11 +105,15 @@ async function request(method, path, body, query, signal, timeout) {
     }
     if (!res.ok) {
       // A 5xx without our JSON envelope came from a proxy (Vite dev proxy, a host's load balancer): the API itself is down.
-      if (res.status >= 500 && !data?.error) throw unreachable(false);
+      // A 404 without it is the same story: the host has no /api behind it (a static host answering for the API).
+      if ((res.status >= 500 || res.status === 404) && !data?.error) throw unreachable(false);
       const e = data?.error || {};
       const ra = Number(res.headers.get('Retry-After')) || null;
       throw new ApiError(res.status, e.code || (res.status >= 500 ? 'INTERNAL' : 'ERROR'), statusMessage(res.status, data, ra), e.details, ra);
     }
+    // A 2xx that is not JSON is not our API either (a static host's index.html answering /api/*): treat it as unreachable
+    // instead of handing `null` to hooks that read `.items` / `.product` off it.
+    if (!isJson) throw unreachable(false);
     return data;
   } finally {
     clearTimeout(timer);

@@ -7,7 +7,8 @@ export const isLandingPath = (pathname) => pathname === '/' || pathname === '/v2
 // customers go straight to the shop. A safe same-site `next` wins, except that an admin is only sent inside /admin.
 export const ADMIN_HOME = '/admin';
 export const CUSTOMER_HOME = '/shop';
-const safeNext = (next) => (next && next.startsWith('/') && !next.startsWith('//') ? next : null);
+// Same-site paths only: not `//host`, and not a backslash (browsers read a backslash as a slash).
+const safeNext = (next) => (next && next.startsWith('/') && !next.startsWith('//') && !next.includes(String.fromCharCode(92)) ? next : null);
 export function landingFor(user, next) {
   const n = safeNext(next);
   if (user?.role === 'admin') return n && (n === '/admin' || n.startsWith('/admin/')) ? n : ADMIN_HOME;

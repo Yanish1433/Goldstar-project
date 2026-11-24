@@ -40,5 +40,6 @@ describe('landingFor (where an account lands after login)', () => {
     expect(landingFor(admin, '/checkout')).toBe('/admin');
     expect(landingFor(customer, '//evil.example')).toBe('/shop');
     expect(landingFor(customer, 'https://evil.example')).toBe('/shop');
+    expect(landingFor(customer, '/' + String.fromCharCode(92) + 'evil.example')).toBe('/shop');
   });
 });
