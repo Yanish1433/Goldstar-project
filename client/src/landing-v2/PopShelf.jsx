@@ -27,7 +27,7 @@ import { shelfPhoto } from './shots.js';
 // as you scrolled and each shoe lifted out of its tile; round 0's shelves had the same pop (the shoe scaled and
 // tipped out of its card on hover). This keeps that mechanic and makes it the scene:
 //   desktop: the shelf pins; the empty cream plinths rise in, then the shoes pop up out of them one after another
-//   (from below the plinth floor, overshooting, tipping and settling), each with a royal-blue ring and a contact shadow,
+//   (from below the plinth floor, overshooting, tipping and settling), each with a contact shadow,
 //   then the names and prices land. All scrubbed: scroll up and every shoe sinks back into its plinth.
 //   phones: no pin; each card pops as it crosses the screen (its own scrubbed trigger).
 // Quick view and add to cart work on every card at every point of the scene.
@@ -64,8 +64,6 @@ export function PopCard({ product, onQuickView }) {
   return (
     <Box component="article" data-card aria-label={product.name} sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.25, md: 2 }, height: '100%' }}>
       <Box data-plinth sx={{ position: 'relative', borderRadius: `${t.radiusMd}px`, backgroundColor: t.cream, overflow: 'hidden', aspectRatio: '4 / 5', willChange: 'transform' }}>
-        {/* The blue ring that flashes behind a shoe as it pops (decorative). */}
-        <Box data-ring aria-hidden="true" sx={{ position: 'absolute', left: '50%', top: '52%', width: '70%', aspectRatio: '1', borderRadius: '50%', border: `2px solid ${t.blue}`, transform: 'translate(-50%, -50%) scale(0.4)', opacity: 0, pointerEvents: 'none' }} />
         {/* Contact shadow on the plinth floor. */}
         <Box data-shadow aria-hidden="true" sx={{ position: 'absolute', left: '18%', right: '18%', bottom: '14%', height: '7%', borderRadius: '50%', backgroundColor: t.ink, opacity: 0.16, filter: 'blur(10px)', pointerEvents: 'none' }} />
         <Box component={RouterLink} to={href} aria-label={`${product.name}, ${c.name}, ${formatNPR(c.price)}`} sx={{ position: 'absolute', inset: 0, display: 'block', ...FOCUS_RING, '&:focus-visible': { ...FOCUS_RING['&:focus-visible'], outlineOffset: -4 } }}>
@@ -158,8 +156,6 @@ function popInto(tl, gsap, card, at, span = 1) {
   tl.fromTo(q('[data-shoe]'), { yPercent: 105, rotate: -22, scale: 0.72 }, { yPercent: -9, rotate: 4, scale: 1.1, duration: 0.3 * span, ease: 'power2.out' }, at + 0.22 * span)
     .to(q('[data-shoe]'), { yPercent: 0, rotate: 0, scale: 1, duration: 0.22 * span, ease: 'back.out(2.2)' }, at + 0.52 * span)
     .fromTo(q('[data-shadow]'), { scaleX: 0.2, opacity: 0 }, { scaleX: 1, opacity: 0.16, duration: 0.4 * span, ease: 'power2.out' }, at + 0.3 * span)
-    .fromTo(q('[data-ring]'), { scale: 0.4, opacity: 0 }, { scale: 1.25, opacity: 0.7, duration: 0.25 * span, ease: 'power2.out' }, at + 0.34 * span)
-    .to(q('[data-ring]'), { scale: 1.6, opacity: 0, duration: 0.25 * span, ease: 'power1.in' }, at + 0.59 * span)
     .fromTo(q('[data-info]'), { y: 28, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.3 * span, ease: 'power3.out' }, at + 0.55 * span);
   return tl;
 }
