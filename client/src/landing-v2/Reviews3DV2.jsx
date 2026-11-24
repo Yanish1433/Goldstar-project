@@ -107,7 +107,7 @@ function Card3D({ rev }) {
             </Box>
             <Box
               sx={{
-                fontSize: 11,
+                fontSize: { xs: 12, md: 11 },
                 fontWeight: 800,
                 color: tokensV2.inkSecondary,
                 backgroundColor: tokensV2.blueWash,
@@ -162,7 +162,7 @@ function Card3D({ rev }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 0.5,
-                fontSize: 11,
+                fontSize: { xs: 12, md: 11 },
                 fontWeight: 800,
                 color: tokensV2.inkSecondary,
               }}

@@ -289,7 +289,7 @@ export function Deals() {
                   <img src={c.image.thumb || c.image.src} alt="" width={800} height={800} loading="lazy" decoding="async" />
                 </Box>
                 <Box sx={{ minWidth: 0 }}>
-                  <Box component="span" sx={{ display: 'inline-block', px: 1, py: 0.25, borderRadius: '999px', backgroundColor: land.sale, color: '#fff', fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Save {formatNPR(save)}</Box>
+                  <Box component="span" sx={{ display: 'inline-block', px: 1, py: 0.25, borderRadius: '999px', backgroundColor: land.sale, color: '#fff', fontSize: { xs: 12, md: 11 }, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Save {formatNPR(save)}</Box>
                   <Box sx={{ mt: 1, fontWeight: 800, ...WIDE, fontSize: 20 }}>{p.name}</Box>
                   <Box sx={{ mt: 0.5, display: 'flex', gap: 1, alignItems: 'baseline', flexWrap: 'wrap', fontVariantNumeric: 'tabular-nums' }}>
                     <Box component="span" sx={{ fontWeight: 800, fontSize: 17 }}>{formatNPR(c.price)}</Box>

@@ -83,7 +83,7 @@ function PriceCell({ p }) {
       {sale ? (
         <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', justifyContent: 'flex-end' }}>
           <Typography variant="caption" sx={(th) => ({ color: th.admin.ink3, textDecoration: 'line-through' })}>{formatNPR(maxRegular)}</Typography>
-          <Box component="span" sx={(th) => ({ fontSize: 11, fontWeight: 800, px: 0.75, borderRadius: 999, lineHeight: '18px', color: th.palette.mode === 'dark' ? '#FF9CB9' : '#C2124F', backgroundColor: th.palette.mode === 'dark' ? 'rgba(255,156,185,0.14)' : '#FCE4EC' })}>Sale</Box>
+          <Box component="span" sx={(th) => ({ fontSize: { xs: 12, md: 11 }, fontWeight: 800, px: 0.75, borderRadius: 999, lineHeight: '18px', color: th.palette.mode === 'dark' ? '#FF9CB9' : '#C2124F', backgroundColor: th.palette.mode === 'dark' ? 'rgba(255,156,185,0.14)' : '#FCE4EC' })}>Sale</Box>
         </Box>
       ) : null}
     </Box>
@@ -293,7 +293,7 @@ export default function AdminProducts() {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                           <Thumb src={p.colourways[0]?.images?.[0]?.thumb} size={48} />
                           <Box sx={{ minWidth: 0 }}>
-                            <Box component={RouterLink} to={`/admin/products/${p.id}`} onClick={(e) => e.stopPropagation()} sx={{ fontWeight: 700, color: 'inherit', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>{p.name}</Box>
+                            <Box component={RouterLink} to={`/admin/products/${p.id}`} onClick={(e) => e.stopPropagation()} sx={{ fontWeight: 700, color: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', minHeight: { xs: 44, md: 0 }, minWidth: { xs: 44, md: 0 }, '&:hover': { textDecoration: 'underline' } }}>{p.name}</Box>
                             <Typography variant="caption" component="div" sx={(th) => ({ color: th.admin.ink2 })}>{p.series ? `${p.series} series · ` : ''}{p.colourways.length} {p.colourways.length === 1 ? 'colour' : 'colours'}</Typography>
                             <Box sx={{ display: { md: 'none' }, mt: 0.5 }}><Swatches colourways={p.colourways} size={12} /></Box>
                           </Box>

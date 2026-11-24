@@ -57,7 +57,7 @@ function Tile({ t, hidden, eager, sx }) {
     >
       <img src={t.image.thumb || t.image.src} alt="" width={800} height={800} loading={eager ? 'eager' : 'lazy'} decoding="async" />
       {t.sale ? (
-        <Box component="span" sx={{ position: 'absolute', top: 12, left: 12, px: 1.1, py: 0.4, borderRadius: '999px', backgroundColor: land.sale, color: '#fff', fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Sale</Box>
+        <Box component="span" sx={{ position: 'absolute', top: 12, left: 12, px: 1.1, py: 0.4, borderRadius: '999px', backgroundColor: land.sale, color: '#fff', fontSize: { xs: 12, md: 11 }, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Sale</Box>
       ) : null}
       <Box sx={{ position: 'absolute', left: 14, right: 14, bottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 1 }}>
         <Box component="span" sx={{ fontSize: { xs: 13, md: 15 }, fontWeight: 800, ...WIDE, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.name}</Box>

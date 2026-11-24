@@ -413,7 +413,7 @@ export default function AdminProductEdit() {
                     <TextField size="small" label="Nepali name" value={c.nameNe} onChange={(e) => setIn('colourways', i, { nameNe: e.target.value })} slotProps={{ htmlInput: { lang: 'ne', style: { fontFamily: 'Mukta, sans-serif' } } }} />
                     <TextField size="small" label="Key" value={c.key} disabled={!c._new && !isNew} onChange={(e) => setIn('colourways', i, { key: e.target.value, _keyTouched: true })} {...fp(`colourways.${i}.key`, c._new || isNew ? 'e.g. olive' : 'Fixed after saving')} />
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-                      <Box component="input" type="color" aria-label={`Swatch colour for ${c.name || `colour ${i + 1}`}`} value={HEX.test(c.hex) ? c.hex : '#000000'} onChange={(e) => setIn('colourways', i, { hex: e.target.value.toUpperCase() })} sx={(th) => ({ width: 40, height: 40, p: 0.25, border: `1px solid ${th.admin.lineStrong}`, borderRadius: '8px', background: 'none', cursor: 'pointer', flex: 'none' })} />
+                      <Box component="input" type="color" aria-label={`Swatch colour for ${c.name || `colour ${i + 1}`}`} value={HEX.test(c.hex) ? c.hex : '#000000'} onChange={(e) => setIn('colourways', i, { hex: e.target.value.toUpperCase() })} sx={(th) => ({ width: 44, height: 44, p: 0.25, border: `1px solid ${th.admin.lineStrong}`, borderRadius: '8px', background: 'none', cursor: 'pointer', flex: 'none' })} />
                       <TextField size="small" label="Hex" value={c.hex} onChange={(e) => setIn('colourways', i, { hex: e.target.value })} sx={{ flex: 1 }} {...fp(`colourways.${i}.hex`)} />
                     </Box>
                   </Box>
