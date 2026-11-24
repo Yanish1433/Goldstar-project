@@ -98,7 +98,8 @@ describe('footer', () => {
     expect(screen.getByRole('link', { name: CONTACT.email })).toHaveAttribute('href', 'mailto:inquire@goldstarstride.com');
     expect(screen.getByText('Sankha park, Ringroad, Kathmandu')).toBeInTheDocument();
     expect(screen.getByText('© 2025 GOLDSTAR SHOES | All Rights Reserved')).toBeInTheDocument();
-    expect(document.getElementById('credits')).not.toBeNull();
+    expect(document.getElementById('credits')).toBeNull();
+    expect(screen.queryByText(/Concept store/)).toBeNull();
   });
   it('has the four social buttons and the WhatsApp button', () => {
     renderFooter();
