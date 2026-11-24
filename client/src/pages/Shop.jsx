@@ -259,7 +259,7 @@ export default function Shop() {
       </Box>
 
       <PageBox sx={{ pt: { xs: 3, md: 5 } }}>
-        {q.isError ? <Alert severity="error" sx={{ mb: 3 }}>Could not load the shoes. Try again in a moment.</Alert> : null}
+        {q.isError ? <Alert severity="error" sx={{ mb: 3 }} action={<Button color="inherit" size="small" onClick={() => q.refetch()} disabled={q.isFetching}>Retry</Button>}>{q.error?.code === 'OFFLINE' ? 'You are offline, so the shoes could not load.' : 'Could not load the shoes. Check your connection and retry.'}</Alert> : null}
 
         {q.isLoading ? (
           <Box sx={grid} aria-busy="true" aria-label="Loading shoes">{Array.from({ length: 6 }, (_, i) => <ProductCardSkeleton key={i} />)}</Box>

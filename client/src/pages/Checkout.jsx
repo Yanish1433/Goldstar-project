@@ -170,7 +170,7 @@ export default function Checkout() {
         <Box>
           <Typography variant="h1" component="h1" sx={{ fontSize: { xs: 40, md: 64 } }}>Checkout</Typography>
           <Typography sx={{ mt: 1, color: shop.ink2, display: 'flex', alignItems: 'center', gap: 0.75, fontSize: 14, fontWeight: 600 }}>
-            <Lock size={14} strokeWidth={2.5} aria-hidden="true" /> Demo checkout · nothing is charged online
+            <Lock size={14} strokeWidth={2.5} aria-hidden="true" /> Cash on delivery · nothing is charged online
           </Typography>
         </Box>
         <Steps current={1} />

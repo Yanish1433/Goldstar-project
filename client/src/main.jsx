@@ -4,12 +4,9 @@ import '@fontsource-variable/archivo/wdth.css';
 import '@fontsource/mukta/latin-600.css';
 import '@fontsource/mukta/devanagari-600.css';
 import App from './App.jsx';
-import { initApi } from './api/client.js';
 
-initApi().finally(() => {
-  createRoot(document.getElementById('root')).render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-  );
-});
+createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+);

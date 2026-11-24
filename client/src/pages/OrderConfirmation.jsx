@@ -8,6 +8,7 @@ import { PageBox, useTitle } from '../components/Page.jsx';
 import { StatusChip, ShippingBlock } from '../components/OrderParts.jsx';
 import { Band, Eyebrow, Panel, Steps, Thumb } from '../components/shop/kit.jsx';
 import NotFound from './NotFound.jsx';
+import { LoadError } from '../api/NetworkStates.jsx';
 import { useOrder } from '../api/hooks.js';
 import { formatNPR } from '../lib/format.js';
 import { shop, WIDE } from '../theme/tokens.js';
@@ -20,9 +21,10 @@ const NEXT = [
 
 export default function OrderConfirmation() {
   const { id } = useParams();
-  const { data: order, isLoading, error } = useOrder(id);
+  const { data: order, isLoading, error, refetch } = useOrder(id);
   useTitle('Order placed');
   if (isLoading) return <PageBox sx={{ py: 10 }}><Skeleton variant="rectangular" height={320} sx={{ borderRadius: `${shop.radius.xl}px` }} /></PageBox>;
+  if (error && !order && error.status !== 404 && error.status !== 400) return <LoadError error={error} onRetry={refetch} />;
   if (error || !order) return <NotFound />;
   const count = order.items.reduce((n, i) => n + i.qty, 0);
   return (
@@ -78,7 +80,7 @@ export default function OrderConfirmation() {
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <Panel>
-              <Eyebrow sx={{ color: shop.ink2, mb: 2 }}>What happens next · demo flow</Eyebrow>
+              <Eyebrow sx={{ color: shop.ink2, mb: 2 }}>What happens next</Eyebrow>
               <Box component="ol" sx={{ listStyle: 'none', m: 0, p: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {NEXT.map(({ icon: Icon, title, body }) => (
                   <Box component="li" key={title} sx={{ display: 'flex', gap: 1.5 }}>

@@ -26,7 +26,7 @@ export default function AdminCustomer() {
 
   if (q.isLoading) return <Box sx={{ display: 'grid', gap: 3 }}><Skeleton variant="rectangular" height={120} sx={{ borderRadius: '12px' }} /><Skeleton variant="rectangular" height={360} sx={{ borderRadius: '12px' }} /></Box>;
   if (q.error?.status === 404 || (!q.error && !c)) return <AdminNotFound what="customer" />;
-  if (q.error) return <Panel><ErrorState title="Could not load this customer" onRetry={() => q.refetch()} /></Panel>;
+  if (q.error) return <Panel><ErrorState title="Could not load this customer" error={q.error} onRetry={() => q.refetch()} /></Panel>;
 
   const orders = q.data.orders;
   const live = orders.filter((o) => o.status !== 'cancelled');

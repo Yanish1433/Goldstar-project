@@ -1,38 +1,42 @@
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
-import { apiFetch, ApiError } from './client.js';
+import { apiFetch, ApiError, isUnreachable } from './client.js';
 
 export const useMe = () =>
   useQuery({
     queryKey: ['me'],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       try {
-        return (await apiFetch('/auth/me')).user;
+        return (await apiFetch('/auth/me', { signal })).user;
       } catch (e) {
         if (e instanceof ApiError && e.status === 401) return null; // guest
         throw e;
       }
     },
     staleTime: 60_000,
-    retry: false,
+    retry: (n, e) => isUnreachable(e) && n < 2, // a 401 means guest: never retried
+    // Several components read the session, and the layout swaps them when it fails (admin shell -> store chrome):
+    // without this each newly mounted reader would refetch a failed session check, looping while the API is down.
+    // The Retry button refetches explicitly.
+    retryOnMount: false,
   });
 
 export const useProducts = (params) =>
-  useQuery({ queryKey: ['products', params], queryFn: () => apiFetch('/products', { query: params }), placeholderData: keepPreviousData });
+  useQuery({ queryKey: ['products', params], queryFn: ({ signal }) => apiFetch('/products', { query: params, signal }), placeholderData: keepPreviousData });
 
-export const useProduct = (slug) => useQuery({ queryKey: ['product', slug], queryFn: async () => (await apiFetch(`/products/${slug}`)).product, enabled: !!slug });
+export const useProduct = (slug) => useQuery({ queryKey: ['product', slug], queryFn: async ({ signal }) => (await apiFetch(`/products/${slug}`, { signal })).product, enabled: !!slug });
 
-export const useCategories = () => useQuery({ queryKey: ['categories'], queryFn: async () => (await apiFetch('/categories')).items });
+export const useCategories = () => useQuery({ queryKey: ['categories'], queryFn: async ({ signal }) => (await apiFetch('/categories', { signal })).items });
 
 export const useQuote = (items, enabled = true) =>
   useQuery({
     queryKey: ['quote', items],
-    queryFn: () => apiFetch('/cart/quote', { method: 'POST', body: { items } }),
+    queryFn: ({ signal }) => apiFetch('/cart/quote', { method: 'POST', body: { items }, signal }),
     enabled: enabled && items.length > 0,
     staleTime: 0,
   });
 
-export const useMyOrders = (params) => useQuery({ queryKey: ['orders', 'mine', params], queryFn: () => apiFetch('/orders/mine', { query: params }) });
-export const useOrder = (id) => useQuery({ queryKey: ['order', id], queryFn: async () => (await apiFetch(`/orders/${id}`)).order, enabled: !!id });
+export const useMyOrders = (params) => useQuery({ queryKey: ['orders', 'mine', params], queryFn: ({ signal }) => apiFetch('/orders/mine', { query: params, signal }) });
+export const useOrder = (id) => useQuery({ queryKey: ['order', id], queryFn: async ({ signal }) => (await apiFetch(`/orders/${id}`, { signal })).order, enabled: !!id });
 
 export function useLogin() {
   const qc = useQueryClient();
@@ -81,8 +85,8 @@ export function useCancelOrder() {
   });
 }
 
-export const useAdminProducts = (params, opts) => useQuery({ queryKey: ['admin', 'products', params], queryFn: () => apiFetch('/admin/products', { query: params }), placeholderData: keepPreviousData, ...opts });
-export const useAdminProduct = (id) => useQuery({ queryKey: ['admin', 'product', id], queryFn: async () => (await apiFetch(`/admin/products/${id}`)).product, enabled: !!id && id !== 'new' });
+export const useAdminProducts = (params, opts) => useQuery({ queryKey: ['admin', 'products', params], queryFn: ({ signal }) => apiFetch('/admin/products', { query: params, signal }), placeholderData: keepPreviousData, ...opts });
+export const useAdminProduct = (id) => useQuery({ queryKey: ['admin', 'product', id], queryFn: async ({ signal }) => (await apiFetch(`/admin/products/${id}`, { signal })).product, enabled: !!id && id !== 'new' });
 export function useSaveProduct() {
   const qc = useQueryClient();
   return useMutation({
@@ -95,8 +99,8 @@ export function useSaveProduct() {
     },
   });
 }
-export const useAdminOrders = (params, opts) => useQuery({ queryKey: ['admin', 'orders', params], queryFn: () => apiFetch('/admin/orders', { query: params }), placeholderData: keepPreviousData, ...opts });
-export const useAdminOrder = (id) => useQuery({ queryKey: ['admin', 'order', id], queryFn: async () => (await apiFetch(`/admin/orders/${id}`)).order, enabled: !!id });
+export const useAdminOrders = (params, opts) => useQuery({ queryKey: ['admin', 'orders', params], queryFn: ({ signal }) => apiFetch('/admin/orders', { query: params, signal }), placeholderData: keepPreviousData, ...opts });
+export const useAdminOrder = (id) => useQuery({ queryKey: ['admin', 'order', id], queryFn: async ({ signal }) => (await apiFetch(`/admin/orders/${id}`, { signal })).order, enabled: !!id });
 export function useSetOrderStatus() {
   const qc = useQueryClient();
   return useMutation({
@@ -110,6 +114,6 @@ export function useSetOrderStatus() {
   });
 }
 
-export const useAdminStats = (params) => useQuery({ queryKey: ['admin', 'stats', params], queryFn: () => apiFetch('/admin/stats', { query: params }), placeholderData: keepPreviousData });
-export const useAdminCustomers = (params, opts) => useQuery({ queryKey: ['admin', 'customers', params], queryFn: () => apiFetch('/admin/customers', { query: params }), placeholderData: keepPreviousData, ...opts });
-export const useAdminCustomer = (id) => useQuery({ queryKey: ['admin', 'customer', id], queryFn: () => apiFetch(`/admin/customers/${id}`), enabled: !!id });
+export const useAdminStats = (params) => useQuery({ queryKey: ['admin', 'stats', params], queryFn: ({ signal }) => apiFetch('/admin/stats', { query: params, signal }), placeholderData: keepPreviousData });
+export const useAdminCustomers = (params, opts) => useQuery({ queryKey: ['admin', 'customers', params], queryFn: ({ signal }) => apiFetch('/admin/customers', { query: params, signal }), placeholderData: keepPreviousData, ...opts });
+export const useAdminCustomer = (id) => useQuery({ queryKey: ['admin', 'customer', id], queryFn: ({ signal }) => apiFetch(`/admin/customers/${id}`, { signal }), enabled: !!id });

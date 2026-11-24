@@ -28,7 +28,7 @@ const schema = z.object({
   CLIENT_ORIGIN: z.string().default('http://localhost:5173'),
   SEED_ADMIN_EMAIL: z.string().optional(),
   SEED_ADMIN_PASSWORD: z.string().optional(),
-  SEED_ADMIN_NAME: z.string().default('Demo Admin'),
+  SEED_ADMIN_NAME: z.string().default('Store Admin'),
   SEED_ADMIN_RESET: bool,
   WOO_API_URL: z.string().default('https://goldstarshoes.com/wp-json/wc/store/v1/products'),
 });

@@ -31,6 +31,7 @@ import Quiet3D from '../components/Quiet3D.jsx';
 import ProductCard from '../components/shop/ProductCard.jsx';
 import { Band, Eyebrow, PriceTag, ShopBadge, TrustRow, badgesFor, descriptorFor } from '../components/shop/kit.jsx';
 import NotFound from './NotFound.jsx';
+import { LoadError } from '../api/NetworkStates.jsx';
 import { useProduct, useProducts } from '../api/hooks.js';
 import { makeLine, addToCartAnimated, pickSourceRect } from '../lib/addToCart.js';
 import { ApiError } from '../api/client.js';
@@ -238,7 +239,7 @@ function Related({ slug }) {
 
 export default function Product() {
   const { slug } = useParams();
-  const { data: product, isLoading, error } = useProduct(slug);
+  const { data: product, isLoading, error, refetch } = useProduct(slug);
   const [params, setParams] = useSearchParams();
   const [size, setSize] = useState(null);
   const [qty, setQty] = useState(1);
@@ -288,6 +289,7 @@ export default function Product() {
 
   if (isLoading) return <Loading />;
   if (error instanceof ApiError && error.status === 404) return <NotFound />;
+  if (error && !product) return <LoadError error={error} onRetry={refetch} />;
   if (!product || !colour) return <NotFound />;
 
   const can3d = slug === 'g10-401' && tier !== 'static' && !reduced;
@@ -423,7 +425,7 @@ export default function Product() {
               <Accordion>
                 <AccordionSummary expandIcon={<ChevronDown size={20} strokeWidth={2} aria-hidden="true" />}>Delivery & payment</AccordionSummary>
                 <AccordionDetails>
-                  <Typography variant="body2" sx={{ color: shop.ink2 }}>How this demo store works: you pay in cash when the shoes arrive, and the delivery fee is confirmed on a phone call before dispatch.</Typography>
+                  <Typography variant="body2" sx={{ color: shop.ink2 }}>How ordering works: you pay in cash when the shoes arrive, and the delivery fee is confirmed on a phone call before dispatch.</Typography>
                 </AccordionDetails>
               </Accordion>
             </Box>

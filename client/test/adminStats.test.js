@@ -1,4 +1,5 @@
 import { describe, expect, it, beforeAll } from 'vitest';
+import { SHOPPERS, seedMockShop } from './mockShop.js';
 import { computeStats, customerRollup, dayKey, orderMatches, sortCustomers, sortOrders, statusCounts, stockRows } from '../src/lib/adminStats.js';
 
 const NOW = new Date('2026-11-08T06:00:00.000Z'); // 11:45 in Kathmandu
@@ -93,43 +94,52 @@ describe('mock admin endpoints', () => {
   let mockRequest;
   beforeAll(async () => {
     ({ mockRequest } = await import('../src/api/mock/index.js'));
+  });
+
+  it('starts empty: no orders, no customers, only the bundled catalogue', async () => {
     await mockRequest('POST', '/auth/login', { email: 'admin@goldstar.test', password: 'x' });
-  });
-
-  it('seeds a lively store: customers, 60 days of orders, stock per size', async () => {
     const all = await mockRequest('GET', '/admin/orders', undefined, { limit: 100 });
-    expect(all.total).toBeGreaterThan(60);
-    expect(all.counts.all).toBe(all.total);
-    expect(all.counts.delivered).toBeGreaterThan(all.counts.cancelled);
-    const prods = await mockRequest('GET', '/admin/products', undefined, { limit: 100 });
-    expect(Object.keys(prods.items[0].colourways[0].stock)).toEqual(prods.items[0].colourways[0].sizes);
+    expect(all.total).toBe(0);
+    expect(all.counts.all).toBe(0);
+    const s = await mockRequest('GET', '/admin/stats', undefined, { days: 30 });
+    expect(s.kpis.revenue).toEqual({ value: 0, prev: 0 });
+    expect(s.kpis.orders).toEqual({ value: 0, prev: 0 });
+    expect(Number.isNaN(s.kpis.aov.value)).toBe(false);
+    expect(s.recentOrders).toEqual([]);
+    expect(s.series).toHaveLength(30);
+    expect(s.series.every((d) => d.orders === 0 && d.revenue === 0)).toBe(true);
+    expect((await mockRequest('GET', '/admin/products', undefined, { limit: 100 })).total).toBeGreaterThan(0);
   });
 
-  it('/admin/stats returns KPIs, a 30-day series and breakdowns', async () => {
+  it('/admin/stats counts the orders customers place', async () => {
+    const { orders } = await seedMockShop(mockRequest);
     const s = await mockRequest('GET', '/admin/stats', undefined, { days: 30 });
-    expect(s.series).toHaveLength(30);
-    expect(s.kpis.revenue.value).toBeGreaterThan(0);
-    expect(s.kpis.revenue.prev).toBeGreaterThan(0);
-    expect(s.recentOrders).toHaveLength(6);
+    const kept = orders.filter((o) => o.to !== 'cancelled');
+    expect(s.kpis.orders.value).toBe(kept.length);
+    expect(s.kpis.revenue.value).toBe(kept.reduce((a, o) => a + o.total, 0));
+    expect(s.recentOrders).toHaveLength(orders.length);
     expect(s.recentOrders[0].customer.name).toBeTruthy();
-    expect(s.topProducts.length).toBeGreaterThan(0);
+    expect(s.topProducts[0].slug).toBe('g10-401');
     expect((await mockRequest('GET', '/admin/stats', undefined, { days: 7 })).series).toHaveLength(7);
   });
 
   it('orders: status counts ignore the status tab, filters and sort apply', async () => {
     const placed = await mockRequest('GET', '/admin/orders', undefined, { status: 'placed', limit: 100 });
     const all = await mockRequest('GET', '/admin/orders', undefined, { limit: 100 });
+    expect(all.total).toBe(4);
     expect(placed.counts).toEqual(all.counts);
+    expect(all.counts).toMatchObject({ all: 4, placed: 1, shipped: 1, delivered: 1, cancelled: 1 });
     expect(placed.items.every((o) => o.status === 'placed')).toBe(true);
     const asc = await mockRequest('GET', '/admin/orders', undefined, { sort: 'total_asc', limit: 100 });
     expect(asc.items.map((o) => o.total)).toEqual([...asc.items.map((o) => o.total)].sort((a, b) => a - b));
     const byName = await mockRequest('GET', '/admin/orders', undefined, { q: 'Sita' });
+    expect(byName.items).toHaveLength(2);
     expect(byName.items.every((o) => o.customer.name === 'Sita Gurung')).toBe(true);
   });
 
   it('customers list and detail', async () => {
     const list = await mockRequest('GET', '/admin/customers', undefined, { limit: 100 });
-    expect(list.total).toBeGreaterThanOrEqual(16);
+    expect(list.total).toBe(SHOPPERS.length + 1); // + the mock's own sign-in shopper, who has no orders
     expect(list.items.every((c) => c.email !== 'admin@goldstar.test')).toBe(true);
     expect(list.items[0].totalSpent).toBeGreaterThanOrEqual(list.items[1].totalSpent);
     const top = list.items[0];
@@ -140,7 +150,7 @@ describe('mock admin endpoints', () => {
   });
 
   it('non-admins are refused', async () => {
-    await mockRequest('POST', '/auth/login', { email: 'demo@goldstar.test', password: 'x' });
+    await mockRequest('POST', '/auth/login', { email: 'shopper@goldstar.test', password: 'x' });
     await expect(mockRequest('GET', '/admin/stats')).rejects.toMatchObject({ status: 403 });
     await mockRequest('POST', '/auth/login', { email: 'admin@goldstar.test', password: 'x' });
   });

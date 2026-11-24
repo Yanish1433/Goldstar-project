@@ -213,7 +213,7 @@ export default function AdminOrder() {
     );
   }
   if (error?.status === 404 || (!error && !order)) return <AdminNotFound what="order" />;
-  if (error) return <Panel><ErrorState title="Could not load this order" onRetry={refetch} /></Panel>;
+  if (error) return <Panel><ErrorState title="Could not load this order" error={error} onRetry={refetch} /></Panel>;
   const qty = order.items.reduce((s, i) => s + i.qty, 0);
 
   return (

@@ -226,7 +226,7 @@ export default function AdminProducts() {
         <Button component={RouterLink} to="/admin/products/new" variant="contained" startIcon={<Plus size={16} aria-hidden="true" />}>Add product</Button>
       </Box>
 
-      {q.isError && !q.data ? <Panel><ErrorState title="Could not load products" onRetry={() => q.refetch()} /></Panel> : !q.isLoading && rows.length === 0 ? (
+      {q.isError && !q.data ? <Panel><ErrorState title="Could not load products" error={q.error} onRetry={() => q.refetch()} /></Panel> : !q.isLoading && rows.length === 0 ? (
         <Panel>
           <EmptyState
             icon={PackageSearch}

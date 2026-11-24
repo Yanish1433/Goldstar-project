@@ -5,6 +5,7 @@ import { useMe } from '../api/hooks.js';
 import NotFound from '../pages/NotFound.jsx';
 import { PageBox } from './Page.jsx';
 import { landingFor } from '../lib/paths.js';
+import { LoadError } from '../api/NetworkStates.jsx';
 
 function Pending() {
   return (
@@ -19,14 +20,19 @@ export function RequireAuth() {
   const me = useMe();
   const loc = useLocation();
   if (me.isLoading) return <Pending />;
+  if (me.isError) return <LoadError error={me.error} onRetry={() => me.refetch()} />;
   if (!me.data) return <Navigate to={`/login?next=${encodeURIComponent(loc.pathname + loc.search)}`} replace />;
   return <Outlet />;
 }
 
 export function RequireAdmin() {
   const me = useMe();
+  const loc = useLocation();
   if (me.isLoading) return <Pending />;
-  if (me.data?.role !== 'admin') return <NotFound />; // do not advertise the panel
+  if (me.isError) return <LoadError error={me.error} onRetry={() => me.refetch()} minHeight="100dvh" />;
+  // Signed out (or the session expired): log in and come back. Signed in without admin rights: do not advertise the panel.
+  if (!me.data) return <Navigate to={`/login?next=${encodeURIComponent(loc.pathname + loc.search)}`} replace />;
+  if (me.data.role !== 'admin') return <NotFound />;
   return <Outlet />;
 }
 

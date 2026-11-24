@@ -63,8 +63,18 @@ describe('route smoke renders with the mock API', () => {
     renderAt('/account');
     expect(await screen.findByRole('heading', { name: 'Log in' }, T)).toBeInTheDocument();
   });
-  it('non-admins see Not found on /admin', async () => {
+  it('guests opening /admin are asked to log in', async () => {
     renderAt('/admin/orders');
-    expect(await screen.findByRole('heading', { name: 'Page not found' }, T)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Log in' }, T)).toBeInTheDocument();
+  });
+  it('signed-in shoppers see Not found on /admin (the panel is not advertised)', async () => {
+    const { mockRequest } = await import('../src/api/mock/index.js');
+    await mockRequest('POST', '/auth/login', { email: 'shopper@goldstar.test', password: 'x' });
+    try {
+      renderAt('/admin/orders');
+      expect(await screen.findByRole('heading', { name: 'Page not found' }, T)).toBeInTheDocument();
+    } finally {
+      await mockRequest('POST', '/auth/logout');
+    }
   });
 });

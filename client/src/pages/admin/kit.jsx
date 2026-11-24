@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { isUnreachable } from '../../api/client.js';
+import { describeError } from '../../api/NetworkStates.jsx';
 import { Link as RouterLink } from 'react-router';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -118,7 +120,13 @@ export function EmptyState({ icon: Icon, title, body, action }) {
   );
 }
 
-export function ErrorState({ title = 'Could not load this', body = 'Check the connection and try again.', onRetry }) {
+export function ErrorState({ title = 'Could not load this', body = 'Try again in a moment.', onRetry, error }) {
+  // Never fake numbers: when the API is down, say so plainly and offer a retry.
+  if (isUnreachable(error)) {
+    const d = describeError(error);
+    title = d.title;
+    body = error.code === 'OFFLINE' ? d.body : 'The store server is not answering, so live data cannot be shown. Check that the server is running, then retry.';
+  } else if (error?.message && error.status >= 500) body = error.message;
   return (
     <Box role="alert" sx={{ py: 5, px: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 1 }}>
       <Box sx={(th) => ({ width: 44, height: 44, borderRadius: '12px', display: 'grid', placeItems: 'center', backgroundColor: th.admin.warnWash, color: th.admin.warn, mb: 1 })}>
@@ -126,7 +134,7 @@ export function ErrorState({ title = 'Could not load this', body = 'Check the co
       </Box>
       <Typography variant="h3" component="p">{title}</Typography>
       <Typography variant="body2" sx={(th) => ({ color: th.admin.ink2 })}>{body}</Typography>
-      {onRetry ? <Button variant="outlined" size="small" onClick={onRetry} sx={{ mt: 1.5 }}>Try again</Button> : null}
+      {onRetry ? <Button variant="outlined" size="small" onClick={() => onRetry()} sx={{ mt: 1.5 }}>Retry</Button> : null}
     </Box>
   );
 }
