@@ -18,7 +18,14 @@ export const authFormSx = {
     '&.Mui-error .MuiOutlinedInput-notchedOutline': { borderColor: store.error, borderWidth: 2 },
   },
   '& input:-webkit-autofill': { WebkitBoxShadow: `0 0 0 100px ${store.cream} inset`, WebkitTextFillColor: store.navy, caretColor: store.navy, borderRadius: 'inherit' },
-  '& .MuiInputLabel-root': { color: store.ink2, '&.Mui-focused': { color: store.blue }, '&.Mui-error': { color: store.error } },
+  // Labels sit above the box as plain text (not floating inside / notched into the border): calmer on phones.
+  '& .MuiInputLabel-root': {
+    position: 'static', transform: 'none', mb: 0.75, maxWidth: 'none', whiteSpace: 'normal',
+    fontSize: 15, fontWeight: 600, lineHeight: 1.3, color: store.navy,
+    '&.Mui-focused': { color: store.blue }, '&.Mui-error': { color: store.error },
+  },
+  '& .MuiOutlinedInput-notchedOutline legend': { display: 'none' },
+  '& .MuiOutlinedInput-notchedOutline': { top: 0 },
   '& .MuiFormHelperText-root': { color: store.ink2, '&.Mui-error': { color: store.error, fontWeight: 600 }, '&.Mui-error::before': { content: '"\\26A0\\00a0"' } },
   '& .MuiAlert-root': { borderRadius: `${store.radius.md}px` },
   '& .MuiIconButton-root': { width: 44, height: 44 },
