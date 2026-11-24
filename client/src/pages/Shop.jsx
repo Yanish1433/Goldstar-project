@@ -24,6 +24,9 @@ const SORTS = [
   { value: 'newest', label: 'Newest' },
 ];
 const LIMIT = 12;
+// Sky colour of the banner artwork: shown while the image loads, so the box never flashes royal blue.
+const BANNER_SKY = '#B9D0F6';
+const BANNER_WASH = 'rgba(185,208,246,0.82)';
 
 const grid = {
   listStyle: 'none', p: 0, m: 0, display: 'grid',
@@ -221,13 +224,28 @@ export default function Shop() {
         <Box
           className="shop-banner"
           sx={{
-            position: 'relative', overflow: 'hidden', backgroundColor: store.blue, color: store.onBlue, borderRadius: { xs: `${store.radius.lg}px`, md: `${store.radius.xl}px` },
-            '&::after': { content: '""', position: 'absolute', right: { xs: -70, md: -40 }, top: { xs: -80, md: -90 }, width: { xs: 220, md: 340 }, height: { xs: 220, md: 340 }, borderRadius: '50%', backgroundColor: store.blueDeep, opacity: 0.55, pointerEvents: 'none' },
+            position: 'relative', overflow: 'hidden', backgroundColor: BANNER_SKY, color: store.navy, borderRadius: { xs: `${store.radius.lg}px`, md: `${store.radius.xl}px` },
           }}
         >
-          <PageBox sx={{ position: 'relative', zIndex: 1, py: { xs: 2.5, md: 4.5 }, minHeight: { md: 170 }, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { md: 'flex-end' }, justifyContent: 'space-between', gap: { xs: 1, md: 4 }, [SHORT]: { py: 1.5, minHeight: 0, flexDirection: 'row', alignItems: 'flex-end', gap: 3 } }}>
+          {/* Decorative skyline art. One stable <img> (not keyed by category) so chip clicks never re-decode it. */}
+          <Box component="picture" aria-hidden="true" sx={{ position: 'absolute', inset: 0, display: 'block', pointerEvents: 'none' }}>
+            <source media="(max-width:599.95px)" srcSet="/img/shop/nepal-skyline-phone-800.webp" />
+            <Box
+              component="img"
+              src="/img/shop/nepal-skyline-1800.webp"
+              srcSet="/img/shop/nepal-skyline-800.webp 800w, /img/shop/nepal-skyline-1200.webp 1200w, /img/shop/nepal-skyline-1800.webp 1800w"
+              sizes="100vw"
+              width={1800}
+              height={675}
+              alt=""
+              fetchPriority="high"
+              decoding="async"
+              sx={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', objectPosition: { xs: '75% 100%', md: 'center 78%' }, [SHORT]: { objectPosition: '70% 60%' } }}
+            />
+          </Box>
+          <PageBox sx={{ position: 'relative', zIndex: 1, pt: { xs: 2.5, md: 4.5 }, pb: { xs: 15, md: 4.5 }, minHeight: { md: 'clamp(240px, 20vw, 360px)' }, boxSizing: 'border-box', display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { md: 'flex-start' }, justifyContent: 'space-between', gap: { xs: 1, md: 4 }, [SHORT]: { pt: 1.5, pb: 6, minHeight: 0, flexDirection: 'row', alignItems: 'flex-start', gap: 3 } }}>
             <Box sx={{ minWidth: 0 }}>
-              <Eyebrow sx={{ mb: { xs: 0.5, md: 1.25 }, color: store.sand, display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
+              <Eyebrow sx={{ mb: { xs: 0.5, md: 1.25 }, color: store.navy, display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
                 <Sparkle size={14} fill="currentColor" strokeWidth={0} aria-hidden="true" /> Goldstar Shoes · Made in Nepal
               </Eyebrow>
               <Box
@@ -236,14 +254,15 @@ export default function Shop() {
                 initial={reduced ? false : { opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                sx={{ m: 0, ...DISPLAY, fontSize: { xs: 'clamp(30px, 10vw, 40px)', md: 'clamp(52px, 6vw, 84px)' }, [SHORT]: { fontSize: 'clamp(28px, 9svh, 40px)' }, color: '#FFFFFF' }}
+                sx={{ m: 0, ...DISPLAY, fontSize: { xs: 'clamp(30px, 10vw, 40px)', md: 'clamp(52px, 6vw, 84px)' }, [SHORT]: { fontSize: 'clamp(28px, 9svh, 40px)' }, color: store.navy }}
               >
                 {title}
               </Box>
             </Box>
-            <Box sx={{ maxWidth: 360, pb: { md: 0.5 } }}>
-              <Typography sx={{ fontSize: { xs: 15, md: 17 }, fontWeight: 600, lineHeight: 1.4, color: store.onBlue }}>{LINES[category] || LINES['']}</Typography>
-              <Typography aria-live="polite" sx={{ fontSize: 13, fontWeight: 800, color: store.sand, fontVariantNumeric: 'tabular-nums', minHeight: 18, display: { xs: 'none', sm: 'block' }, mt: 0.25 }}>
+            {/* A soft sky-coloured wash only behind the intro, so the sun, birds and peak never fight the small text. */}
+            <Box sx={{ position: 'relative', maxWidth: 360, pb: { md: 0.5 }, '&::before': { content: '""', position: 'absolute', zIndex: -1, inset: { xs: '-8px -14px', md: '-10px -22px' }, borderRadius: '28px', backgroundColor: BANNER_WASH, filter: 'blur(9px)', pointerEvents: 'none' } }}>
+              <Typography sx={{ fontSize: { xs: 15, md: 17 }, fontWeight: 600, lineHeight: 1.4, color: store.navy }}>{LINES[category] || LINES['']}</Typography>
+              <Typography aria-live="polite" sx={{ fontSize: 13, fontWeight: 800, color: store.navy, fontVariantNumeric: 'tabular-nums', minHeight: 18, display: { xs: 'none', sm: 'block' }, mt: 0.25 }}>
                 {total == null ? ' ' : `${total} ${total === 1 ? 'style' : 'styles'}`}
               </Typography>
             </Box>

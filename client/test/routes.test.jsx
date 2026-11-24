@@ -42,6 +42,17 @@ describe('route smoke renders with the mock API', () => {
     expect(await screen.findByRole('heading', { name: 'Shop all' }, T)).toBeInTheDocument();
     expect(await screen.findByText('AX-3', {}, T)).toBeInTheDocument();
   });
+  it('/shop banner art is a decorative, size-reserved, responsive image in navy-on-sky', async () => {
+    const { container } = renderAt('/shop');
+    await screen.findByRole('heading', { name: 'Shop all' }, T);
+    const img = container.querySelector('.shop-banner img');
+    expect(img).not.toBeNull();
+    expect(img.getAttribute('alt')).toBe('');
+    expect(img.getAttribute('srcset')).toMatch(/800w.*1200w.*1800w/);
+    expect(img.getAttribute('width')).toBe('1800');
+    expect(img.getAttribute('height')).toBe('675');
+    expect(getComputedStyle(screen.getByRole('heading', { name: 'Shop all' })).color).toBe('rgb(11, 26, 72)');
+  });
   it('/product/g10-401 shows the buy panel and no link out to goldstarshoes.com', async () => {
     renderAt('/product/g10-401');
     expect(await screen.findByRole('button', { name: 'Add to cart' }, T)).toBeInTheDocument();
