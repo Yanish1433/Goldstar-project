@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router';
+import { Link as RouterLink } from 'react-router';
 import Drawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -14,7 +14,7 @@ import { useQuote } from '../api/hooks.js';
 import { formatNPR } from '../lib/format.js';
 import { shop } from '../theme/tokens.js';
 import QtyStepper from './QtyStepper.jsx';
-import { useBackToClose } from '../lib/useBackToClose.js';
+import { leaveOnClick, useBackToClose } from '../lib/useBackToClose.js';
 import { SHORT, TOUCH } from '../landing-v2/tokensV2.js';
 import { Thumb, TrustRow } from './shop/kit.jsx';
 
@@ -27,10 +27,10 @@ export default function CartDrawer() {
   const replacePrices = useCart((s) => s.replacePrices);
   const subtotal = useCart(cartSubtotal);
   const count = useCart(cartCount);
-  const navigate = useNavigate();
   const [priceChanged, setPriceChanged] = useState(false);
   const reduced = useReducedMotion();
-  useBackToClose(open, close); // phones: Back closes the cart
+  const leave = useBackToClose(open, close); // phones: Back closes the cart
+  const leaveLink = leaveOnClick(leave);
 
   const items = useMemo(() => lines.map((l) => ({ productId: l.productId, colourwayKey: l.colourwayKey, size: l.size, qty: l.qty })), [lines]);
   // Re-price from the server whenever the drawer opens (queryKey changes with the lines; staleTime 0).
@@ -82,7 +82,7 @@ export default function CartDrawer() {
           </Box>
           <Typography variant="h4" component="p">Your cart is empty.</Typography>
           <Typography sx={{ color: shop.ink2, maxWidth: '30ch' }}>Trail boots and everyday pairs are waiting in the shop.</Typography>
-          <Button variant="contained" size="large" onClick={() => { close(); navigate('/shop'); }} endIcon={<ArrowRight size={18} strokeWidth={2.25} aria-hidden="true" />} sx={{ mt: 1 }}>Shop all</Button>
+          <Button variant="contained" size="large" onClick={() => leave('/shop')} endIcon={<ArrowRight size={18} strokeWidth={2.25} aria-hidden="true" />} sx={{ mt: 1 }}>Shop all</Button>
         </Box>
       ) : (
         <>
@@ -102,12 +102,12 @@ export default function CartDrawer() {
                   transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
                   sx={{ display: 'flex', gap: 2, py: 2, borderBottom: `1px solid ${shop.line}`, '&:last-of-type': { borderBottom: 0 } }}
                 >
-                  <Box component={RouterLink} to={`/product/${l.slug}?colour=${l.colourwayKey}`} onClick={close} tabIndex={-1} aria-hidden="true" sx={{ display: 'block' }}>
+                  <Box component={RouterLink} to={`/product/${l.slug}?colour=${l.colourwayKey}`} onClick={leaveLink} tabIndex={-1} aria-hidden="true" sx={{ display: 'block' }}>
                     <Thumb src={imageFor(l)} size={92} />
                   </Box>
                   <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.25 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, alignItems: 'baseline' }}>
-                      <Typography component={RouterLink} to={`/product/${l.slug}?colour=${l.colourwayKey}`} onClick={close} sx={{ fontWeight: 800, fontSize: 16, color: 'inherit', textDecoration: 'none', display: 'inline-block', lineHeight: '26px', py: '9px', my: '-9px', minWidth: 44, '&:hover': { textDecoration: 'underline' } }}>{l.name}</Typography>
+                      <Typography component={RouterLink} to={`/product/${l.slug}?colour=${l.colourwayKey}`} onClick={leaveLink} sx={{ fontWeight: 800, fontSize: 16, color: 'inherit', textDecoration: 'none', display: 'inline-block', lineHeight: '26px', py: '9px', my: '-9px', minWidth: 44, '&:hover': { textDecoration: 'underline' } }}>{l.name}</Typography>
                       <Typography sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 800, fontSize: 15, whiteSpace: 'nowrap' }}>{formatNPR(l.qty * l.unitPrice)}</Typography>
                     </Box>
                     <Typography variant="body2" sx={{ color: shop.ink2 }}>{l.colourwayName} · UK {l.size}{l.qty > 1 ? ` · ${formatNPR(l.unitPrice)} each` : ''}</Typography>
@@ -137,7 +137,7 @@ export default function CartDrawer() {
               <Typography sx={{ fontWeight: 800, fontSize: 17 }}>Total</Typography>
               <Typography sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 800, fontSize: 24, fontStretch: '108%', fontVariationSettings: '"wdth" 108' }}>{formatNPR(subtotal)}</Typography>
             </Box>
-            <Button variant="contained" size="large" onClick={() => { close(); navigate('/checkout'); }} startIcon={<Lock size={18} strokeWidth={2.25} aria-hidden="true" />} sx={{ mt: 1 }}>Checkout</Button>
+            <Button variant="contained" size="large" onClick={() => leave('/checkout')} startIcon={<Lock size={18} strokeWidth={2.25} aria-hidden="true" />} sx={{ mt: 1 }}>Checkout</Button>
             <Button variant="text" onClick={close} sx={{ alignSelf: 'center', minHeight: 44 }}>Keep shopping</Button>
             <TrustRow variant="mini" />
           </Box>

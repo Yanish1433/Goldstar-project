@@ -13,7 +13,7 @@ import { tokens } from '../theme/tokens.js';
 import { PAGE_PX } from './Page.jsx';
 import { SHORT } from '../landing-v2/tokensV2.js';
 import Logo from '../landing/Logo.jsx';
-import { useBackToClose } from '../lib/useBackToClose.js';
+import { leaveOnClick, useBackToClose } from '../lib/useBackToClose.js';
 import { useMe } from '../api/hooks.js';
 import { useCart, cartCount, cartVisibleCount } from '../store/cart.js';
 import { useUi } from '../store/ui.js';
@@ -196,7 +196,7 @@ export default function AppBar() {
   const isAdmin = me.data?.role === 'admin';
   const menuSeen = useRef(false);
   if (menuOpen) menuSeen.current = true;
-  useBackToClose(menuOpen, closeMenu); // phones: Back closes the menu
+  const leaveMenu = useBackToClose(menuOpen, closeMenu); // phones: Back closes the menu
 
   useEffect(() => {
     closeMenu();
@@ -325,7 +325,7 @@ export default function AppBar() {
                 [SHORT]: { gap: 0.5, pl: 'max(24px, env(safe-area-inset-left))', '& .MuiButton-root': { fontSize: 18, minHeight: 44 } },
               }}
             >
-              {links(closeMenu, brand ? 'brand' : 'dark')}
+              {links(leaveOnClick(leaveMenu), brand ? 'brand' : 'dark')}
             </Box>
           </Drawer>
         </Suspense>
