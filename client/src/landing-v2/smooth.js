@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { loadGsap, appbarH } from './motion.js';
+import { bindGlideRelease } from '../lib/lenisKeys.js';
 
 // Smooth scrolling for the landing: Lenis, driven by the GSAP ticker (the same pattern as the /g10 story engine:
 // autoRaf off, lenis.raf on gsap.ticker, ScrollTrigger.update on every Lenis scroll, lagSmoothing(0) while it runs).
@@ -31,7 +32,9 @@ export function startLenis(gsap, ScrollTrigger, Lenis) {
   gsap.ticker.add(raf);
   gsap.ticker.lagSmoothing(0);
   window.__lenis = lenis;
+  const unbindKeys = bindGlideRelease(lenis);
   return () => {
+    unbindKeys();
     gsap.ticker.remove(raf);
     lenis.destroy();
     if (window.__lenis === lenis) window.__lenis = null;

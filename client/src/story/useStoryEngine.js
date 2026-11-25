@@ -5,6 +5,7 @@ import Lenis from 'lenis';
 import { FINALE, HOLD, PALETTE, SECTIONS, START, TOTAL, TRANSITION, copyTrack, endOf } from './storyline.js';
 import { live, touch } from './state.js';
 import { scrollToTime } from './scrollTime.js';
+import { bindGlideRelease } from '../lib/lenisKeys.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -75,6 +76,7 @@ export function useStoryEngine({ rootRef, bgRef, reduced, onTime }) {
     gsap.ticker.add(raf);
     gsap.ticker.lagSmoothing(0);
     window.__lenis = lenis; // used by in-page links (scroll to a section)
+    const unbindKeys = bindGlideRelease(lenis); // Home/End/PageUp… mid-glide win over the glide
 
     const vh = () => live.vh;
     let scrub = null;
@@ -193,6 +195,7 @@ export function useStoryEngine({ rootRef, bgRef, reduced, onTime }) {
 
     return () => {
       window.removeEventListener('resize', onResize);
+      unbindKeys();
       ctx.revert();
       gsap.ticker.remove(raf);
       gsap.ticker.remove(sync);
