@@ -108,6 +108,10 @@ export function useSetOrderStatus() {
     onSuccess: (d) => {
       qc.setQueryData(['admin', 'order', d.order.id], d.order);
       qc.invalidateQueries({ queryKey: ['admin', 'orders'] });
+      // Revenue, status counts and customer "spent" all depend on the status (cancelled orders don't count).
+      qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'customers'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'customer'] });
       qc.invalidateQueries({ queryKey: ['orders'] });
       qc.invalidateQueries({ queryKey: ['order'] });
     },
